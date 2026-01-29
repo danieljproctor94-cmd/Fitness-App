@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
-import { Upload, Save, Camera, Lock, Trash2, Mail, ShieldAlert } from "lucide-react";
-import { Separator } from "@/components/ui/dropdown-menu"; // Fallback separator import if standard ui/separator missing
+import { Save, Camera, Lock, Trash2, Mail, ShieldAlert } from "lucide-react";
+// import { Separator } from "@/components/ui/dropdown-menu"; // Unused and potentially incorrect
+
 
 export default function AccountSettings() {
     const { userProfile, updateUserProfile } = useData();

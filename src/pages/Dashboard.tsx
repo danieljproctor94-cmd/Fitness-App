@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Dumbbell, Flame, Scale, Plus, ArrowRight } from "lucide-react";
+import { Activity, Dumbbell, Flame, Scale, Plus } from "lucide-react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, subMonths, isAfter, parseISO, startOfWeek } from "date-fns";

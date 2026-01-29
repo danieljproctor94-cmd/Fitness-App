@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trophy, Medal, Crown, Activity, Scale, ArrowUp, ArrowDown, Minus, Share2, Users, Globe } from "lucide-react";
+import { Medal, Crown, Activity, Scale, Share2, Users, Globe } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -51,14 +51,14 @@ export default function Leaderboard() {
         }
     });
 
-    const getRankIcon = (index) => {
+    const getRankIcon = (index: number) => {
         if (index === 0) return <Crown className="h-6 w-6 text-yellow-500 fill-yellow-500" />;
         if (index === 1) return <Medal className="h-6 w-6 text-gray-400 fill-gray-400" />;
         if (index === 2) return <Medal className="h-6 w-6 text-amber-600 fill-amber-600" />;
         return <span className="text-lg font-bold w-6 text-center text-muted-foreground">{index + 1}</span>;
     };
 
-    const displayValue = (user) => {
+    const displayValue = (user: any) => {
         if (viewMode === "weight") {
             const val = user.weightChange;
             const color = val <= 0 ? "text-green-500" : "text-red-500";

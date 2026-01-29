@@ -48,13 +48,13 @@ export interface UserProfile {
     arms: string;
     subscription_tier?: string;
     email?: string;
+    id?: string;
 }
 
 interface DataContextType {
     workouts: Workout[];
     measurements: Measurement[];
-    userProfile: UserProfile;
-    addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
+    userProfile: UserProfile; addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
     deleteWorkout: (id: string) => Promise<void>;
     addMeasurement: (measurement: Omit<Measurement, 'id'>) => Promise<void>;
     deleteMeasurement: (id: string) => Promise<void>;
@@ -114,6 +114,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (pData) {
                 setUserProfile({
+                    id: pData.id,
                     displayName: pData.full_name || '',
                     photoURL: pData.avatar_url || '',
                     gender: pData.gender || 'male',
