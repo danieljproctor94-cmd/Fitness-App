@@ -210,7 +210,7 @@ export default function Mindset() {
                 </h2>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {mindsetLogs.filter(log => log !== todayLog).map((log) => (
+                    {mindsetLogs.filter(log => log.id !== todayLog?.id).map((log) => (
                         <Card key={log.id} className="flex flex-col">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base font-medium">
@@ -229,9 +229,9 @@ export default function Mindset() {
                             </CardContent>
                         </Card>
                     ))}
-                    {mindsetLogs.length === 0 && !todayLog && (
+                    {mindsetLogs.filter(log => log.id !== todayLog?.id).length === 0 && (
                         <div className="col-span-full text-center py-10 text-muted-foreground">
-                            No entries yet. Start your journey today!
+                            {todayLog ? "No past entries yet. You're off to a great start!" : "No entries yet. Start your journey today!"}
                         </div>
                     )}
                 </div>
