@@ -9,8 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
+import { BottomNav } from "./BottomNav";
 
-const navItems = [
+export const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/workouts", label: "Workouts", icon: Dumbbell },
     { href: "/measurements", label: "Measurements", icon: Ruler },
@@ -92,14 +93,14 @@ export function AppShell() {
             {/* Mobile Sidebar Backdrop */}
             {isMobileMenuOpen && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/50 md:hidden animate-in fade-in-0"
+                    className="fixed inset-0 z-[55] bg-black/50 md:hidden animate-in fade-in-0"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
             {/* Sidebar (Desktop) */}
             <aside className={cn(
-                "fixed inset-y-0 z-50 flex w-64 flex-col border-r bg-background transition-transform md:relative md:translate-x-0",
+                "fixed inset-y-0 z-[60] flex w-64 flex-col border-r bg-background transition-transform md:relative md:translate-x-0",
                 isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
             )}>
                 <div className="flex h-16 items-center justify-start border-b p-4 overflow-hidden shrink-0">
@@ -262,9 +263,10 @@ export function AppShell() {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
                     <Outlet />
                 </div>
+                <BottomNav />
             </main>
         </div>
     );
