@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Dumbbell, LayoutDashboard, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop } from "lucide-react";
+import { Menu, Dumbbell, LayoutDashboard, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { useState, useEffect } from "react";
@@ -15,6 +15,7 @@ const navItems = [
     { href: "/workouts", label: "Workouts", icon: Dumbbell },
     { href: "/measurements", label: "Measurements", icon: Ruler },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/mindset", label: "Mindset", icon: Brain },
     { href: "/support", label: "Support", icon: LifeBuoy },
 ];
 

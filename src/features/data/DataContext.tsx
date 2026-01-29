@@ -51,13 +51,24 @@ export interface UserProfile {
     id?: string;
 }
 
+export interface MindsetLog {
+    id: string;
+    date: string;
+    grateful_for: string;
+    improvements: string;
+    created_at?: string;
+}
+
 interface DataContextType {
     workouts: Workout[];
     measurements: Measurement[];
-    userProfile: UserProfile; addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
+    mindsetLogs: MindsetLog[];
+    userProfile: UserProfile;
+    addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
     deleteWorkout: (id: string) => Promise<void>;
     addMeasurement: (measurement: Omit<Measurement, 'id'>) => Promise<void>;
     deleteMeasurement: (id: string) => Promise<void>;
+    addMindsetLog: (log: Omit<MindsetLog, 'id'>) => Promise<void>;
     updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
 }
 
@@ -86,6 +97,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { user } = useAuth();
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [measurements, setMeasurements] = useState<Measurement[]>([]);
+    const [mindsetLogs, setMindsetLogs] = useState<MindsetLog[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
 
     // Fetch Data
@@ -93,6 +105,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!user) {
             setWorkouts([]);
             setMeasurements([]);
+            setMindsetLogs([]);
             setUserProfile(initialUserProfile);
             return;
         }
@@ -108,7 +121,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (mError) console.error("Error fetching measurements:", mError);
             if (mData) setMeasurements(mData);
 
-            // 3. Profile
+            // 3. Mindset Logs
+            const { data: mlData, error: mlError } = await supabase.from('mindset_logs').select('*').order('date', { ascending: false });
+            // Suppress error if table doesn't exist yet (common during dev)
+            if (mlError && mlError.code !== '42P01') console.error("Error fetching mindset logs:", mlError);
+            if (mlData) setMindsetLogs(mlData);
+
+            // 4. Profile
             const { data: pData, error: pError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
             if (pError && pError.code !== 'PGRST116') console.error("Error fetching profile:", pError);
 
@@ -208,6 +227,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success("Measurement deleted!");
     };
 
+    const addMindsetLog = async (log: Omit<MindsetLog, 'id'>) => {
+        if (!user) return;
+
+        const { data, error } = await supabase.from('mindset_logs').insert([{
+            user_id: user.id,
+            ...log
+        }]).select();
+
+        if (error) {
+            console.error("Error adding mindset log:", error);
+            toast.error(`Failed to save log: ${error.message}`);
+            return;
+        }
+
+        if (data) {
+            setMindsetLogs(prev => [data[0], ...prev]);
+            toast.success("Log saved!");
+        }
+    };
+
     const updateUserProfile = async (profile: Partial<UserProfile>) => {
         if (!user) return;
 
@@ -241,11 +280,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <DataContext.Provider value={{
             workouts,
             measurements,
+            mindsetLogs,
             userProfile,
             addWorkout,
             deleteWorkout,
             addMeasurement,
             deleteMeasurement,
+            addMindsetLog,
             updateUserProfile
         }}>
             {children}

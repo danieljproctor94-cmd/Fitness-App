@@ -14,6 +14,7 @@ import Account from "@/pages/Account";
 import Settings from "@/pages/Settings";
 import Leaderboard from "@/pages/Leaderboard";
 import Support from "@/pages/Support";
+import Mindset from "@/pages/Mindset";
 
 function App() {
     return (
@@ -34,6 +35,7 @@ function App() {
                                     <Route path="/account" element={<Account />} />
                                     <Route path="/settings" element={<Settings />} />
                                     <Route path="/support" element={<Support />} />
+                                    <Route path="/mindset" element={<Mindset />} />
                                 </Route>
                             </Route>
                         </Routes>
