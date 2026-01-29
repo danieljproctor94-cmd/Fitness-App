@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+}
+
+@layer base {
+  :root {
+    /* Defaulting to the Dark Cyber Look even in "root" to ensure instant impact */
+    --background: 234 30% 6%;
+    /* #0b0c15 - Deepest Navy */
+    --foreground: 210 40% 98%;
+
+    --card: 231 29% 9%;
+    /* #11131f - Dark Navy Card */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 231 29% 9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 258 90% 66%;
+    /* #8b5cf6 - Electric Violet */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 235 30% 15%;
+    /* Darker secondary for contrast */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 235 30% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 258 90% 66%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 236 30% 17%;
+    /* #1f213a - Subtle Indigo Border */
+    --input: 236 30% 17%;
+    --ring: 258 90% 66%;
+
+    --radius: 0.5rem;
+  }
+
+  /* Retain specific dark overrides if needed, but root is now dark by default */
+  .dark {
+    --background: 234 30% 6%;
+    --foreground: 210 40% 98%;
+    --card: 231 29% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 231 29% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 258 90% 66%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 235 30% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 235 30% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 235 30% 15%;
+    /* Accent on hover often needs to be subtle, not full primary */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 236 30% 17%;
+    --input: 236 30% 17%;
+    --ring: 258 90% 66%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
