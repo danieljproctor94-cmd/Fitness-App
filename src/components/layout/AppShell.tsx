@@ -110,6 +110,7 @@ export function AppShell() {
                         <Link
                             key={item.href}
                             to={item.href}
+                            onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
                                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
                                 location.pathname === item.href ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground"
@@ -141,7 +142,7 @@ export function AppShell() {
                             <h3 className="font-semibold">Upgrade to Pro</h3>
                             <p className="mt-1 text-xs text-white/90">Get unlimited access to all features.</p>
                             <Button size="sm" variant="secondary" className="mt-4 w-full" asChild>
-                                <Link to="/account">Upgrade Now</Link>
+                                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Upgrade Now</Link>
                             </Button>
                         </div>
                     ) : (
@@ -149,7 +150,7 @@ export function AppShell() {
                             <h3 className="font-semibold text-sm">Subscription Active</h3>
                             <p className="mt-1 text-xs text-muted-foreground">You are on the {userProfile.subscription_tier} plan.</p>
                             <Button size="sm" variant="outline" className="mt-4 w-full" asChild>
-                                <Link to="/account">Manage Subscription</Link>
+                                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Manage Subscription</Link>
                             </Button>
                         </div>
                     )}
@@ -187,21 +188,21 @@ export function AppShell() {
                             <DropdownMenuSeparator />
 
                             <DropdownMenuItem asChild>
-                                <Link to="/account" className="cursor-pointer w-full flex items-center">
+                                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
                                     <SettingsIcon className="mr-2 h-4 w-4" />
                                     Account
                                 </Link>
                             </DropdownMenuItem>
 
                             <DropdownMenuItem asChild>
-                                <Link to="/account" className="cursor-pointer w-full flex items-center">
+                                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
                                     <SettingsIcon className="mr-2 h-4 w-4" />
                                     Billing
                                 </Link>
                             </DropdownMenuItem>
 
                             <DropdownMenuItem asChild>
-                                <Link to="/settings" className="cursor-pointer w-full flex items-center">
+                                <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
                                     <SettingsIcon className="mr-2 h-4 w-4" />
                                     Settings
                                 </Link>
