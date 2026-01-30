@@ -72,7 +72,7 @@ export interface ToDo {
     recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
     notify: boolean;
     notify_before?: '10_min' | '1_hour' | '1_day';
-    urgency?: 'low' | 'medium' | 'high' | 'critical';
+    urgency?: 'low' | 'normal' | 'high' | 'critical';
     created_at?: string;
 }
 

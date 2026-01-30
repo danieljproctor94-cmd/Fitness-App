@@ -39,7 +39,7 @@ export default function ToDos() {
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
     const [time, setTime] = useState("");
     const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
-    const [urgency, setUrgency] = useState<'low' | 'medium' | 'high' | 'critical'>('medium');
+    const [urgency, setUrgency] = useState<'low' | 'normal' | 'high' | 'critical'>('normal');
     const [notify, setNotify] = useState(false);
     const [notifyBefore, setNotifyBefore] = useState<'10_min' | '1_hour' | '1_day'>('10_min');
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -100,7 +100,7 @@ export default function ToDos() {
         setTime("");
         setTime("");
         setRecurrence('none');
-        setUrgency('medium');
+        setUrgency('normal');
         setNotify(false);
         setNotifyBefore('10_min');
     };
@@ -245,9 +245,9 @@ export default function ToDos() {
                                 <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                         <div className={`h-4 w-4 rounded-full border-2 ${urgency === 'critical' ? 'border-red-500 bg-red-500/20' :
-                                            urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
-                                                urgency === 'medium' ? 'border-blue-500 bg-blue-500/20' :
-                                                    'border-slate-500 bg-slate-500/20'
+                                                urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
+                                                    urgency === 'normal' ? 'border-emerald-500 bg-emerald-500/20' :
+                                                        'border-slate-500 bg-slate-500/20'
                                             }`} />
                                         <Label className="cursor-pointer">Urgency</Label>
                                     </div>
@@ -257,7 +257,7 @@ export default function ToDos() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="low">Low</SelectItem>
-                                            <SelectItem value="medium">Medium</SelectItem>
+                                            <SelectItem value="normal">Normal</SelectItem>
                                             <SelectItem value="high">High</SelectItem>
                                             <SelectItem value="critical">Critical</SelectItem>
                                         </SelectContent>
@@ -334,7 +334,8 @@ export default function ToDos() {
                                     // Left border for urgency
                                     !todo.completed && todo.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
                                         !todo.completed && todo.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
-                                            !todo.completed && todo.urgency === 'medium' ? 'border-l-4 border-l-blue-500' :
+                                            // Handle 'medium' for backward compatibility, map 'normal' to emerald
+                                            !todo.completed && (todo.urgency === 'normal' || todo.urgency === 'medium') ? 'border-l-4 border-l-emerald-500' :
                                                 !todo.completed && todo.urgency === 'low' ? 'border-l-4 border-l-slate-400' : ''
                                 )}>
                                     <CardContent className="p-3">
@@ -358,10 +359,10 @@ export default function ToDos() {
                                                             "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 shrink-0",
                                                             todo.urgency === 'critical' ? "bg-red-500/15 text-red-600" :
                                                                 todo.urgency === 'high' ? "bg-orange-500/15 text-orange-600" :
-                                                                    todo.urgency === 'medium' ? "bg-blue-500/15 text-blue-600" :
+                                                                    (todo.urgency === 'normal' || todo.urgency === 'medium') ? "bg-emerald-500/15 text-emerald-600" :
                                                                         "bg-slate-500/15 text-slate-600"
                                                         )}>
-                                                            {todo.urgency}
+                                                            {todo.urgency === 'medium' ? 'NORMAL' : todo.urgency}
                                                         </span>
                                                     )}
 
@@ -405,7 +406,8 @@ export default function ToDos() {
                                                         const rawTime = todo.due_time || "";
                                                         setTime(rawTime.slice(0, 5));
                                                         setRecurrence(todo.recurrence);
-                                                        setUrgency(todo.urgency || 'medium');
+                                                        // Map medium->normal for editing
+                                                        setUrgency((todo.urgency === 'medium' ? 'normal' : todo.urgency) || 'normal');
                                                         setNotify(todo.notify);
                                                         setNotifyBefore(todo.notify_before || '10_min');
                                                         setOpen(true);
