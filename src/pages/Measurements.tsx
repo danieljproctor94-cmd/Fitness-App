@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Calendar, Calculator, Save } from "lucide-react";
+import { Trash2, Calendar, Calculator, Save, Weight } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO } from "date-fns";
@@ -94,7 +94,7 @@ export default function Measurements() {
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                         <Button className="h-11 px-6 flex items-center gap-2">
-                            <Plus className="h-4 w-4" />
+                            <Weight className="h-4 w-4" />
                             Log Weight
                         </Button>
                     </DialogTrigger>

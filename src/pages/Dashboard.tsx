@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Dumbbell, Flame, Scale, Plus } from "lucide-react";
+import { Activity, Dumbbell, Flame, Plus, Weight } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, subMonths, isAfter, parseISO, startOfWeek } from "date-fns";
@@ -192,7 +192,7 @@ export default function Dashboard() {
                     </Button>
                     <Button variant="outline" asChild className="h-11 px-6">
                         <Link to="/measurements" className="flex items-center gap-2">
-                            <Scale className="h-4 w-4" /> Log Weight
+                            <Weight className="h-4 w-4" /> Log Weight
                         </Link>
                     </Button>
                 </div>
@@ -259,7 +259,7 @@ export default function Dashboard() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Current Weight</CardTitle>
-                        <Scale className="h-4 w-4 text-muted-foreground" />
+                        <Weight className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-baseline justify-between">
@@ -348,7 +348,7 @@ export default function Dashboard() {
                                 <p className="text-muted-foreground">Complete your body stats to see your analysis.</p>
                                 <Button variant="outline" className="h-11 px-6" asChild>
                                     <Link to="/measurements" className="flex items-center gap-2">
-                                        Go to Measurements <Scale className="h-4 w-4" />
+                                        Go to Measurements <Weight className="h-4 w-4" />
                                     </Link>
                                 </Button>
                             </div>
