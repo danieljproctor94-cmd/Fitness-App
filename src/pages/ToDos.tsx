@@ -245,9 +245,9 @@ export default function ToDos() {
                                 <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
                                     <div className="flex items-center gap-2">
                                         <div className={`h-4 w-4 rounded-full border-2 ${urgency === 'critical' ? 'border-red-500 bg-red-500/20' :
-                                                urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
-                                                    urgency === 'normal' ? 'border-primary bg-primary/20' :
-                                                        'border-slate-500 bg-slate-500/20'
+                                            urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
+                                                urgency === 'normal' ? 'border-primary bg-primary/20' :
+                                                    'border-slate-500 bg-slate-500/20'
                                             }`} />
                                         <Label className="cursor-pointer">Urgency</Label>
                                     </div>
@@ -335,7 +335,7 @@ export default function ToDos() {
                                     !todo.completed && todo.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
                                         !todo.completed && todo.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
                                             // Handle 'medium' for backward compatibility, map 'normal' to primary
-                                            !todo.completed && (todo.urgency === 'normal' || todo.urgency === 'medium') ? 'border-l-4 border-l-primary' :
+                                            !todo.completed && (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? 'border-l-4 border-l-primary' :
                                                 !todo.completed && todo.urgency === 'low' ? 'border-l-4 border-l-slate-400' : ''
                                 )}>
                                     <CardContent className="p-3">
@@ -359,10 +359,10 @@ export default function ToDos() {
                                                             "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 shrink-0",
                                                             todo.urgency === 'critical' ? "bg-red-500/15 text-red-600" :
                                                                 todo.urgency === 'high' ? "bg-orange-500/15 text-orange-600" :
-                                                                    (todo.urgency === 'normal' || todo.urgency === 'medium') ? "bg-primary/15 text-primary" :
+                                                                    (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? "bg-primary/15 text-primary" :
                                                                         "bg-slate-500/15 text-slate-600"
                                                         )}>
-                                                            {todo.urgency === 'medium' ? 'NORMAL' : todo.urgency}
+                                                            {(todo.urgency as any) === 'medium' ? 'NORMAL' : todo.urgency}
                                                         </span>
                                                     )}
 
@@ -407,7 +407,7 @@ export default function ToDos() {
                                                         setTime(rawTime.slice(0, 5));
                                                         setRecurrence(todo.recurrence);
                                                         // Map medium->normal for editing
-                                                        setUrgency((todo.urgency === 'medium' ? 'normal' : todo.urgency) || 'normal');
+                                                        setUrgency(((todo.urgency as any) === 'medium' ? 'normal' : todo.urgency) || 'normal');
                                                         setNotify(todo.notify);
                                                         setNotifyBefore(todo.notify_before || '10_min');
                                                         setOpen(true);
