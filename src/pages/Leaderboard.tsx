@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Medal, Crown, Activity, Scale, Share2, Users, Globe } from "lucide-react";
+import { Medal, Crown, Activity, Weight, Share2, Users, Globe } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -108,7 +108,7 @@ export default function Leaderboard() {
                             onClick={() => setViewMode("weight")}
                             className="gap-2"
                         >
-                            <Scale className="h-4 w-4" /> Weight Loss
+                            <Weight className="h-4 w-4" /> Weight Loss
                         </Button>
                         <Button
                             variant={viewMode === "activity" ? "secondary" : "ghost"}
@@ -127,7 +127,7 @@ export default function Leaderboard() {
                 <Card className="md:col-span-1 border-primary/20 bg-primary/5">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                            {viewMode === "weight" ? <Scale className="h-5 w-5 text-primary" /> : <Activity className="h-5 w-5 text-primary" />}
+                            {viewMode === "weight" ? <Weight className="h-5 w-5 text-primary" /> : <Activity className="h-5 w-5 text-primary" />}
                             Your {viewMode === "weight" ? "Weight Change" : "Activity"}
                         </CardTitle>
                         <CardDescription>
