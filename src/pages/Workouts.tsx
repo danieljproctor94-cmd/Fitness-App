@@ -296,7 +296,7 @@ export default function Workouts() {
                 </div>
 
                 {/* Side Panel - Fixed width on Desktop */}
-                <div className="w-full lg:w-80 flex-none flex flex-col gap-4 border lg:border-l-0 border-border/50 bg-card rounded-xl lg:rounded-l-none lg:bg-background lg:border-l lg:border-t-0 lg:border-b-0 lg:border-r-0 lg:shadow-none shadow-sm p-4 lg:p-0 lg:pl-4 h-[30vh] lg:h-full min-h-0">
+                <div className="w-full lg:w-80 flex-none flex flex-col gap-4 border lg:border-l-0 border-border/50 bg-card rounded-xl lg:rounded-l-none lg:bg-background lg:border-l lg:border-t-0 lg:border-b-0 lg:border-r-0 lg:shadow-none shadow-sm p-4 h-[30vh] lg:h-full min-h-0">
                     <div className="flex items-center justify-between shrink-0 mb-1 lg:mb-2 lg:pt-2">
                         <h3 className="text-lg font-bold flex items-center gap-2">
                             <CalendarIcon className="h-5 w-5 text-primary" />

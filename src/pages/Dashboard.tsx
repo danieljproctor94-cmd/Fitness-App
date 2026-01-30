@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Dumbbell, Flame, Scale, Plus } from "lucide-react";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, subMonths, isAfter, parseISO, startOfWeek } from "date-fns";
 
@@ -96,6 +96,65 @@ export default function Dashboard() {
                 const bf = 495 / (1.0324 - 0.19077 * Math.log10(wa - n) + 0.15456 * Math.log10(hCm)) - 450;
                 bodyFatValue = parseFloat(bf.toFixed(1));
             }
+        }
+    }
+
+    // 4b. Ideal Weight & AI Summary Logic
+    let idealWeightRange = "N/A";
+    let aiSummary = "Complete your profile to get AI insights.";
+    let dailyCalories = 0;
+
+    if (userProfile.height) {
+        const h = parseFloat(userProfile.height) / 100;
+        const hCm = parseFloat(userProfile.height);
+        const w = currentWeight;
+        const age = userProfile.age ? parseInt(userProfile.age) : 30; // Default to 30 if not set
+        const gender = userProfile.gender || 'male';
+        const activity = userProfile.activity_level || 'sedentary';
+
+        const minW = (18.5 * h * h).toFixed(1);
+        const maxW = (24.9 * h * h).toFixed(1);
+        idealWeightRange = `${minW} - ${maxW} kg`;
+
+        if (w > 0) {
+            // BMR Calculation (Mifflin-St Jeor)
+            let bmr = (10 * w) + (6.25 * hCm) - (5 * age);
+            if (gender === 'male') bmr += 5;
+            else bmr -= 161;
+
+            // TDEE Multiplier
+            const multipliers: Record<string, number> = {
+                'sedentary': 1.2,
+                'light': 1.375,
+                'moderate': 1.55,
+                'active': 1.725,
+                'very_active': 1.9
+            };
+            const tdee = bmr * (multipliers[activity] || 1.2);
+
+            // Calorie Goal Adjustment based on BMI
+            if (bmiValue < 18.5) dailyCalories = Math.round(tdee + 300); // Surplus
+            else if (bmiValue > 25) dailyCalories = Math.round(tdee - 500); // Deficit
+            else dailyCalories = Math.round(tdee); // Maintenance
+
+            // Generate "AI" Insight
+            if (bmiValue < 18.5) aiSummary = `Your BMI is low. Recommendation: Consume ~${dailyCalories} kcal/day (surplus) to build mass safely. Focus on protein and strength training.`;
+            else if (bmiValue < 25) aiSummary = `You are at a healthy weight! Maintenance calories are ~${dailyCalories} kcal/day. Keep up your ${activity} lifestyle.`;
+            else if (bmiValue < 30) aiSummary = `To reach a healthy weight, aim for ~${dailyCalories} kcal/day (deficit). Consistent ${activity !== 'sedentary' ? 'activity' : 'movement'} and portion control are key.`;
+            else aiSummary = `Your metrics suggest a target of ~${dailyCalories} kcal/day for gradual weight loss. Consider consulting a nutritionist for a personalized plan.`;
+        } else {
+            // Fallback if no weight
+            if (bmiValue < 18.5) aiSummary = "Your BMI indicates you may be underweight. Focus on nutrient-rich calorie surplus and resistance training to build healthy mass.";
+            else if (bmiValue < 25) aiSummary = "Great job! You are maintaining a healthy weight. Keep up your balanced routine of activity and nutrition.";
+            else if (bmiValue < 30) aiSummary = "You are slightly above the ideal range. Increasing daily steps and slight caloric adjustments can help you reach your target.";
+            else aiSummary = "Your metrics suggest prioritizing consistent, low-impact activity. Consult with a specialist to create a sustainable plan for your health goals.";
+        }
+
+        // Contextualize with trend
+        if (sortedMeasurementsDescending.length > 1 && w > 0) {
+            const diff = w - sortedMeasurementsDescending[1].weight;
+            if (diff < 0 && bmiValue > 25) aiSummary += " You're doing great! weight is trending down.";
+            if (diff > 0 && bmiValue < 18.5) aiSummary += " Nice progress! You're gaining weight as planned.";
         }
     }
 
@@ -227,11 +286,26 @@ export default function Dashboard() {
                                         <div className="text-lg font-bold">{bodyFatValue ? `${bodyFatValue}%` : "N/A"}</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-muted-foreground text-xs uppercase tracking-wider">Height</div>
-                                        <div className="text-lg font-bold">{userProfile.height} cm</div>
+                                        <div className="text-muted-foreground text-xs uppercase tracking-wider">Target Weight</div>
+                                        <div className="text-lg font-bold">{idealWeightRange}</div>
+                                    </div>
+                                    <div className="text-center col-span-2 border-t pt-2 mt-2">
+                                        <div className="text-muted-foreground text-xs uppercase tracking-wider mb-1">Recommended Intake</div>
+                                        <div className="text-2xl font-bold text-primary">{dailyCalories > 0 ? `${dailyCalories} kcal` : "--"}</div>
                                     </div>
                                 </div>
+
+                                <div className="mt-4 pt-4 border-t space-y-2">
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-indigo-500">
+                                        <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
+                                        AI Health Summary
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        {aiSummary}
+                                    </p>
+                                </div>
                             </>
+
                         ) : (
                             <div className="text-center py-6 space-y-3">
                                 <p className="text-muted-foreground">Complete your body stats to see your analysis.</p>
@@ -249,7 +323,7 @@ export default function Dashboard() {
                 <Card className="col-span-full md:col-span-4">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div className="space-y-1">
-                            <CardTitle>Weight Progression</CardTitle>
+                            <CardTitle>Weight</CardTitle>
                             <CardDescription>
                                 {timeframe === "ALL" ? "All time history" : `Last ${timeframe}`}
                             </CardDescription>
@@ -272,7 +346,13 @@ export default function Dashboard() {
                     <CardContent className="pl-2">
                         <div className="h-[250px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={weightChartData}>
+                                <AreaChart data={weightChartData}>
+                                    <defs>
+                                        <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
                                     <XAxis
                                         dataKey="date"
                                         stroke="#888888"
@@ -298,20 +378,22 @@ export default function Dashboard() {
                                             return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
                                         }}
                                     />
-                                    <Line
+                                    <Area
                                         type="monotone"
                                         dataKey="weight"
                                         stroke="hsl(var(--primary))"
                                         strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorWeight)"
                                         dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
                                         activeDot={{ r: 6 }}
                                     />
-                                </LineChart>
+                                </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-        </div>
+        </div >
     );
 }

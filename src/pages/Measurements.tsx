@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Calendar, Calculator, Save } from "lucide-react";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO } from "date-fns";
 
@@ -125,12 +126,18 @@ export default function Measurements() {
                 {/* Chart */}
                 <Card className="col-span-1">
                     <CardHeader>
-                        <CardTitle>Weight Progression</CardTitle>
+                        <CardTitle>Weight</CardTitle>
                     </CardHeader>
                     <CardContent className="pl-2">
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={sortedForChart}>
+                                <AreaChart data={sortedForChart}>
+                                    <defs>
+                                        <linearGradient id="colorWeightMeasurements" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
                                     <XAxis
                                         dataKey="date"
                                         stroke="#888888"
@@ -156,15 +163,17 @@ export default function Measurements() {
                                             return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
                                         }}
                                     />
-                                    <Line
+                                    <Area
                                         type="monotone"
                                         dataKey="weight"
                                         stroke="hsl(var(--primary))"
                                         strokeWidth={2}
+                                        fillOpacity={1}
+                                        fill="url(#colorWeightMeasurements)"
                                         dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
                                         activeDot={{ r: 6 }}
                                     />
-                                </LineChart>
+                                </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </CardContent>
@@ -205,6 +214,10 @@ export default function Measurements() {
                                 <Input type="number" placeholder="175" value={localProfile.height} onChange={(e) => handleProfileChange('height', e.target.value)} />
                             </div>
                             <div className="space-y-2">
+                                <label className="text-xs font-medium text-muted-foreground uppercase">Age</label>
+                                <Input type="number" placeholder="30" value={localProfile.age || ''} onChange={(e) => handleProfileChange('age', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
                                 <label className="text-xs font-medium text-muted-foreground uppercase">Weight (kg)</label>
                                 <Input type="number" placeholder="75" value={calculatorWeight} onChange={(e) => setCalculatorWeight(e.target.value)} />
                             </div>
@@ -223,6 +236,24 @@ export default function Measurements() {
                             <div className="space-y-2">
                                 <label className="text-xs font-medium text-muted-foreground uppercase">Arms (cm)</label>
                                 <Input type="number" placeholder="optional" value={localProfile.arms} onChange={(e) => handleProfileChange('arms', e.target.value)} />
+                            </div>
+                            <div className="space-y-2 col-span-2">
+                                <label className="text-xs font-medium text-muted-foreground uppercase">Activity Level</label>
+                                <Select
+                                    value={localProfile.activity_level || 'sedentary'}
+                                    onValueChange={(val) => handleProfileChange('activity_level', val)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select activity level" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="sedentary">Sedentary (Office job, little exercise)</SelectItem>
+                                        <SelectItem value="light">Lightly Active (1-3 days/week)</SelectItem>
+                                        <SelectItem value="moderate">Moderately Active (3-5 days/week)</SelectItem>
+                                        <SelectItem value="active">Active (6-7 days/week)</SelectItem>
+                                        <SelectItem value="very_active">Very Active (Physical job + training)</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

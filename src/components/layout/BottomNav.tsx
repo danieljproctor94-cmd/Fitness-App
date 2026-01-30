@@ -1,9 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { navItems } from "./AppShell";
+import { useData } from "@/features/data/DataContext";
+import { isSameDay, parseISO } from "date-fns";
 
 export function BottomNav() {
     const location = useLocation();
+    const { mindsetLogs } = useData();
+    const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
 
     return (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-safe">
@@ -23,7 +27,12 @@ export function BottomNav() {
                             "h-6 w-6 mb-1",
                             location.pathname === item.href && "fill-current/20"
                         )} />
-                        <span className="text-[10px] font-medium">{item.label}</span>
+                        <span className="text-[10px] font-medium flex items-center gap-1">
+                            {item.label}
+                            {item.label === "Mindset" && !isMindsetLoggedToday && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                            )}
+                        </span>
                     </Link>
                 ))}
             </nav>

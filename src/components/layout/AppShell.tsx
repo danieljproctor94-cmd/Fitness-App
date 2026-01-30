@@ -1,8 +1,9 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Dumbbell, LayoutDashboard, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain } from "lucide-react";
+import { Menu, Dumbbell, LayoutDashboard, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { useState, useEffect } from "react";
+import { isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useData } from "@/features/data/DataContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,10 +11,13 @@ import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
 import { BottomNav } from "./BottomNav";
+import { NotificationBell } from "@/components/ui/notification-bell";
+import { useNotifications } from "@/features/notifications/NotificationContext";
 
 export const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/workouts", label: "Workouts", icon: Dumbbell },
+    { href: "/todos", label: "To Do List", icon: ListTodo },
     { href: "/measurements", label: "Measurements", icon: Ruler },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { href: "/mindset", label: "Mindset", icon: Brain },
@@ -24,9 +28,11 @@ export function AppShell() {
     // Force Re-render match
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { userProfile } = useData();
+    const { userProfile, mindsetLogs } = useData();
     const { logout } = useAuth();
     const { setTheme } = useTheme();
+
+    const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
 
     const handleLogout = async () => {
         await logout();
@@ -38,6 +44,29 @@ export function AppShell() {
         if (parts.length > 1) return parts[0][0] + parts[1][0];
         return name[0].toUpperCase();
     };
+
+    const { enablePush } = useNotifications();
+
+    useEffect(() => {
+        // Show permission prompt on first load if default
+        if ('Notification' in window && Notification.permission === 'default') {
+            const timer = setTimeout(() => {
+                toast("Enable Notifications", {
+                    description: "Stay updated with your latest stats and alerts.",
+                    action: {
+                        label: "Enable",
+                        onClick: () => enablePush(),
+                    },
+                    cancel: {
+                        label: "Later",
+                        onClick: () => { },
+                    },
+                    duration: 10000,
+                });
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [enablePush]);
 
     const [logoUrl, setLogoUrl] = useState(localStorage.getItem('app_logo') || '/logo.png');
 
@@ -84,6 +113,7 @@ export function AppShell() {
                         <AvatarImage src={userProfile.photoURL} className="object-cover" />
                         <AvatarFallback>{getInitials(userProfile.displayName)}</AvatarFallback>
                     </Avatar>
+                    <NotificationBell />
                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                         <Menu className="h-6 w-6" />
                     </Button>
@@ -114,11 +144,16 @@ export function AppShell() {
                             to={item.href}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
-                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground relative",
                                 location.pathname === item.href ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground"
                             )}
                         >
-                            <item.icon className="mr-3 h-5 w-5" />
+                            <div className="relative">
+                                <item.icon className="mr-3 h-5 w-5" />
+                                {item.label === "Mindset" && !isMindsetLoggedToday && (
+                                    <span className="absolute -top-1 right-2 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
+                                )}
+                            </div>
                             {item.label}
                         </Link>
                     ))}
@@ -236,6 +271,19 @@ export function AppShell() {
                             </DropdownMenuSub>
 
                             <DropdownMenuSeparator />
+
+                            {userProfile.subscription_tier === 'admin' && (
+                                <>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/admin/users" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center text-indigo-500 focus:text-indigo-500 font-medium">
+                                            <Shield className="mr-2 h-4 w-4" />
+                                            Manage Users
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                </>
+                            )}
+
                             <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500 cursor-pointer">
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Log out
@@ -260,6 +308,7 @@ export function AppShell() {
                             </span>
                             {onlineCount} Online
                         </div>
+                        <NotificationBell />
                     </div>
                 </header>
 

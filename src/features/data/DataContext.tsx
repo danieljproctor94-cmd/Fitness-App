@@ -46,8 +46,11 @@ export interface UserProfile {
     neck: string;
     chest: string;
     arms: string;
+    age?: string;
+    activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
     subscription_tier?: string;
     email?: string;
+    last_sign_in_at?: string;
     id?: string;
 }
 
@@ -59,17 +62,36 @@ export interface MindsetLog {
     created_at?: string;
 }
 
+export interface ToDo {
+    id: string;
+    title: string;
+    description?: string;
+    due_date: string;
+    due_time?: string;
+    completed: boolean;
+    recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
+    notify: boolean;
+    notify_before?: '10_min' | '1_hour' | '1_day';
+    urgency?: 'low' | 'medium' | 'high' | 'critical';
+    created_at?: string;
+}
+
 interface DataContextType {
     workouts: Workout[];
     measurements: Measurement[];
     mindsetLogs: MindsetLog[];
+    todos: ToDo[];
     userProfile: UserProfile;
     addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
     deleteWorkout: (id: string) => Promise<void>;
     addMeasurement: (measurement: Omit<Measurement, 'id'>) => Promise<void>;
     deleteMeasurement: (id: string) => Promise<void>;
     addMindsetLog: (log: Omit<MindsetLog, 'id'>) => Promise<void>;
+    addToDo: (todo: Omit<ToDo, 'id'>) => Promise<void>;
+    updateToDo: (id: string, updates: Partial<ToDo>) => Promise<void>;
+    deleteToDo: (id: string) => Promise<void>;
     updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
+    fetchAllUsers: () => Promise<UserProfile[]>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -97,7 +119,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { user } = useAuth();
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [measurements, setMeasurements] = useState<Measurement[]>([]);
+
     const [mindsetLogs, setMindsetLogs] = useState<MindsetLog[]>([]);
+    const [todos, setTodos] = useState<ToDo[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
 
     // Fetch Data
@@ -105,7 +129,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!user) {
             setWorkouts([]);
             setMeasurements([]);
+
             setMindsetLogs([]);
+            setTodos([]);
             setUserProfile(initialUserProfile);
             return;
         }
@@ -127,7 +153,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (mlError && mlError.code !== '42P01') console.error("Error fetching mindset logs:", mlError);
             if (mlData) setMindsetLogs(mlData);
 
-            // 4. Profile
+            // 4. ToDos
+            const { data: tData, error: tError } = await supabase.from('todos').select('*').order('created_at', { ascending: false });
+            if (tError && tError.code !== '42P01') console.error("Error fetching todos:", tError);
+            if (tData) setTodos(tData as any);
+
+            // 5. Profile
             const { data: pData, error: pError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
             if (pError && pError.code !== 'PGRST116') console.error("Error fetching profile:", pError);
 
@@ -247,6 +278,58 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const addToDo = async (todo: Omit<ToDo, 'id'>) => {
+        if (!user) return;
+
+        const { data, error } = await supabase.from('todos').insert([{
+            user_id: user.id,
+            ...todo
+        }]).select();
+
+        if (error) {
+            console.error("Error adding todo:", error);
+            toast.error(`Failed to save task: ${error.message}`);
+            return;
+        }
+
+        if (data) {
+            setTodos(prev => [data[0] as any, ...prev]);
+            toast.success("Task saved!");
+        }
+    };
+
+    const updateToDo = async (id: string, updates: Partial<ToDo>) => {
+        if (!user) return;
+
+        const { error } = await supabase.from('todos').update(updates).eq('id', id);
+
+        if (error) {
+            console.error("Error updating todo:", error);
+            toast.error(`Failed to update task: ${error.message}`);
+            return;
+        }
+
+        setTodos(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+        // Recurrence logic could go here or in the component calling this.
+        // For simplicity, we'll confirm update.
+        toast.success("Task updated!");
+    };
+
+    const deleteToDo = async (id: string) => {
+        if (!user) return;
+
+        const { error } = await supabase.from('todos').delete().eq('id', id);
+
+        if (error) {
+            console.error("Error deleting todo:", error);
+            toast.error(`Failed to delete task: ${error.message}`);
+            return;
+        }
+
+        setTodos(prev => prev.filter(t => t.id !== id));
+        toast.success("Task deleted!");
+    };
+
     const updateUserProfile = async (profile: Partial<UserProfile>) => {
         if (!user) return;
 
@@ -276,18 +359,55 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const fetchAllUsers = async (): Promise<UserProfile[]> => {
+        if (!user) return [];
+        // This query relies on the RLS policy "Admins can view all profiles"
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Error fetching all users:", error);
+            // Don't show toast here as it might spam if non-admin tries to load page logic
+            return [];
+        }
+
+        return data?.map(p => ({
+            id: p.id,
+            displayName: p.full_name,
+            photoURL: p.avatar_url,
+            email: p.email,
+            gender: p.gender,
+            subscription_tier: p.subscription_tier,
+            last_sign_in_at: p.last_sign_in_at,
+            height: p.height,
+            waist: p.waist,
+            neck: p.neck,
+            chest: p.chest,
+            arms: p.arms,
+            age: p.age,
+            activity_level: p.activity_level
+        })) || [];
+    };
+
     return (
         <DataContext.Provider value={{
             workouts,
             measurements,
             mindsetLogs,
+            todos,
             userProfile,
             addWorkout,
             deleteWorkout,
             addMeasurement,
             deleteMeasurement,
             addMindsetLog,
-            updateUserProfile
+            addToDo,
+            updateToDo,
+            deleteToDo,
+            updateUserProfile,
+            fetchAllUsers
         }}>
             {children}
         </DataContext.Provider>

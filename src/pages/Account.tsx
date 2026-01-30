@@ -4,13 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useData } from "@/features/data/DataContext";
-import { User, Mail, Shield, Crown } from "lucide-react";
+import { User, Mail, Shield, Crown, Bell } from "lucide-react";
+import { useNotifications } from "@/features/notifications/NotificationContext";
+import { Switch } from "@/components/ui/switch";
 
 export default function Account() {
     const { userProfile, updateUserProfile } = useData();
     const [name, setName] = useState(userProfile.displayName || "");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState("");
+    const { pushEnabled, enablePush } = useNotifications();
 
     useEffect(() => {
         setName(userProfile.displayName || "");
@@ -114,6 +117,41 @@ export default function Account() {
                     )}
                 </CardFooter>
             </Card>
-        </div>
+
+            {/* Notification Settings */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Bell className="h-5 w-5" />
+                        Notification Settings
+                    </CardTitle>
+                    <CardDescription>
+                        Manage how you receive updates and alerts.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between space-x-2">
+                        <div className="flex flex-col space-y-1">
+                            <span className="text-sm font-medium leading-none">Push Notifications</span>
+                            <span className="text-xs text-muted-foreground">
+                                Receive updates on your device.
+                            </span>
+                        </div>
+                        <Switch
+                            checked={pushEnabled}
+                            onCheckedChange={() => {
+                                if (!pushEnabled) enablePush();
+                            }}
+                            disabled={pushEnabled} // Can usually only disable via browser settings once granted
+                        />
+                    </div>
+                    {pushEnabled && (
+                        <p className="text-xs text-muted-foreground">
+                            * To disable notifications, please reset permissions in your browser settings.
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+        </div >
     );
 }
