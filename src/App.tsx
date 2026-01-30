@@ -18,6 +18,7 @@ import Support from "@/pages/Support";
 import Mindset from "@/pages/Mindset";
 import ManageUsers from "@/pages/ManageUsers";
 import ToDos from "@/pages/ToDos";
+import { ReloadPrompt } from "@/components/ReloadPrompt";
 
 function App() {
     return (
@@ -50,6 +51,7 @@ function App() {
                 </DataProvider>
             </AuthProvider>
             <Toaster />
+            <ReloadPrompt />
         </ThemeProvider >
     )
 }
