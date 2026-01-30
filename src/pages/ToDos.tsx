@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import confetti from "canvas-confetti";
 import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
+import googleIcon from "@/assets/google.png";
 
 const timeOptions = Array.from({ length: 24 }).map((_, i) => {
     const hour = i;
@@ -171,7 +172,7 @@ export default function ToDos() {
                                 : "hover:bg-muted"
                         )}
                     >
-                        <img src="/src/assets/google-logo.png" alt="G" className="h-4 w-4" />
+                        <img src={googleIcon} alt="G" className="h-4 w-4" />
                         {isGoogleConnected ? "Synced" : "Sync Calendar"}
                     </Button>
                     <Dialog open={open} onOpenChange={setOpen}>

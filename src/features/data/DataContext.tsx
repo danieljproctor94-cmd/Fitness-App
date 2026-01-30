@@ -52,6 +52,7 @@ export interface UserProfile {
     email?: string;
     last_sign_in_at?: string;
     id?: string;
+    weekly_workout_goal?: number;
 }
 
 export interface MindsetLog {
@@ -112,7 +113,8 @@ const initialUserProfile: UserProfile = {
     waist: '',
     neck: '',
     chest: '',
-    arms: ''
+    arms: '',
+    weekly_workout_goal: 4
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -173,7 +175,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     neck: pData.neck || '',
                     chest: pData.chest || '',
                     arms: pData.arms || '',
-                    subscription_tier: pData.subscription_tier
+                    subscription_tier: pData.subscription_tier,
+                    weekly_workout_goal: pData.weekly_workout_goal || 4
                 } as UserProfile);
             }
         };
@@ -343,6 +346,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (profile.chest !== undefined) updates.chest = profile.chest;
         if (profile.arms !== undefined) updates.arms = profile.arms;
         if (profile.subscription_tier !== undefined) updates.subscription_tier = profile.subscription_tier;
+        if (profile.weekly_workout_goal !== undefined) updates.weekly_workout_goal = profile.weekly_workout_goal;
 
         // FIXED: Removed 'updated_at' to prevent "Column not found" error
         const { error } = await supabase.from('profiles').upsert({
@@ -387,7 +391,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             chest: p.chest,
             arms: p.arms,
             age: p.age,
-            activity_level: p.activity_level
+            activity_level: p.activity_level,
+            weekly_workout_goal: p.weekly_workout_goal
         })) || [];
     };
 

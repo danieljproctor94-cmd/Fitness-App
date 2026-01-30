@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useData } from "@/features/data/DataContext";
+import { uploadAvatar } from "@/lib/storage-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Save, Camera, Lock, Trash2, Mail, ShieldAlert } from "lucide-react";
 export default function AccountSettings() {
     const { userProfile, updateUserProfile } = useData();
     const [displayName, setDisplayName] = useState(userProfile.displayName || "");
+    const [weeklyGoal, setWeeklyGoal] = useState(userProfile.weekly_workout_goal || 4);
     const [isSaving, setIsSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -19,20 +21,22 @@ export default function AccountSettings() {
         setIsSaving(true);
         // Simulate network delay
         setTimeout(() => {
-            updateUserProfile({ displayName });
+            updateUserProfile({ displayName, weekly_workout_goal: weeklyGoal });
             setIsSaving(false);
         }, 500);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                updateUserProfile({ photoURL: base64String });
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        // Optimistic UI update (optional, but good for UX) - skipped for now to ensure URL validity first
+
+        if (userProfile.id) {
+            const publicUrl = await uploadAvatar(file, userProfile.id);
+            if (publicUrl) {
+                updateUserProfile({ photoURL: publicUrl });
+            }
         }
     };
 
@@ -180,6 +184,27 @@ export default function AccountSettings() {
                                 <Button variant="outline" className="w-full" asChild>
                                     <a href="/measurements">Edit Stats</a>
                                 </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Goals Card */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-medium">Fitness Goals</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="weeklyGoal" className="text-xs text-muted-foreground uppercase">Weekly Workouts</Label>
+                                <Input
+                                    id="weeklyGoal"
+                                    type="number"
+                                    min={1}
+                                    max={21}
+                                    value={weeklyGoal}
+                                    onChange={(e) => setWeeklyGoal(parseInt(e.target.value) || 0)}
+                                />
+                                <p className="text-xs text-muted-foreground">Target sessions per week.</p>
                             </div>
                         </CardContent>
                     </Card>

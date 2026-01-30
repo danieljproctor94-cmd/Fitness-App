@@ -202,12 +202,49 @@ export default function Dashboard() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Weekly Workouts</CardTitle>
+                        <CardTitle className="text-sm font-medium">Weekly Goal</CardTitle>
                         <Dumbbell className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{workoutsCount}</div>
-                        <p className="text-xs text-muted-foreground mt-1">This week</p>
+                        <div className="flex items-center gap-4">
+                            <div className="relative h-16 w-16">
+                                {/* Background Ring */}
+                                <svg className="h-full w-full -rotate-90 transform">
+                                    <circle
+                                        cx="32"
+                                        cy="32"
+                                        r="28"
+                                        stroke="currentColor"
+                                        strokeWidth="6" // slightly thicker
+                                        fill="transparent"
+                                        className="text-muted/20"
+                                    />
+                                    {/* Progress Ring */}
+                                    <circle
+                                        cx="32"
+                                        cy="32"
+                                        r="28"
+                                        stroke="currentColor"
+                                        strokeWidth="6"
+                                        fill="transparent"
+                                        strokeDasharray={2 * Math.PI * 28}
+                                        strokeDashoffset={2 * Math.PI * 28 * (1 - Math.min(workoutsCount / (userProfile.weekly_workout_goal || 4), 1))}
+                                        strokeLinecap="round"
+                                        className="text-primary transition-all duration-1000 ease-out"
+                                    />
+                                </svg>
+                                {/* Center Icon */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Dumbbell className="h-5 w-5 text-primary" />
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold">
+                                    {workoutsCount}<span className="text-muted-foreground text-lg">/{userProfile.weekly_workout_goal || 4}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">workouts completed</p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
                 <Card>
