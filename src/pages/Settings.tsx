@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, Moon, Globe, Sparkles } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useData } from "@/features/data/DataContext";
+import { uploadAvatar } from "@/lib/storage-utils";
 
 export default function Settings() {
     // Theme
@@ -72,22 +73,25 @@ export default function Settings() {
                                     type="file"
                                     accept="image/*"
                                     className="cursor-pointer"
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                         const file = e.target.files?.[0];
-                                        if (file) {
-                                            const reader = new FileReader();
-                                            reader.onloadend = () => {
-                                                setAdminLogoUrl(reader.result as string);
-                                            };
-                                            reader.readAsDataURL(file);
+                                        if (file && userProfile.id) {
+                                            toast.info("Uploading logo...");
+                                            const publicUrl = await uploadAvatar(file, userProfile.id);
+                                            if (publicUrl) {
+                                                setAdminLogoUrl(publicUrl);
+                                                toast.success("Logo uploaded!");
+                                            } else {
+                                                toast.error("Failed to upload logo.");
+                                            }
                                         }
                                     }}
                                 />
                             </div>
 
                             <p className="text-xs text-muted-foreground">
-                                Enter a URL or upload an image from your device.
-                                <br />Note: Uploaded images are saved locally to your browser.
+                                Enter a URL or upload an image.
+                                <br />Images are stored securely in Supabase.
                             </p>
                         </div>
                         {adminLogoUrl && (
