@@ -1,13 +1,14 @@
 
-import { useState, useEffect } from "react";
-import { format, isSameDay, parseISO } from "date-fns";
+import { useState, useEffect, useMemo } from "react";
+import { format, isSameDay, parseISO, subDays } from "date-fns";
 import { useData } from "@/features/data/DataContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle } from "lucide-react";
+import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame } from "lucide-react";
 import { toast } from "sonner";
+import { MindsetLog } from "@/features/data/DataContext";
 
 // Simple "Mock AI" to generate a summary based on keywords
 // In a real app, this would call an OpenAI API endpoint
@@ -38,6 +39,31 @@ const generateAISummary = (grateful: string, improve: string) => {
     return summary;
 };
 
+const calculateStreak = (logs: MindsetLog[]) => {
+    if (!logs || logs.length === 0) return 0;
+
+    const uniqueDates = new Set(logs.map(log => log.date));
+    const today = new Date();
+    const todayStr = format(today, 'yyyy-MM-dd');
+    const yesterday = subDays(today, 1);
+    const yesterdayStr = format(yesterday, 'yyyy-MM-dd');
+
+    // If neither today nor yesterday has a log, streak is 0
+    if (!uniqueDates.has(todayStr) && !uniqueDates.has(yesterdayStr)) {
+        return 0;
+    }
+
+    // Start checking from today if logged, otherwise yesterday
+    let currentCheck = uniqueDates.has(todayStr) ? today : yesterday;
+    let streak = 0;
+
+    while (uniqueDates.has(format(currentCheck, 'yyyy-MM-dd'))) {
+        streak++;
+        currentCheck = subDays(currentCheck, 1);
+    }
+    return streak;
+};
+
 export default function Mindset() {
     const { mindsetLogs, addMindsetLog } = useData();
     const [todayLog, setTodayLog] = useState<any | null>(null);
@@ -45,6 +71,8 @@ export default function Mindset() {
     const [improvements, setImprovements] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [aiSummary, setAiSummary] = useState<string | null>(null);
+
+    const streak = useMemo(() => calculateStreak(mindsetLogs), [mindsetLogs]);
 
     // Check if logged today
     useEffect(() => {
@@ -84,17 +112,27 @@ export default function Mindset() {
             // Reset form
             setGratefulFor("");
             setImprovements("");
+            toast.success("Mindset logged! Streak updated.");
         }, 1500);
     };
 
     return (
         <div className="p-6 max-w-4xl mx-auto space-y-8">
-            <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                    <Brain className="h-8 w-8 text-primary" />
-                    Mindset Journal
-                </h1>
-                <p className="text-muted-foreground">Track your gratitude and growth. Train your mind like you train your body.</p>
+            <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                        <Brain className="h-8 w-8 text-primary" />
+                        Mindset Journal
+                    </h1>
+                    <p className="text-muted-foreground">Track your gratitude and growth. Train your mind like you train your body.</p>
+                </div>
+                {streak > 0 && (
+                    <div className="flex items-center gap-2 bg-orange-500/10 text-orange-600 px-4 py-2 rounded-full border border-orange-500/20 animate-in fade-in slide-in-from-top-2">
+                        <Flame className="h-5 w-5 fill-orange-500 text-orange-600" />
+                        <span className="font-bold text-lg">{streak}</span>
+                        <span className="text-xs font-medium uppercase tracking-wider opacity-80">Day Streak</span>
+                    </div>
+                )}
             </div>
 
             {/* Today's Section */}
