@@ -19,7 +19,7 @@ import { NotificationBell } from "@/components/ui/notification-bell";
 import { useNotifications } from "@/features/notifications/NotificationContext";
 
 export const navItems = [
-    { href: "/", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/", label: "Home", icon: LayoutDashboard },
     { href: "/workouts", label: "Workouts", icon: Dumbbell },
     { href: "/todos", label: "To Do List", icon: ListTodo },
     { href: "/measurements", label: "Measurements", icon: Ruler },

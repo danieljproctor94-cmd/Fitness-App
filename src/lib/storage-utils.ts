@@ -8,7 +8,7 @@ import { supabase } from './supabase';
  * @param userId The user's ID (used for folder structure)
  * @returns The public URL string or null if upload failed
  */
-export const uploadAvatar = async (file: File, userId: string): Promise<string | null> => {
+export const uploadAvatar = async (file: File, userId: string): Promise<{ url: string | null, error: any | null }> => {
     try {
         const fileExt = file.name.split('.').pop();
         const fileName = `${userId}/${Math.random()}.${fileExt}`;
@@ -23,16 +23,16 @@ export const uploadAvatar = async (file: File, userId: string): Promise<string |
 
         if (uploadError) {
             console.error('Error uploading avatar:', uploadError);
-            return null;
+            return { url: null, error: uploadError };
         }
 
         const { data } = supabase.storage
             .from('avatars')
             .getPublicUrl(filePath);
 
-        return data.publicUrl;
+        return { url: data.publicUrl, error: null };
     } catch (error) {
         console.error('Unexpected error during avatar upload:', error);
-        return null;
+        return { url: null, error };
     }
 };

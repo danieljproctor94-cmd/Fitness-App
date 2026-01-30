@@ -181,7 +181,7 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Hey {userProfile.displayName || "User"}, welcome back!</h1>
                     <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
                 </div>
                 <div className="flex gap-2">

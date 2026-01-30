@@ -33,7 +33,7 @@ export default function AccountSettings() {
         // Optimistic UI update (optional, but good for UX) - skipped for now to ensure URL validity first
 
         if (userProfile.id) {
-            const publicUrl = await uploadAvatar(file, userProfile.id);
+            const { url: publicUrl } = await uploadAvatar(file, userProfile.id);
             if (publicUrl) {
                 updateUserProfile({ photoURL: publicUrl });
             }

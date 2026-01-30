@@ -77,12 +77,13 @@ export default function Settings() {
                                         const file = e.target.files?.[0];
                                         if (file && userProfile.id) {
                                             toast.info("Uploading logo...");
-                                            const publicUrl = await uploadAvatar(file, userProfile.id);
+                                            const { url: publicUrl, error } = await uploadAvatar(file, userProfile.id);
                                             if (publicUrl) {
                                                 setAdminLogoUrl(publicUrl);
                                                 toast.success("Logo uploaded!");
                                             } else {
-                                                toast.error("Failed to upload logo.");
+                                                console.error("Upload failed:", error);
+                                                toast.error(`Upload failed: ${error?.message || "Unknown error"}`);
                                             }
                                         }
                                     }}
