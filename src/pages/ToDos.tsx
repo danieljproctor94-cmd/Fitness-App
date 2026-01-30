@@ -165,7 +165,7 @@ export default function ToDos() {
                         variant="outline"
                         onClick={connectGoogle}
                         className={cn(
-                            "gap-2 font-medium transition-all",
+                            "gap-2 font-medium transition-all h-11 px-6",
                             isGoogleConnected
                                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/50 hover:bg-emerald-500/20"
                                 : "hover:bg-muted"
