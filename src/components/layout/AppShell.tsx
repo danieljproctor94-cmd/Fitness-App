@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Dumbbell, LayoutDashboard, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield, Bell } from "lucide-react";
+import { Menu, Dumbbell, Home, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { useState, useEffect } from "react";
@@ -19,7 +19,7 @@ import { NotificationBell } from "@/components/ui/notification-bell";
 import { useNotifications } from "@/features/notifications/NotificationContext";
 
 export const navItems = [
-    { href: "/", label: "Home", icon: LayoutDashboard },
+    { href: "/", label: "Home", icon: Home },
     { href: "/workouts", label: "Workouts", icon: Dumbbell },
     { href: "/todos", label: "To Do List", icon: ListTodo },
     { href: "/measurements", label: "Measurements", icon: Ruler },
