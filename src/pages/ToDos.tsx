@@ -164,10 +164,15 @@ export default function ToDos() {
                     <Button
                         variant="outline"
                         onClick={connectGoogle}
-                        className={cn("gap-2 border-blue-200 hover:bg-blue-50 text-blue-700", isGoogleConnected && "bg-blue-50 border-blue-300")}
+                        className={cn(
+                            "gap-2 font-medium transition-all",
+                            isGoogleConnected
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/50 hover:bg-emerald-500/20"
+                                : "hover:bg-muted"
+                        )}
                     >
-                        <CalendarIcon className="h-4 w-4" />
-                        {isGoogleConnected ? "Synced" : "Sync Google Cal"}
+                        <img src="/src/assets/google-logo.png" alt="G" className="h-4 w-4" />
+                        {isGoogleConnected ? "Synced" : "Sync Calendar"}
                     </Button>
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
