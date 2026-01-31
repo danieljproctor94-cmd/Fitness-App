@@ -9,6 +9,7 @@ import { Trash2, Calendar, Calculator, Save, Weight } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function Measurements() {
     const { measurements, addMeasurement, deleteMeasurement, userProfile, updateUserProfile, isLoading } = useData();
@@ -234,7 +235,16 @@ export default function Measurements() {
                                     <Input type="number" placeholder="0" value={localProfile.age || ''} onChange={(e) => handleProfileChange('age', e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Weight (kg)</label>
+                                    <label className="text-xs font-medium text-muted-foreground uppercase">Starting Weight (kg)</label>
+                                    <Input
+                                        type="number"
+                                        placeholder="e.g. 90"
+                                        value={localProfile.starting_weight || ''}
+                                        onChange={(e) => handleProfileChange('starting_weight', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-medium text-muted-foreground uppercase">Current Weight (kg)</label>
                                     <Input type="number" placeholder="75" value={calculatorWeight} onChange={(e) => setCalculatorWeight(e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
@@ -277,6 +287,19 @@ export default function Measurements() {
                                 <Save className="h-4 w-4 mr-2" />
                                 Save & Recalculate
                             </Button>
+
+                            {localProfile.starting_weight && calculatorWeight && (
+                                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center text-sm">
+                                    <span className="text-muted-foreground">Total Progress:</span>
+                                    <span className={cn(
+                                        "font-bold",
+                                        (parseFloat(calculatorWeight) - Number(localProfile.starting_weight)) <= 0 ? "text-green-500" : "text-amber-500"
+                                    )}>
+                                        {(parseFloat(calculatorWeight) - Number(localProfile.starting_weight)).toFixed(1)} kg
+                                        {(parseFloat(calculatorWeight) - Number(localProfile.starting_weight)) <= 0 ? " Lost" : " Gained"}
+                                    </span>
+                                </div>
+                            )}
                         </CardContent>
                     )}
                 </Card>

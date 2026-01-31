@@ -53,6 +53,7 @@ export interface UserProfile {
     last_sign_in_at?: string;
     id?: string;
     weekly_workout_goal?: number;
+    starting_weight?: number;
 }
 
 export interface MindsetLog {
@@ -179,7 +180,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     chest: pData.chest || '',
                     arms: pData.arms || '',
                     subscription_tier: pData.subscription_tier,
-                    weekly_workout_goal: pData.weekly_workout_goal || 4
+                    weekly_workout_goal: pData.weekly_workout_goal || 4,
+                    age: pData.age,
+                    starting_weight: pData.starting_weight,
+                    activity_level: pData.activity_level
                 } as UserProfile);
             }
             setIsLoading(false);
@@ -353,6 +357,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (profile.weekly_workout_goal !== undefined) updates.weekly_workout_goal = profile.weekly_workout_goal;
         if (profile.activity_level !== undefined) updates.activity_level = profile.activity_level;
         if (profile.age !== undefined) updates.age = profile.age;
+        if (profile.starting_weight !== undefined) updates.starting_weight = profile.starting_weight;
 
         // FIXED: Removed 'updated_at' to prevent "Column not found" error
         const { error } = await supabase.from('profiles').upsert({
@@ -375,7 +380,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('full_name', { ascending: true });
 
         if (error) {
             console.error("Error fetching all users:", error);
@@ -398,7 +403,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             arms: p.arms,
             age: p.age,
             activity_level: p.activity_level,
-            weekly_workout_goal: p.weekly_workout_goal
+            weekly_workout_goal: p.weekly_workout_goal,
+            starting_weight: p.starting_weight
         })) || [];
     };
 

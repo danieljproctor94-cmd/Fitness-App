@@ -94,19 +94,40 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
                     setNotifications(prev => [formatted, ...prev]);
 
-                    // Trigger System Notification if PWA Push is enabled/supported
-                    if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-                        navigator.serviceWorker.ready.then(registration => {
-                            registration.showNotification(formatted.title, {
+                    // Trigger System Notification
+                    const triggerNotification = async () => {
+                        if (Notification.permission !== 'granted') return;
+
+                        try {
+                            // Try Service Worker first (for Android/PWA support)
+                            if ('serviceWorker' in navigator) {
+                                const registration = await navigator.serviceWorker.ready;
+                                if (registration && registration.active) {
+                                    await registration.showNotification(formatted.title, {
+                                        body: formatted.message,
+                                        icon: '/pwa-192x192.png',
+                                        badge: '/pwa-192x192.png'
+                                    });
+                                    return;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn("SW notification failed, falling back to window.Notification", e);
+                        }
+
+                        // Fallback to standard Notification API (Desktop/Foreground)
+                        try {
+                            new Notification(formatted.title, {
                                 body: formatted.message,
                                 icon: '/pwa-192x192.png'
                             });
-                        });
-                    } else if (Notification.permission === 'granted') {
-                        new Notification(formatted.title, { body: formatted.message });
-                    } else {
-                        toast(formatted.title, { description: formatted.message });
-                    }
+                        } catch (e) {
+                            console.error("Window notification failed", e);
+                            toast(formatted.title, { description: formatted.message });
+                        }
+                    };
+
+                    triggerNotification();
                 }
             )
             .subscribe();

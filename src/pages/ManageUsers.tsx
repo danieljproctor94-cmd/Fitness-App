@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { BellRing } from "lucide-react";
 
 export default function ManageUsers() {
-    const { userProfile, fetchAllUsers } = useData();
+    const { userProfile, fetchAllUsers, isLoading: isContextLoading } = useData();
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -38,11 +38,11 @@ export default function ManageUsers() {
 
     // Guard: Redirect if not admin
     useEffect(() => {
-        if (!loading && userProfile.subscription_tier !== 'admin') {
+        if (!isContextLoading && (userProfile.subscription_tier || '').toLowerCase() !== 'admin') {
             toast.error("Unauthorized Access");
             navigate("/");
         }
-    }, [userProfile, loading, navigate]);
+    }, [userProfile, isContextLoading, navigate]);
 
     useEffect(() => {
         const load = async () => {
@@ -164,8 +164,9 @@ export default function ManageUsers() {
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Manage Users</h2>
                     <p className="text-muted-foreground">
-                        Total Users: {users.length} | Admins: {users.filter(u => u.subscription_tier === 'admin').length}
+                        Total Users: {users.length} | Admins: {users.filter(u => (u.subscription_tier || '').toLowerCase() === 'admin').length}
                     </p>
+
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
