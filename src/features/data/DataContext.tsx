@@ -93,6 +93,7 @@ interface DataContextType {
     deleteToDo: (id: string) => Promise<void>;
     updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
     fetchAllUsers: () => Promise<UserProfile[]>;
+    isLoading: boolean;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -125,6 +126,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [mindsetLogs, setMindsetLogs] = useState<MindsetLog[]>([]);
     const [todos, setTodos] = useState<ToDo[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Data
     useEffect(() => {
@@ -135,6 +137,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setMindsetLogs([]);
             setTodos([]);
             setUserProfile(initialUserProfile);
+            setIsLoading(false);
             return;
         }
 
@@ -179,6 +182,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     weekly_workout_goal: pData.weekly_workout_goal || 4
                 } as UserProfile);
             }
+            setIsLoading(false);
         };
 
         fetchData();
@@ -412,9 +416,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updateToDo,
             deleteToDo,
             updateUserProfile,
-            fetchAllUsers
+            fetchAllUsers,
+            isLoading
         }}>
             {children}
         </DataContext.Provider>
     );
 };
+

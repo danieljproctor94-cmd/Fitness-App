@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
@@ -26,7 +27,7 @@ const timeOptions = Array.from({ length: 24 }).map((_, i) => {
 });
 
 export default function ToDos() {
-    const { todos, addToDo, updateToDo, deleteToDo } = useData();
+    const { todos, addToDo, updateToDo, deleteToDo, isLoading } = useData();
     const calendarView = "month";
 
     // Navigation State
@@ -357,7 +358,14 @@ export default function ToDos() {
                         {/* Dated Section */}
                         <div className="mb-6">
                             <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider pl-1">Scheduled</h4>
-                            {todosOnSelectedDate.length > 0 ? (
+
+                            {isLoading ? (
+                                <div className="space-y-3">
+                                    <Skeleton className="h-24 w-full" />
+                                    <Skeleton className="h-24 w-full" />
+                                    <Skeleton className="h-24 w-full" />
+                                </div>
+                            ) : todosOnSelectedDate.length > 0 ? (
                                 <div className="space-y-3">
                                     {todosOnSelectedDate.map(todo => (
                                         <Card key={todo.id} className={cn(
@@ -477,7 +485,13 @@ export default function ToDos() {
                         <div>
                             <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider pl-1">Anytime</h4>
                             <div className="space-y-3">
-                                {visibleUndatedTodos.map(todo => (
+                                {isLoading ? (
+                                    <div className="space-y-3">
+                                        <Skeleton className="h-24 w-full" />
+                                        <Skeleton className="h-24 w-full" />
+                                        <Skeleton className="h-24 w-full" />
+                                    </div>
+                                ) : visibleUndatedTodos.map(todo => (
                                     <Card key={todo.id} className={cn(
                                         "shadow-none border transition-all group relative overflow-hidden",
                                         todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40 border-border/60 hover:bg-card hover:border-emerald-500/30",

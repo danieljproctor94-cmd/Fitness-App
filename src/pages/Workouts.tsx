@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
@@ -22,7 +23,7 @@ interface FormExercise {
 }
 
 export default function Workouts() {
-    const { workouts, addWorkout, deleteWorkout } = useData();
+    const { workouts, addWorkout, deleteWorkout, isLoading } = useData();
     const calendarView = "month";
 
     // Navigation State
@@ -305,8 +306,17 @@ export default function Workouts() {
                         <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">{workoutsOnSelectedDate.length} sessions</span>
                     </div>
 
+
+
+
                     <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-                        {workoutsOnSelectedDate.length > 0 ? (
+                        {isLoading ? (
+                            <div className="space-y-3">
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                        ) : workoutsOnSelectedDate.length > 0 ? (
                             workoutsOnSelectedDate.sort((a, b) => (a.time || "").localeCompare(b.time || "")).map(workout => (
                                 <WorkoutCard
                                     key={workout.id}

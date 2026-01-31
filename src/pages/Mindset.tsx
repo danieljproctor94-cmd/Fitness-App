@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { format, isSameDay, parseISO, subDays } from "date-fns";
 import { useData } from "@/features/data/DataContext";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -65,7 +66,7 @@ const calculateStreak = (logs: MindsetLog[]) => {
 };
 
 export default function Mindset() {
-    const { mindsetLogs, addMindsetLog } = useData();
+    const { mindsetLogs, addMindsetLog, isLoading } = useData();
     const [todayLog, setTodayLog] = useState<any | null>(null);
     const [gratefulFor, setGratefulFor] = useState("");
     const [improvements, setImprovements] = useState("");
@@ -136,7 +137,31 @@ export default function Mindset() {
             </div>
 
             {/* Today's Section */}
-            {todayLog ? (
+            {isLoading ? (
+                <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+                    <Card className="md:col-span-1">
+                        <CardHeader>
+                            <Skeleton className="h-8 w-48 mb-2" />
+                            <Skeleton className="h-4 w-64" />
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-40" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-40" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="md:col-span-1 h-64">
+                        <CardContent className="p-6">
+                            <Skeleton className="h-full w-full" />
+                        </CardContent>
+                    </Card>
+                </div>
+            ) : todayLog ? (
                 <Card className="bg-primary/5 border-primary/20">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-green-600">
@@ -248,7 +273,13 @@ export default function Mindset() {
                 </h2>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {mindsetLogs.filter(log => log.id !== todayLog?.id).map((log) => (
+                    {isLoading ? (
+                        <>
+                            <Skeleton className="h-32 w-full" />
+                            <Skeleton className="h-32 w-full" />
+                            <Skeleton className="h-32 w-full" />
+                        </>
+                    ) : mindsetLogs.filter(log => log.id !== todayLog?.id).map((log) => (
                         <Card key={log.id} className="flex flex-col">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-base font-medium">
@@ -267,7 +298,7 @@ export default function Mindset() {
                             </CardContent>
                         </Card>
                     ))}
-                    {mindsetLogs.filter(log => log.id !== todayLog?.id).length === 0 && (
+                    {!isLoading && mindsetLogs.filter(log => log.id !== todayLog?.id).length === 0 && (
                         <div className="col-span-full text-center py-10 text-muted-foreground">
                             {todayLog ? "No past entries yet. You're off to a great start!" : "No entries yet. Start your journey today!"}
                         </div>

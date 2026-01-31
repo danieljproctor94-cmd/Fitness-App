@@ -4,13 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Medal, Crown, Activity, Weight, Share2, Users, Globe } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 export default function Leaderboard() {
-    const { userProfile, workouts, measurements } = useData();
+    const { userProfile, workouts, measurements, isLoading } = useData();
     const [viewMode, setViewMode] = useState("weight");
     const [filterMode, setFilterMode] = useState("friends"); // friends | everyone
 
@@ -135,18 +136,35 @@ export default function Leaderboard() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-muted-foreground">Global Rank</span>
-                            <span className="text-2xl font-bold">#{sortedUsers.findIndex(u => u.id === "self") + 1}</span>
-                        </div>
-                        <div className="border-t pt-4">
-                            <div className="flex items-baseline justify-between">
-                                <span className="text-xs text-muted-foreground uppercase tracking-wider">Current Value</span>
-                                <div className="text-2xl">
-                                    {displayValue(currentUser)}
+                        {isLoading ? (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <Skeleton className="h-4 w-20" />
+                                    <Skeleton className="h-8 w-12" />
+                                </div>
+                                <div className="border-t pt-4">
+                                    <div className="flex items-baseline justify-between">
+                                        <Skeleton className="h-3 w-24" />
+                                        <Skeleton className="h-8 w-24" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-muted-foreground">Global Rank</span>
+                                    <span className="text-2xl font-bold">#{sortedUsers.findIndex(u => u.id === "self") + 1}</span>
+                                </div>
+                                <div className="border-t pt-4">
+                                    <div className="flex items-baseline justify-between">
+                                        <span className="text-xs text-muted-foreground uppercase tracking-wider">Current Value</span>
+                                        <div className="text-2xl">
+                                            {displayValue(currentUser)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -157,36 +175,71 @@ export default function Leaderboard() {
                         <CardDescription>Ranked by {viewMode === "weight" ? "total weight lost" : "total minutes trained"}.</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <div className="divide-y">
-                            {sortedUsers.map((user, index) => (
-                                <div
-                                    key={user.id}
-                                    className={`flex items - center justify - between p - 4 hover: bg - muted / 50 transition - colors ${user.isCurrentUser ? "bg-primary/10 hover:bg-primary/15" : ""} `}
-                                >
+                        {isLoading ? (
+                            <div className="p-4 space-y-4">
+                                <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex items-center justify-center w-8">
-                                            {getRankIcon(index)}
-                                        </div>
-                                        <Avatar className={`h - 10 w - 10 border - 2 ${user.isCurrentUser ? "border-primary" : "border-transparent"} `}>
-                                            <AvatarImage src={user.avatar} />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex flex-col">
-                                            <span className={`font - medium ${user.isCurrentUser ? "text-primary" : ""} `}>
-                                                {user.name} {user.isCurrentUser && "(You)"}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {viewMode === "weight" ? "Fitness Enthusiast" : `${Math.floor(user.activeMinutes / 60)}h ${user.activeMinutes % 60}m logged`}
-                                            </span>
+                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-3 w-24" />
                                         </div>
                                     </div>
-
-                                    <div className="text-right min-w-[80px]">
-                                        {displayValue(user)}
-                                    </div>
+                                    <Skeleton className="h-6 w-16" />
                                 </div>
-                            ))}
-                        </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-3 w-24" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-6 w-16" />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-3 w-24" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-6 w-16" />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="divide-y">
+                                {sortedUsers.map((user, index) => (
+                                    <div
+                                        key={user.id}
+                                        className={`flex items-center justify-between p-4 hover:bg-muted/50 transition-colors ${user.isCurrentUser ? "bg-primary/10 hover:bg-primary/15" : ""} `}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center justify-center w-8">
+                                                {getRankIcon(index)}
+                                            </div>
+                                            <Avatar className={`h-10 w-10 border-2 ${user.isCurrentUser ? "border-primary" : "border-transparent"} `}>
+                                                <AvatarImage src={user.avatar} />
+                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex flex-col">
+                                                <span className={`font-medium ${user.isCurrentUser ? "text-primary" : ""} `}>
+                                                    {user.name} {user.isCurrentUser && "(You)"}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {viewMode === "weight" ? "Fitness Enthusiast" : `${Math.floor(user.activeMinutes / 60)}h ${user.activeMinutes % 60}m logged`}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="text-right min-w-[80px]">
+                                            {displayValue(user)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

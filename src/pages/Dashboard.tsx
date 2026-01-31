@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Dumbbell, Flame, Plus, Weight } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -8,7 +9,7 @@ import { useData } from "@/features/data/DataContext";
 import { format, subMonths, isAfter, parseISO, startOfWeek } from "date-fns";
 
 export default function Dashboard() {
-    const { workouts, measurements, userProfile } = useData();
+    const { workouts, measurements, userProfile, isLoading } = useData();
     const [currentDate, setCurrentDate] = useState(new Date());
 
     // Chart Timeframe State
@@ -220,18 +221,20 @@ export default function Dashboard() {
                                         className="text-muted/20"
                                     />
                                     {/* Progress Ring */}
-                                    <circle
-                                        cx="32"
-                                        cy="32"
-                                        r="28"
-                                        stroke="currentColor"
-                                        strokeWidth="6"
-                                        fill="transparent"
-                                        strokeDasharray={2 * Math.PI * 28}
-                                        strokeDashoffset={2 * Math.PI * 28 * (1 - Math.min(workoutsCount / (userProfile.weekly_workout_goal || 4), 1))}
-                                        strokeLinecap="round"
-                                        className="text-primary transition-all duration-1000 ease-out"
-                                    />
+                                    {!isLoading && (
+                                        <circle
+                                            cx="32"
+                                            cy="32"
+                                            r="28"
+                                            stroke="currentColor"
+                                            strokeWidth="6"
+                                            fill="transparent"
+                                            strokeDasharray={2 * Math.PI * 28}
+                                            strokeDashoffset={2 * Math.PI * 28 * (1 - Math.min(workoutsCount / (userProfile.weekly_workout_goal || 4), 1))}
+                                            strokeLinecap="round"
+                                            className="text-primary transition-all duration-1000 ease-out"
+                                        />
+                                    )}
                                 </svg>
                                 {/* Center Icon */}
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -240,7 +243,7 @@ export default function Dashboard() {
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">
-                                    {workoutsCount}<span className="text-muted-foreground text-lg">/{userProfile.weekly_workout_goal || 4}</span>
+                                    {isLoading ? <Skeleton className="h-8 w-16 mb-1" /> : <>{workoutsCount}<span className="text-muted-foreground text-lg">/{userProfile.weekly_workout_goal || 4}</span></>}
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-1">workouts completed</p>
                             </div>
@@ -253,7 +256,7 @@ export default function Dashboard() {
                         <Flame className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{currentStreak} Day{currentStreak !== 1 && "s"}</div>
+                        {isLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{currentStreak} Day{currentStreak !== 1 && "s"}</div>}
                     </CardContent>
                 </Card>
                 <Card>
@@ -262,16 +265,25 @@ export default function Dashboard() {
                         <Weight className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="flex items-baseline justify-between">
-                            <div className="text-2xl font-bold">{currentWeight > 0 ? `${currentWeight} kg` : "--"}</div>
-                            {currentWeight > 0 && sortedMeasurementsDescending.length > 1 && (
-                                <div className={`text-sm font-medium ${weightChangeColor}`}>
-                                    {weightChangeLabel}
+                        {isLoading ? (
+                            <div className="space-y-2">
+                                <Skeleton className="h-8 w-24" />
+                                <Skeleton className="h-4 w-16" />
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex items-baseline justify-between">
+                                    <div className="text-2xl font-bold">{currentWeight > 0 ? `${currentWeight} kg` : "--"}</div>
+                                    {currentWeight > 0 && sortedMeasurementsDescending.length > 1 && (
+                                        <div className={`text-sm font-medium ${weightChangeColor}`}>
+                                            {weightChangeLabel}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                        {currentWeight > 0 && sortedMeasurementsDescending.length > 1 && (
-                            <p className="text-xs text-muted-foreground mt-1">Since last log</p>
+                                {currentWeight > 0 && sortedMeasurementsDescending.length > 1 && (
+                                    <p className="text-xs text-muted-foreground mt-1">Since last log</p>
+                                )}
+                            </>
                         )}
                     </CardContent>
                 </Card>
@@ -281,7 +293,7 @@ export default function Dashboard() {
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{activeMinutes}</div>
+                        {isLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{activeMinutes}</div>}
                         <p className="text-xs text-muted-foreground mt-1">This week</p>
                     </CardContent>
                 </Card>
@@ -295,7 +307,13 @@ export default function Dashboard() {
                         <CardDescription>Based on your latest measurements.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        {bmiValue > 0 ? (
+                        {isLoading ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-8 w-24" />
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-32 w-full" />
+                            </div>
+                        ) : bmiValue > 0 ? (
                             <>
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
@@ -382,51 +400,55 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="pl-2">
                         <div className="h-[250px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={weightChartData}>
-                                    <defs>
-                                        <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <XAxis
-                                        dataKey="date"
-                                        stroke="#888888"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickFormatter={(str) => {
-                                            const d = new Date(str);
-                                            return isNaN(d.getTime()) ? str : format(d, "MMM d");
-                                        }}
-                                    />
-                                    <YAxis
-                                        stroke="#888888"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        domain={["dataMin - 1", "dataMax + 1"]}
-                                        tickFormatter={(value) => `${value}kg`}
-                                    />
-                                    <Tooltip
-                                        labelFormatter={(label) => {
-                                            const d = new Date(label);
-                                            return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
-                                        }}
-                                    />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="weight"
-                                        stroke="hsl(var(--primary))"
-                                        strokeWidth={2}
-                                        fillOpacity={1}
-                                        fill="url(#colorWeight)"
-                                        dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
-                                        activeDot={{ r: 6 }}
-                                    />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                            {isLoading ? (
+                                <Skeleton className="h-full w-full" />
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={weightChartData}>
+                                        <defs>
+                                            <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <XAxis
+                                            dataKey="date"
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickFormatter={(str) => {
+                                                const d = new Date(str);
+                                                return isNaN(d.getTime()) ? str : format(d, "MMM d");
+                                            }}
+                                        />
+                                        <YAxis
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            domain={["dataMin - 1", "dataMax + 1"]}
+                                            tickFormatter={(value) => `${value}kg`}
+                                        />
+                                        <Tooltip
+                                            labelFormatter={(label) => {
+                                                const d = new Date(label);
+                                                return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
+                                            }}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="weight"
+                                            stroke="hsl(var(--primary))"
+                                            strokeWidth={2}
+                                            fillOpacity={1}
+                                            fill="url(#colorWeight)"
+                                            dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
+                                            activeDot={{ r: 6 }}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
