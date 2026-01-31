@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -22,13 +22,21 @@ export default function Settings() {
     const [units, setUnits] = useState('metric'); // metric | imperial
 
     // Admin Settings
-    const [adminLogoUrl, setAdminLogoUrl] = useState(localStorage.getItem('app_logo') || '/logo.png');
+    const { updateAppLogo, appLogo } = useData();
+    const [adminLogoUrl, setAdminLogoUrl] = useState(appLogo || '/logo.png');
 
-    const handleSaveLogo = () => {
-        localStorage.setItem('app_logo', adminLogoUrl);
-        // Dispatch event so AppShell updates immediately
-        window.dispatchEvent(new Event('logo-update'));
-        toast.success("Logo updated!");
+    // Sync local state with context when context loads
+    useEffect(() => {
+        if (appLogo && appLogo !== '/logo.png') {
+            setAdminLogoUrl(appLogo);
+        }
+    }, [appLogo]);
+
+    const handleSaveLogo = async () => {
+        // localStorage.setItem('app_logo', adminLogoUrl); // Legacy
+        // window.dispatchEvent(new Event('logo-update')); // Legacy
+
+        await updateAppLogo(adminLogoUrl);
     };
 
     return (

@@ -69,19 +69,10 @@ export function AppShell() {
         }
     }, [enablePush]);
 
-    const [logoUrl, setLogoUrl] = useState(localStorage.getItem('app_logo') || '/logo.png');
-
-    useEffect(() => {
-        const handleLogoUpdate = () => {
-            setLogoUrl(localStorage.getItem('app_logo') || '/logo.png');
-        };
-        window.addEventListener('logo-update', handleLogoUpdate);
-        window.addEventListener('storage', handleLogoUpdate);
-        return () => {
-            window.removeEventListener('logo-update', handleLogoUpdate);
-            window.removeEventListener('storage', handleLogoUpdate);
-        };
-    }, []);
+    // Legacy LocalStorage logic removed.
+    // Use Global DB Setting
+    const { appLogo } = useData();
+    const logoUrl = appLogo || '/logo.png';
 
     const [onlineCount, setOnlineCount] = useState(1);
 

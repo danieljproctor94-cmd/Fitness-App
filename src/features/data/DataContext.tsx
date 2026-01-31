@@ -94,6 +94,8 @@ interface DataContextType {
     deleteToDo: (id: string) => Promise<void>;
     updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
     fetchAllUsers: () => Promise<UserProfile[]>;
+    appLogo: string;
+    updateAppLogo: (url: string) => Promise<void>;
     isLoading: boolean;
 }
 
@@ -127,6 +129,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [mindsetLogs, setMindsetLogs] = useState<MindsetLog[]>([]);
     const [todos, setTodos] = useState<ToDo[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
+    const [appLogo, setAppLogo] = useState<string>('/logo.png'); // Default
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch Data
@@ -186,6 +189,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     activity_level: pData.activity_level
                 } as UserProfile);
             }
+
+            // 6. App Settings (Logo)
+            // Need to wrap in try/catch or just be safe if table missing before SQL run
+            const { data: sData, error: sError } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
+            if (sData) {
+                setAppLogo(sData.value);
+            } else if (sError && sError.code !== 'PGRST116') {
+                // Ignore "Row not found" (PGRST116)
+                console.warn("Error fetching logo settings:", sError);
+            }
+
             setIsLoading(false);
         };
 
@@ -374,6 +388,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const updateAppLogo = async (url: string) => {
+        if (!user) return;
+        // Optimistic update
+        setAppLogo(url);
+
+        const { error } = await supabase.from('app_settings').upsert({
+            key: 'app_logo',
+            value: url,
+            updated_at: new Date().toISOString()
+        });
+
+        if (error) {
+            console.error("Error saving logo:", error);
+            toast.error("Failed to save logo setting");
+            // Revert? For now assume admin retry
+        } else {
+            toast.success("Global Logo Setting Saved!");
+        }
+    };
+
     const fetchAllUsers = async (): Promise<UserProfile[]> => {
         if (!user) return [];
         // This query relies on the RLS policy "Admins can view all profiles"
@@ -425,6 +459,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             deleteToDo,
             updateUserProfile,
             fetchAllUsers,
+            appLogo,
+            updateAppLogo,
             isLoading
         }}>
             {children}
