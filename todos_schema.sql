@@ -4,7 +4,7 @@ create table public.todos (
   user_id uuid references auth.users not null,
   title text not null,
   description text,
-  due_date date not null,
+  due_date date,
   due_time time, -- Optional time
   completed boolean default false,
   recurrence text check (recurrence in ('none', 'daily', 'weekly', 'monthly')) default 'none',

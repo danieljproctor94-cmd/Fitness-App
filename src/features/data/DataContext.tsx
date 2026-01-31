@@ -67,7 +67,7 @@ export interface ToDo {
     id: string;
     title: string;
     description?: string;
-    due_date: string;
+    due_date?: string;
     due_time?: string;
     completed: boolean;
     recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
