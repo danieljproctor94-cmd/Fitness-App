@@ -15,6 +15,7 @@ import { formatDistanceToNow, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
+import { BellRing } from "lucide-react";
 
 export default function ManageUsers() {
     const { userProfile, fetchAllUsers } = useData();
@@ -28,6 +29,12 @@ export default function ManageUsers() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [inviteOpen, setInviteOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
+
+    // Notification State
+    const [notifyOpen, setNotifyOpen] = useState(false);
+    const [notifyTitle, setNotifyTitle] = useState("");
+    const [notifyMessage, setNotifyMessage] = useState("");
+    const [isSending, setIsSending] = useState(false);
 
     // Guard: Redirect if not admin
     useEffect(() => {
@@ -114,6 +121,41 @@ export default function ManageUsers() {
         setInviteEmail("");
     };
 
+    const handleSendNotification = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSending(true);
+
+        try {
+            // 1. Get recipients (active logic could be filtered here, but we will send to ALL for now)
+            const recipients = users.map(u => ({
+                user_id: u.id,
+                title: notifyTitle,
+                message: notifyMessage,
+                type: 'info'
+            }));
+
+            if (recipients.length === 0) {
+                toast.error("No users to send to.");
+                return;
+            }
+
+            // 2. Insert into DB (this triggers Realtime for active users, and saves for offline users)
+            const { error } = await supabase.from('notifications').insert(recipients);
+
+            if (error) throw error;
+
+            toast.success(`Notification sent to ${recipients.length} users.`);
+            setNotifyOpen(false);
+            setNotifyTitle("");
+            setNotifyMessage("");
+        } catch (error: any) {
+            console.error("Error sending notification:", error);
+            toast.error(`Failed to send: ${error.message}`);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
     if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
     return (
@@ -156,6 +198,48 @@ export default function ManageUsers() {
                                 </div>
                                 <DialogFooter>
                                     <Button type="submit">Send Invitation</Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={notifyOpen} onOpenChange={setNotifyOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="secondary" className="gap-2">
+                                <BellRing className="h-4 w-4" />
+                                Broadcast
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Broadcast Notification</DialogTitle>
+                                <DialogDescription>
+                                    Send a notification to all registered users.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSendNotification} className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Title</label>
+                                    <Input
+                                        placeholder="Notification Title"
+                                        required
+                                        value={notifyTitle}
+                                        onChange={(e) => setNotifyTitle(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Message</label>
+                                    <Input
+                                        placeholder="Message body..."
+                                        required
+                                        value={notifyMessage}
+                                        onChange={(e) => setNotifyMessage(e.target.value)}
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={isSending}>
+                                        {isSending ? "Sending..." : "Send Broadcast"}
+                                    </Button>
                                 </DialogFooter>
                             </form>
                         </DialogContent>

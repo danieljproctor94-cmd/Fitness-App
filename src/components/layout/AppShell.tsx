@@ -1,7 +1,8 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Dumbbell, Home, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield, Bell } from "lucide-react";
+import { Menu, Dumbbell, Home, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -9,10 +10,6 @@ import { useData } from "@/features/data/DataContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useTheme } from "@/components/theme-provider";
 import { BottomNav } from "./BottomNav";
 import { NotificationBell } from "@/components/ui/notification-bell";
@@ -33,7 +30,7 @@ export function AppShell() {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { userProfile, mindsetLogs } = useData();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const { setTheme } = useTheme();
 
     const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
@@ -86,49 +83,37 @@ export function AppShell() {
         };
     }, []);
 
-    const [onlineCount, setOnlineCount] = useState(Math.floor(Math.random() * 5) + 2);
+    const [onlineCount, setOnlineCount] = useState(1);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setOnlineCount(prev => {
-                const change = Math.random() > 0.5 ? 1 : -1;
-                const newValue = prev + change;
-                return newValue < 2 ? 2 : newValue;
-            });
-        }, 5000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const [isGlobalNotifyOpen, setIsGlobalNotifyOpen] = useState(false);
-    const [notifyTitle, setNotifyTitle] = useState("");
-    const [notifyMessage, setNotifyMessage] = useState("");
-    const { addNotification } = useNotifications();
-
-    const handleSendGlobalNotification = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // In a real app, this would call a Supabase Edge Function to broadcast via OneSignal/FCM
-        // For this demo, we'll simulate the broadcast success
-
-        toast.promise(new Promise(resolve => setTimeout(resolve, 1500)), {
-            loading: 'Broadcasting to all online users...',
-            success: () => {
-                // Add to own notifications as demo
-                addNotification({
-                    title: notifyTitle,
-                    message: "📢 " + notifyMessage,
-                    type: 'info'
-                });
-
-                setIsGlobalNotifyOpen(false);
-                setNotifyTitle("");
-                setNotifyMessage("");
-                return `Sent to ${onlineCount} active users`;
+        const channel = supabase.channel('online-users', {
+            config: {
+                presence: {
+                    key: user?.id,
+                },
             },
-            error: 'Failed to send notification'
         });
-    };
+
+        channel
+            .on('presence', { event: 'sync' }, () => {
+                const state = channel.presenceState();
+                setOnlineCount(Object.keys(state).length);
+            })
+            .subscribe(async (status) => {
+                if (status === 'SUBSCRIBED') {
+                    await channel.track({
+                        user_id: user?.id,
+                        online_at: new Date().toISOString(),
+                    });
+                }
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [user]);
+
+
 
     return (
         <div className="flex h-screen w-full overflow-hidden flex-col md:flex-row">
@@ -314,13 +299,7 @@ export function AppShell() {
                                             Manage Users
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => {
-                                        setIsMobileMenuOpen(false);
-                                        setIsGlobalNotifyOpen(true);
-                                    }} className="cursor-pointer w-full flex items-center text-indigo-500 focus:text-indigo-500 font-medium">
-                                        <Bell className="mr-2 h-4 w-4" />
-                                        Global Notification
-                                    </DropdownMenuItem>
+
                                     <DropdownMenuSeparator />
                                 </>
                             )}
@@ -359,45 +338,7 @@ export function AppShell() {
                 <BottomNav />
             </main>
 
-            <Dialog open={isGlobalNotifyOpen} onOpenChange={setIsGlobalNotifyOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Send Global Push Notification</DialogTitle>
-                        <DialogDescription>
-                            This will send a real-time notification to all {onlineCount} currently active users.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSendGlobalNotification} className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">Notification Title</Label>
-                            <Input
-                                id="title"
-                                value={notifyTitle}
-                                onChange={(e) => setNotifyTitle(e.target.value)}
-                                placeholder="e.g. Server Maintenance"
-                                required
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="message">Message</Label>
-                            <Textarea
-                                id="message"
-                                value={notifyMessage}
-                                onChange={(e) => setNotifyMessage(e.target.value)}
-                                placeholder="Enter your message here..."
-                                required
-                            />
-                        </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setIsGlobalNotifyOpen(false)}>Cancel</Button>
-                            <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
-                                <Bell className="h-4 w-4" />
-                                Send Broadcast
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+
         </div>
     );
 }

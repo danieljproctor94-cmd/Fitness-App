@@ -231,7 +231,7 @@ export default function Measurements() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-muted-foreground uppercase">Age</label>
-                                    <Input type="number" placeholder="30" value={localProfile.age || ''} onChange={(e) => handleProfileChange('age', e.target.value)} />
+                                    <Input type="number" placeholder="0" value={localProfile.age || ''} onChange={(e) => handleProfileChange('age', e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-medium text-muted-foreground uppercase">Weight (kg)</label>

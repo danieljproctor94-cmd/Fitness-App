@@ -351,6 +351,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (profile.arms !== undefined) updates.arms = profile.arms;
         if (profile.subscription_tier !== undefined) updates.subscription_tier = profile.subscription_tier;
         if (profile.weekly_workout_goal !== undefined) updates.weekly_workout_goal = profile.weekly_workout_goal;
+        if (profile.activity_level !== undefined) updates.activity_level = profile.activity_level;
+        if (profile.age !== undefined) updates.age = profile.age;
 
         // FIXED: Removed 'updated_at' to prevent "Column not found" error
         const { error } = await supabase.from('profiles').upsert({
