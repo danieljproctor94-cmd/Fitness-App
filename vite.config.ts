@@ -18,6 +18,9 @@ export default defineConfig({
         short_name: 'Fitness',
         description: 'Track your workouts and body measurements',
         theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
         icons: [
           {
             src: 'pwa-192x192.png',

@@ -139,6 +139,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
+    // App Icon Badging
+    useEffect(() => {
+        if ('setAppBadge' in navigator) {
+            if (unreadCount > 0) {
+                navigator.setAppBadge(unreadCount).catch((e) => console.error("Error setting badge:", e));
+            } else {
+                navigator.clearAppBadge().catch((e) => console.error("Error clearing badge:", e));
+            }
+        }
+    }, [unreadCount]);
+
     const enablePush = async () => {
         if (!('Notification' in window)) {
             toast.error('Notifications are not supported by your browser.');
