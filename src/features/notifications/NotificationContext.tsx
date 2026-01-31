@@ -58,14 +58,32 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        const permission = await Notification.requestPermission();
-        setPushEnabled(permission === 'granted');
+        try {
+            const permission = await Notification.requestPermission();
+            setPushEnabled(permission === 'granted');
 
-        if (permission === 'granted') {
-            toast.success('Push notifications enabled!');
-            // Here you would typically subscribe the user to your push service
-        } else if (permission === 'denied') {
-            toast.error('Notifications denied. Please enable them in your browser settings.');
+            if (permission === 'granted') {
+                toast.success('Push notifications enabled!');
+
+                // Get Service Worker Registration
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.ready;
+                    console.log('SW Registration:', registration);
+
+                    // In a real app, you would subscribe to pushManager here using your VAPID key
+                    // const subscription = await registration.pushManager.subscribe({
+                    //     userVisibleOnly: true,
+                    //     applicationServerKey: 'YOUR_VAPID_PUBLIC_KEY'
+                    // });
+                    // console.log('Push Subscription:', subscription);
+                }
+
+            } else if (permission === 'denied') {
+                toast.error('Notifications denied. Please enable them in your browser settings.');
+            }
+        } catch (error) {
+            console.error('Error enabling push:', error);
+            toast.error('Failed to enable notifications');
         }
     };
 
