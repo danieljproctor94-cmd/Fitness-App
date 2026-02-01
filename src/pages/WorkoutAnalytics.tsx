@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useData } from "@/features/data/DataContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Bar, BarChart, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
-import { Dumbbell, Timer, TrendingUp, Calendar, Trophy, Zap } from "lucide-react";
+import { Dumbbell, Timer, TrendingUp, Calendar, Trophy, Zap, Activity, Clock } from "lucide-react";
 import { format, eachDayOfInterval, subDays } from "date-fns";
 
 export default function WorkoutAnalytics() {
@@ -117,14 +117,14 @@ export default function WorkoutAnalytics() {
     }
 
     return (
-        <div className="p-6 space-y-6 pb-20 md:pb-6">
+        <div className="p-4 md:p-6 space-y-6 pb-24 md:pb-6">
             <div className="flex flex-col gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
                 <p className="text-muted-foreground">Insights and trends from your training history.</p>
             </div>
 
             {/* Overview Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Workouts</CardTitle>
@@ -161,24 +161,24 @@ export default function WorkoutAnalytics() {
                         <Trophy className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats?.bestWorkout ? stats.bestWorkout.name : "-"}</div>
+                        <div className="text-2xl font-bold truncate max-w-[150px]">{stats?.bestWorkout ? stats.bestWorkout.name : "-"}</div>
                         <p className="text-xs text-muted-foreground">Highest volume workout</p>
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
 
                 {/* Volume Progression Chart */}
-                <Card className="col-span-4">
+                <Card className="col-span-1 lg:col-span-4">
                     <CardHeader>
                         <CardTitle>Volume Progression</CardTitle>
                         <CardDescription>
                             Total volume (weight * reps) per workout for your last 20 sessions.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[300px]">
+                    <CardContent className="pl-0 sm:pl-2">
+                        <div className="h-[250px] sm:h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={volumeData}>
                                     <defs>
@@ -193,6 +193,7 @@ export default function WorkoutAnalytics() {
                                         fontSize={12}
                                         tickLine={false}
                                         axisLine={false}
+                                        minTickGap={10}
                                     />
                                     <YAxis
                                         stroke="#888888"
@@ -200,6 +201,7 @@ export default function WorkoutAnalytics() {
                                         tickLine={false}
                                         axisLine={false}
                                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                        width={35}
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
@@ -219,7 +221,7 @@ export default function WorkoutAnalytics() {
                 </Card>
 
                 {/* Top Exercises Chart */}
-                <Card className="col-span-3">
+                <Card className="col-span-1 lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Favorite Exercises</CardTitle>
                         <CardDescription>
@@ -232,8 +234,8 @@ export default function WorkoutAnalytics() {
                                 <div key={item.name} className="flex items-center">
                                     <div className="w-full space-y-1">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium">{index + 1}. {item.name}</span>
-                                            <span className="text-sm text-muted-foreground">{item.count} sessions</span>
+                                            <span className="text-sm font-medium truncate max-w-[200px]">{index + 1}. {item.name}</span>
+                                            <span className="text-sm text-muted-foreground whitespace-nowrap">{item.count} sessions</span>
                                         </div>
                                         <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                                             <div
@@ -249,7 +251,7 @@ export default function WorkoutAnalytics() {
                 </Card>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                 {/* Recent Activity Mini-Chart */}
                 <Card className="col-span-1 md:col-span-3 lg:col-span-1">
                     <CardHeader>
@@ -258,7 +260,7 @@ export default function WorkoutAnalytics() {
                             Workout frequency recently.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="pl-2">
+                    <CardContent className="pl-0 sm:pl-2">
                         <div className="h-[200px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={activityData}>
@@ -282,7 +284,7 @@ export default function WorkoutAnalytics() {
                 </Card>
 
                 {/* Quick Stats Grid */}
-                <Card className="col-span-2 md:col-span-3 lg:col-span-2">
+                <Card className="col-span-1 md:col-span-3 lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Fun Facts</CardTitle>
                         <CardDescription>
@@ -290,7 +292,7 @@ export default function WorkoutAnalytics() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div className="space-y-1">
                                 <span className="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Total Reps</span>
                                 <div className="flex items-center gap-2">
@@ -330,5 +332,3 @@ export default function WorkoutAnalytics() {
         </div>
     );
 }
-
-import { Activity, Clock } from "lucide-react";

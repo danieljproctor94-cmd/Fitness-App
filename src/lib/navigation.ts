@@ -17,9 +17,9 @@ export const navItems: NavItem[] = [
             { href: "/workouts/analytics", label: "Analytics", icon: BarChart3 }
         ]
     },
-    { href: "/todos", label: "Planner", icon: Calendar },
     { href: "/measurements", label: "Measurements", icon: Ruler },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/todos", label: "Planner", icon: Calendar },
     { href: "/mindset", label: "Mindset", icon: Brain },
     { href: "/collaboration", label: "Collaboration", icon: Users },
 ];
