@@ -309,7 +309,7 @@ export function AppShell() {
                                 )}
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-60 mb-2 z-[70]" align="start" side="right" sideOffset={10}>
+                        <DropdownMenuContent className="w-56 mb-2 z-[70]" align="start" side={isCollapsed ? "right" : "top"} sideOffset={10}>
                             <DropdownMenuLabel className="font-normal">
                                 <div className="flex flex-col space-y-1">
                                     <p className="text-sm font-medium leading-none">{userProfile.displayName || "User"}</p>
