@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Dumbbell, Home, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield } from "lucide-react";
+import { Menu, Dumbbell, Home, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield, PanelLeft, PanelLeftClose, Crown, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -14,6 +14,8 @@ import { useTheme } from "@/components/theme-provider";
 import { BottomNav } from "./BottomNav";
 import { NotificationBell } from "@/components/ui/notification-bell";
 import { useNotifications } from "@/features/notifications/NotificationContext";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { Download } from "lucide-react";
 
 export const navItems = [
     { href: "/", label: "Home", icon: Home },
@@ -22,7 +24,6 @@ export const navItems = [
     { href: "/measurements", label: "Measurements", icon: Ruler },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
     { href: "/mindset", label: "Mindset", icon: Brain },
-    { href: "/support", label: "Support", icon: LifeBuoy },
 ];
 
 export function AppShell() {
@@ -32,6 +33,8 @@ export function AppShell() {
     const { userProfile, mindsetLogs } = useData();
     const { logout, user } = useAuth();
     const { setTheme } = useTheme();
+    const [installModalOpen, setInstallModalOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
 
@@ -110,7 +113,12 @@ export function AppShell() {
         <div className="flex h-screen w-full overflow-hidden flex-col md:flex-row">
             {/* Mobile Header */}
             <div className="flex items-center justify-between border-b p-4 md:hidden shrink-0">
-                <img src={logoUrl} alt="Logo" className="h-12 object-contain" />
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="-ml-2">
+                        <Menu className="h-6 w-6" />
+                    </Button>
+                    <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
+                </div>
                 <div className="flex items-center gap-3">
                     <div className="px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium flex items-center gap-1.5 border border-primary/20 h-7">
                         <span className="relative flex h-2 w-2">
@@ -119,14 +127,7 @@ export function AppShell() {
                         </span>
                         {onlineCount}
                     </div>
-                    <Avatar className="h-8 w-8">
-                        <AvatarImage src={userProfile.photoURL} className="object-cover" />
-                        <AvatarFallback>{getInitials(userProfile.displayName)}</AvatarFallback>
-                    </Avatar>
                     <NotificationBell />
-                    <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-                        <Menu className="h-6 w-6" />
-                    </Button>
                 </div>
             </div>
 
@@ -140,86 +141,130 @@ export function AppShell() {
 
             {/* Sidebar (Desktop) */}
             <aside className={cn(
-                "fixed inset-y-0 z-[60] flex w-64 flex-col border-r bg-background transition-transform md:relative md:translate-x-0",
-                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+                "fixed inset-y-0 z-[60] flex flex-col border-r bg-background transition-all duration-300 md:relative md:translate-x-0",
+                isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0",
+                isCollapsed ? "md:w-20" : "md:w-64"
             )}>
-                <div className="flex h-16 items-center justify-start border-b p-4 overflow-hidden shrink-0">
-                    <img src={logoUrl} alt="Logo" className="h-full w-full object-contain object-left" />
+                <div className={cn("flex h-16 items-center border-b px-4 shrink-0 transition-all", isCollapsed ? "justify-center" : "justify-between")}>
+                    {!isCollapsed && (
+                        <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" />
+                    )}
+
+                    {/* Toggle Button (Desktop Only) */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn("hidden md:flex text-muted-foreground", isCollapsed ? "" : "ml-auto")}
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                    >
+                        {isCollapsed ? <PanelLeft className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+                    </Button>
                 </div>
 
-                <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+                <nav className="flex-1 space-y-1 p-2 overflow-y-auto overflow-x-hidden">
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
                             to={item.href}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
-                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground relative",
-                                location.pathname === item.href ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground"
+                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground relative transition-all group",
+                                location.pathname === item.href ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground",
+                                isCollapsed ? "justify-center px-0 w-10 h-10 mx-auto" : ""
                             )}
+                            title={isCollapsed ? item.label : undefined}
                         >
-                            <div className="relative">
-                                <item.icon className="mr-3 h-5 w-5" />
+                            <div className="relative shrink-0 flex items-center justify-center">
+                                <item.icon className={cn("h-5 w-5 transition-all", isCollapsed ? "h-6 w-6" : "")} />
                                 {item.label === "Mindset" && !isMindsetLoggedToday && (
-                                    <span className="absolute -top-1 right-2 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
+                                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
                                 )}
                             </div>
-                            {item.label}
+                            {!isCollapsed && (
+                                <span className="truncate transition-all duration-300 opacity-100">{item.label}</span>
+                            )}
                         </Link>
                     ))}
                 </nav>
 
-                <div className="px-4 py-2 mt-auto mb-2">
-                    <h4 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Integrations
-                    </h4>
+                <div className={cn("px-4 py-2 mt-auto mb-2", isCollapsed ? "flex justify-center px-0" : "")}>
+                    {!isCollapsed && (
+                        <h4 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Integrations
+                        </h4>
+                    )}
                     <Button
                         variant="ghost"
-                        className="w-full justify-start gap-3 px-3 font-normal hover:bg-orange-500/10 hover:text-orange-600 transition-colors"
+                        className={cn(
+                            "w-full px-3 font-normal hover:bg-orange-500/10 hover:text-orange-600 transition-colors",
+                            isCollapsed ? "justify-center px-0 w-10 h-10 rounded-full" : "justify-start gap-3"
+                        )}
                         onClick={() => toast.info("Strava integration coming soon!")}
+                        title={isCollapsed ? "Sync with Strava" : undefined}
                     >
-                        <img src="/strava.png" alt="Strava" className="h-5 w-5 object-contain" />
-                        Sync with Strava
+                        {isCollapsed ? (
+                            <Activity className="h-5 w-5 text-orange-600" />
+                        ) : (
+                            <>
+                                <img src="/strava.png" alt="Strava" className="h-5 w-5 object-contain" />
+                                Sync with Strava
+                            </>
+                        )}
                     </Button>
                 </div>
 
-                <div className="border-t p-4 shrink-0">
-                    {userProfile.subscription_tier === 'free_user' ? (
-                        <div className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white">
-                            <h3 className="font-semibold">Upgrade to Pro</h3>
-                            <p className="mt-1 text-xs text-white/90">Get unlimited access to all features.</p>
-                            <Button size="sm" variant="secondary" className="mt-4 w-full" asChild>
-                                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Upgrade Now</Link>
-                            </Button>
-                        </div>
+                <div className={cn("border-t shrink-0 flex flex-col gap-2", isCollapsed ? "p-2 items-center" : "p-4")}>
+                    {isCollapsed ? (
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-primary/10 text-primary" asChild title="Manage Subscription">
+                            <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>
+                                <Crown className="h-5 w-5" />
+                            </Link>
+                        </Button>
                     ) : (
-                        <div className="rounded-lg bg-secondary/50 p-4">
-                            <h3 className="font-semibold text-sm">Subscription Active</h3>
-                            <p className="mt-1 text-xs text-muted-foreground">You are on the {userProfile.subscription_tier} plan.</p>
-                            <Button size="sm" variant="outline" className="mt-4 w-full" asChild>
-                                <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Manage Subscription</Link>
-                            </Button>
-                        </div>
+                        userProfile.subscription_tier === 'free_user' ? (
+                            <div className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white">
+                                <h3 className="font-semibold">Upgrade to Pro</h3>
+                                <p className="mt-1 text-xs text-white/90">Get unlimited access to all features.</p>
+                                <Button size="sm" variant="secondary" className="mt-4 w-full" asChild>
+                                    <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Upgrade Now</Link>
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="rounded-lg bg-secondary/50 p-4">
+                                <h3 className="font-semibold text-sm">Subscription Active</h3>
+                                <p className="mt-1 text-xs text-muted-foreground">You are on the {userProfile.subscription_tier} plan.</p>
+                                <Button size="sm" variant="outline" className="mt-4 w-full" asChild>
+                                    <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Manage Subscription</Link>
+                                </Button>
+                            </div>
+                        )
                     )}
 
                     {/* User Menu Dropdown (Bottom) */}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="w-full h-auto p-2 flex items-center justify-between hover:bg-muted/50 rounded-lg group">
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="h-9 w-9 border border-border">
+                            <Button variant="ghost" className={cn(
+                                "w-full h-auto p-2 flex items-center hover:bg-muted/50 rounded-lg group transition-all",
+                                isCollapsed ? "justify-center w-10 h-10 rounded-full p-0" : "justify-between"
+                            )}>
+                                <div className={cn("flex items-center", isCollapsed ? "justify-center" : "gap-3")}>
+                                    <Avatar className="h-9 w-9 border border-border shrink-0">
                                         <AvatarImage src={userProfile.photoURL} className="object-cover" />
                                         <AvatarFallback>{getInitials(userProfile.displayName)}</AvatarFallback>
                                     </Avatar>
-                                    <div className="flex flex-col items-start overflow-hidden text-left">
-                                        <span className="text-sm font-medium truncate max-w-[100px]">{userProfile.displayName || "User"}</span>
-                                        <span className="text-xs text-muted-foreground">
-                                            {userProfile.subscription_tier === "admin" ? "Admin" :
-                                                userProfile.subscription_tier === "pro" ? "Pro Plan" : "Free Plan"}
-                                        </span>
-                                    </div>
+                                    {!isCollapsed && (
+                                        <div className="flex flex-col items-start overflow-hidden text-left transition-all duration-300">
+                                            <span className="text-sm font-medium truncate max-w-[100px]">{userProfile.displayName || "User"}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                                {userProfile.subscription_tier === "admin" ? "Admin" :
+                                                    userProfile.subscription_tier === "pro" ? "Pro Plan" : "Free Plan"}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
-                                <ChevronsUpDown className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100" />
+                                {!isCollapsed && (
+                                    <ChevronsUpDown className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100" />
+                                )}
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="w-60 mb-2 z-[70]" align="start" side="right" sideOffset={10}>
@@ -252,6 +297,13 @@ export function AppShell() {
                                 <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
                                     <SettingsIcon className="mr-2 h-4 w-4" />
                                     Settings
+                                </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                                <Link to="/support" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
+                                    <LifeBuoy className="mr-2 h-4 w-4" />
+                                    Support
                                 </Link>
                             </DropdownMenuItem>
 
@@ -295,6 +347,13 @@ export function AppShell() {
                                 </>
                             )}
 
+                            <DropdownMenuItem onClick={() => setInstallModalOpen(true)} className="cursor-pointer">
+                                <Download className="mr-2 h-4 w-4" />
+                                Install App
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
                             <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500 cursor-pointer">
                                 <LogOut className="mr-2 h-4 w-4" />
                                 Log out
@@ -329,7 +388,7 @@ export function AppShell() {
                 <BottomNav />
             </main>
 
-
+            <InstallPrompt open={installModalOpen} onOpenChange={setInstallModalOpen} />
         </div>
     );
 }

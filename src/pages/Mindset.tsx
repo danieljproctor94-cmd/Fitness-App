@@ -123,7 +123,7 @@ export default function Mindset() {
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                         <Brain className="h-8 w-8 text-primary" />
-                        Mindset Journal
+                        Mindset
                     </h1>
                     <p className="text-muted-foreground">Track your gratitude and growth. Train your mind like you train your body.</p>
                 </div>

@@ -185,7 +185,7 @@ export default function Dashboard() {
                     <h1 className="text-3xl font-bold tracking-tight">Hey {userProfile.displayName || "User"}, welcome back!</h1>
                     <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="hidden md:flex gap-2">
                     <Button asChild className="h-11 px-6">
                         <Link to="/workouts" className="flex items-center gap-2">
                             <Plus className="h-4 w-4" /> Log Workout

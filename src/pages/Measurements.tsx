@@ -10,6 +10,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { AiMetricsOverview } from "@/components/AiMetricsOverview";
 
 export default function Measurements() {
     const { measurements, addMeasurement, deleteMeasurement, userProfile, updateUserProfile, isLoading } = useData();
@@ -303,6 +304,11 @@ export default function Measurements() {
                         </CardContent>
                     )}
                 </Card>
+            </div>
+
+            {/* AI Overview Section */}
+            <div className="mt-6">
+                <AiMetricsOverview />
             </div>
 
             {/* History Log */}
