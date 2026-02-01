@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plus, Users, Mail, Check, X, Clock } from "lucide-react";
+import { Plus, Users, Mail, Check, Clock } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export default function Collaboration() {
-    const { collaborations, sendFriendRequest, acceptFriendRequest, userProfile, isLoading } = useData();
+    const { collaborations, sendFriendRequest, acceptFriendRequest, userProfile } = useData();
     const [inviteEmail, setInviteEmail] = useState("");
     const [isInviting, setIsInviting] = useState(false);
 
@@ -20,7 +20,6 @@ export default function Collaboration() {
     // Separate incoming vs outgoing might be nice, but for now just show all pending
     // Actually, we need to know who sent it.
     // If I am requester, it's "Sent". If I am receiver, it's "Received".
-    const myId = userProfile.id; // userProfile doesn't always have ID if locally mocked? Wait, context ensures it comes from profile.
     // userProfile from DataContext might not have ID if we initialized it with default.
     // Ideally we use useAuth().user.id but let's assume we can derive or check.
 
