@@ -142,8 +142,8 @@ export function AppShell() {
             {/* Sidebar (Desktop) */}
             <aside className={cn(
                 "fixed inset-y-0 z-[60] flex flex-col border-r bg-background transition-all duration-300 md:relative md:translate-x-0",
-                isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0",
-                isCollapsed ? "md:w-20" : "md:w-64"
+                isMobileMenuOpen ? "translate-x-0 w-56" : "-translate-x-full md:translate-x-0",
+                isCollapsed ? "md:w-20" : "md:w-56"
             )}>
                 <div className={cn("flex h-16 items-center border-b px-4 shrink-0 transition-all", isCollapsed ? "justify-center" : "justify-between")}>
                     {!isCollapsed && (
