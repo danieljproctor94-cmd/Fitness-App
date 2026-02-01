@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Dumbbell, Home, Ruler, Trophy, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Brain, ListTodo, Shield, PanelLeft, PanelLeftClose, Crown, Activity } from "lucide-react";
+import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -11,20 +11,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
+import { navItems } from "@/lib/navigation";
 import { BottomNav } from "./BottomNav";
 import { NotificationBell } from "@/components/ui/notification-bell";
 import { useNotifications } from "@/features/notifications/NotificationContext";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { Download } from "lucide-react";
-
-export const navItems = [
-    { href: "/", label: "Home", icon: Home },
-    { href: "/workouts", label: "Workouts", icon: Dumbbell },
-    { href: "/todos", label: "To Do List", icon: ListTodo },
-    { href: "/measurements", label: "Measurements", icon: Ruler },
-    { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
-    { href: "/mindset", label: "Mindset", icon: Brain },
-];
 
 export function AppShell() {
     // Force Re-render match
@@ -35,8 +27,16 @@ export function AppShell() {
     const { setTheme } = useTheme();
     const [installModalOpen, setInstallModalOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
-
     const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
+    const [expandedItems, setExpandedItems] = useState<string[]>(["/workouts"]); // Default expand workous
+
+    const toggleExpand = (href: string, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setExpandedItems(prev =>
+            prev.includes(href) ? prev.filter(h => h !== href) : [...prev, href]
+        );
+    };
 
     const handleLogout = async () => {
         await logout();
@@ -162,29 +162,95 @@ export function AppShell() {
                 </div>
 
                 <nav className="flex-1 space-y-1 p-2 overflow-y-auto overflow-x-hidden">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={cn(
-                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground relative transition-all group",
-                                location.pathname === item.href ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground",
-                                isCollapsed ? "justify-center px-0 w-10 h-10 mx-auto" : ""
-                            )}
-                            title={isCollapsed ? item.label : undefined}
-                        >
-                            <div className="relative shrink-0 flex items-center justify-center">
-                                <item.icon className={cn("h-5 w-5 transition-all", isCollapsed ? "h-6 w-6" : "")} />
-                                {item.label === "Mindset" && !isMindsetLoggedToday && (
-                                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
+                    {navItems.map((item) => {
+                        const isExpanded = expandedItems.includes(item.href);
+                        const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+                        const hasChildren = item.children && item.children.length > 0;
+
+                        return (
+                            <div key={item.href} className="space-y-1">
+                                {item.label === "Collaboration" && !isCollapsed ? (
+                                    <div className="mx-2 mt-6 mb-2">
+                                        <div className="rounded-xl border border-border/50 bg-card/50 p-3 shadow-sm bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] px-1.5 py-0.5 rounded-bl-lg font-bold tracking-wider z-20">PRO</div>
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="flex -space-x-2.5">
+                                                    <div className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/20 bg-muted/10 ring-1 ring-border/10" />
+                                                    <div className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/20 bg-muted/10 ring-1 ring-border/10" />
+                                                    <button className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-background bg-muted hover:bg-muted/80 transition-colors z-10 ring-1 ring-border/10">
+                                                        <Plus className="h-4 w-4 text-muted-foreground" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-semibold text-foreground/80">Start Team</span>
+                                                <Link to="/collaboration" className="text-xs text-primary hover:text-primary/80 font-medium bg-primary/10 px-2 py-0.5 rounded-full transition-colors">
+                                                    Invite
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div
+                                            className={cn(
+                                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all group select-none cursor-pointer",
+                                                isActive && !hasChildren ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                                                isCollapsed ? "justify-center px-0 w-10 h-10 mx-auto" : ""
+                                            )}
+                                            title={isCollapsed ? item.label : undefined}
+                                        >
+                                            <Link
+                                                to={item.href}
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                className={cn("flex items-center gap-3 flex-1", isCollapsed && "justify-center")}
+                                            >
+                                                <div className="relative shrink-0 flex items-center justify-center">
+                                                    <item.icon className={cn("h-5 w-5 transition-all", isCollapsed ? "h-6 w-6" : "")} />
+                                                    {item.label === "Mindset" && !isMindsetLoggedToday && (
+                                                        <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-background" />
+                                                    )}
+                                                </div>
+                                                {!isCollapsed && (
+                                                    <span className="truncate transition-all duration-300 opacity-100">{item.label}</span>
+                                                )}
+                                            </Link>
+
+                                            {/* Expand/Collapse Chevron for parents */}
+                                            {!isCollapsed && hasChildren && (
+                                                <button
+                                                    onClick={(e) => toggleExpand(item.href, e)}
+                                                    className="p-1 rounded-sm hover:bg-accent/50 text-muted-foreground"
+                                                >
+                                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Children */}
+                                        {!isCollapsed && hasChildren && isExpanded && (
+                                            <div className="ml-9 space-y-1 border-l pl-2 border-border/50">
+                                                {item.children!.map((child) => (
+                                                    <Link
+                                                        key={child.href}
+                                                        to={child.href}
+                                                        onClick={() => setIsMobileMenuOpen(false)}
+                                                        className={cn(
+                                                            "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all group",
+                                                            location.pathname === child.href ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                                                        )}
+                                                    >
+                                                        {child.icon && <child.icon className="h-4 w-4 opacity-70" />}
+                                                        <span className="truncate">{child.label}</span>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
-                            {!isCollapsed && (
-                                <span className="truncate transition-all duration-300 opacity-100">{item.label}</span>
-                            )}
-                        </Link>
-                    ))}
+                        );
+                    })}
                 </nav>
 
                 <div className={cn("px-4 py-2 mt-auto mb-2", isCollapsed ? "flex justify-center px-0" : "")}>
@@ -214,31 +280,7 @@ export function AppShell() {
                 </div>
 
                 <div className={cn("border-t shrink-0 flex flex-col gap-2", isCollapsed ? "p-2 items-center" : "p-4")}>
-                    {isCollapsed ? (
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-primary/10 text-primary" asChild title="Manage Subscription">
-                            <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>
-                                <Crown className="h-5 w-5" />
-                            </Link>
-                        </Button>
-                    ) : (
-                        userProfile.subscription_tier === 'free_user' ? (
-                            <div className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white">
-                                <h3 className="font-semibold">Upgrade to Pro</h3>
-                                <p className="mt-1 text-xs text-white/90">Get unlimited access to all features.</p>
-                                <Button size="sm" variant="secondary" className="mt-4 w-full" asChild>
-                                    <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Upgrade Now</Link>
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="rounded-lg bg-secondary/50 p-4">
-                                <h3 className="font-semibold text-sm">Subscription Active</h3>
-                                <p className="mt-1 text-xs text-muted-foreground">You are on the {userProfile.subscription_tier} plan.</p>
-                                <Button size="sm" variant="outline" className="mt-4 w-full" asChild>
-                                    <Link to="/account" onClick={() => setIsMobileMenuOpen(false)}>Manage Subscription</Link>
-                                </Button>
-                            </div>
-                        )
-                    )}
+
 
                     {/* User Menu Dropdown (Bottom) */}
                     <DropdownMenu>

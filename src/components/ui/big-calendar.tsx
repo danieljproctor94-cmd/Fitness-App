@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
     format,
     startOfMonth,
@@ -40,9 +41,21 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
     const calendarDays = eachDayOfInterval({ start: startDate, end: endDate });
     const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    // Helper to find workouts for a specific day
+    // Optimization: Group items by date once
+    const itemsByDate = useMemo(() => {
+        const map: Record<string, any[]> = {};
+        workouts.forEach(w => {
+            const dateKey = w.date; // already YYYY-MM-DD
+            if (!map[dateKey]) map[dateKey] = [];
+            map[dateKey].push(w);
+        });
+        return map;
+    }, [workouts]);
+
+    // O(1) Lookup
     const getWorkoutsForDay = (day: Date) => {
-        return workouts.filter(w => w.date === format(day, "yyyy-MM-dd"));
+        const dateKey = format(day, "yyyy-MM-dd");
+        return itemsByDate[dateKey] || [];
     };
 
     return (
@@ -92,21 +105,55 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
 
                             {/* Workouts List */}
                             <div className="flex-1 flex flex-col gap-1 mt-1 overflow-hidden">
-                                {dayWorkouts.map((workout) => (
-                                    <div
-                                        key={workout.id}
-                                        className={cn(
-                                            "text-[10px] px-2 py-1 rounded-md border truncate flex items-center gap-1.5 transition-colors shadow-sm",
-                                            isSelected
-                                                ? "bg-primary text-primary-foreground border-primary"
-                                                : "bg-card text-card-foreground border-border hover:border-primary/50"
-                                        )}
-                                        title={workout.name}
-                                    >
-                                        <Dumbbell className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />
-                                        <span className="truncate font-medium">{workout.name}</span>
-                                    </div>
-                                ))}
+                                {dayWorkouts.map((item: any) => {
+                                    // Determine Styles based on Type & Urgency
+                                    let itemClasses = "bg-card text-card-foreground border-border hover:border-primary/50";
+                                    let Icon = Dumbbell;
+                                    let showIcon = true;
+
+                                    if (item.type === 'todo') {
+                                        showIcon = false;
+                                        if (item.urgency === 'critical') itemClasses = "bg-red-500/15 text-red-700 border-red-200/50 hover:border-red-300";
+                                        else if (item.urgency === 'high') itemClasses = "bg-orange-500/15 text-orange-700 border-orange-200/50 hover:border-orange-300";
+                                        else if (item.urgency === 'normal' || item.urgency === 'medium') itemClasses = "bg-primary/15 text-primary border-primary/20 hover:border-primary/40";
+                                        else if (item.urgency === 'low') itemClasses = "bg-slate-500/15 text-slate-700 border-slate-200/50 hover:border-slate-300";
+                                    } else if (item.type === 'google_event') {
+                                        itemClasses = "bg-blue-500/10 text-blue-700 border-blue-200/50 hover:border-blue-300"; // Distinct for Google Events
+                                        showIcon = false; // Or use a Google Icon if available
+                                    }
+
+                                    if (isSelected) {
+                                        // Override for selected state if customized
+                                        // Usually we want to keep the urgency color but maybe highlight it differently?
+                                        // The original code forced primary color. 
+                                        // Let's keep urgency color but add a ring or stronger border?
+                                        // OR just let the selection logic below override IF it's not a todo?
+                                        // Review request said "match colour of the task to urgency label", implying it should stay colored even when selected?
+                                        // But original code has specific "isSelected" style.
+                                        // Let's TRY to keep urgency color but make it "active" looking.
+
+                                        if (item.type !== 'todo') {
+                                            itemClasses = "bg-primary text-primary-foreground border-primary";
+                                        } else {
+                                            // Ensure it pops slightly more
+                                            itemClasses += " ring-1 ring-inset ring-black/5";
+                                        }
+                                    }
+
+                                    return (
+                                        <div
+                                            key={item.id}
+                                            className={cn(
+                                                "text-[10px] px-2 py-1 rounded-md border truncate flex items-center gap-1.5 transition-colors shadow-sm",
+                                                itemClasses
+                                            )}
+                                            title={item.name}
+                                        >
+                                            {showIcon && <Icon className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />}
+                                            <span className="truncate font-medium">{item.name}</span>
+                                        </div>
+                                    );
+                                })}
 
                                 {/* Placeholder for "Add" on hover if empty? Optional enhancement */}
                                 {dayWorkouts.length === 0 && isSelected && (

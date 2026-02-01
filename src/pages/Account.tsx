@@ -7,17 +7,43 @@ import { useData } from "@/features/data/DataContext";
 import { User, Mail, Shield, Crown, Bell } from "lucide-react";
 import { useNotifications } from "@/features/notifications/NotificationContext";
 import { Switch } from "@/components/ui/switch";
+import { uploadAvatar } from "@/lib/storage-utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Camera } from "lucide-react";
+import { useAuth } from "@/features/auth/AuthContext";
 
 export default function Account() {
     const { userProfile, updateUserProfile } = useData();
     const [name, setName] = useState(userProfile.displayName || "");
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState("");
     const { pushEnabled, enablePush } = useNotifications();
+    const { user } = useAuth();
 
     useEffect(() => {
         setName(userProfile.displayName || "");
     }, [userProfile]);
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        setUploading(true);
+        const { url, error } = await uploadAvatar(file, user.id);
+
+        if (error) {
+            toast.error("Failed to upload avatar.");
+            setUploading(false);
+            return;
+        }
+
+        if (url) {
+            await updateUserProfile({ photoURL: url });
+            toast.success("Avatar updated!");
+        }
+        setUploading(false);
+    };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,6 +88,28 @@ export default function Account() {
                     <CardContent className="space-y-4">
                         {success && <div className="text-sm text-green-500 bg-green-500/10 p-2 rounded">{success}</div>}
 
+                        <div className="flex flex-col items-center gap-4 mb-6">
+                            <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                                <Avatar className="h-24 w-24 border-2 border-border group-hover:border-primary transition-colors">
+                                    <AvatarImage src={userProfile.photoURL || undefined} className="object-cover" />
+                                    <AvatarFallback className="text-2xl">{name ? name[0].toUpperCase() : "U"}</AvatarFallback>
+                                </Avatar>
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Camera className="h-8 w-8 text-white" />
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Click to change avatar</p>
+                            <input
+                                id="avatar-upload"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleAvatarChange}
+                                disabled={uploading}
+                            />
+                            {uploading && <p className="text-xs text-primary animate-pulse">Uploading...</p>}
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium flex items-center gap-2">
                                 <User className="h-4 w-4 text-muted-foreground" /> Full Name
@@ -74,7 +122,7 @@ export default function Account() {
                                 <Mail className="h-4 w-4 text-muted-foreground" /> Email
                             </label>
                             {/* Email is typically read-only or handled via separate auth flow */}
-                            <Input value="user@example.com" disabled className="bg-muted" />
+                            <Input value={user?.email || ""} disabled className="bg-muted" />
                             <p className="text-xs text-muted-foreground">Email cannot be changed directly.</p>
                         </div>
                     </CardContent>

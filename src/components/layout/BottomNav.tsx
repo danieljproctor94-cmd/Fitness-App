@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { navItems } from "./AppShell";
+import { navItems } from "@/lib/navigation";
 import { useData } from "@/features/data/DataContext";
 import { isSameDay, parseISO } from "date-fns";
 import { Plus, ListTodo, Weight, Dumbbell } from "lucide-react";
@@ -16,13 +16,13 @@ export function BottomNav() {
     const { mindsetLogs } = useData();
     const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
 
-    const filteredItems = navItems.filter(item => item.label !== "Leaderboard" && item.label !== "Support");
+    const filteredItems = navItems.filter(item => item.label !== "Leaderboard" && item.label !== "Support" && item.label !== "Collaboration");
 
     return (
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-safe">
             <nav className="flex items-center justify-around h-16 px-2">
                 {filteredItems.map((item) => {
-                    if (item.label === "To Do List") {
+                    if (item.label === "Planner") {
                         return (
                             <DropdownMenu key={item.href}>
                                 <DropdownMenuTrigger asChild>

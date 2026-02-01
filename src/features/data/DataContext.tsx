@@ -28,13 +28,12 @@ export interface Measurement {
     id: string;
     date: string;
     weight: number;
-    // Optional body stats for history
     height?: number;
     waist?: number;
     neck?: number;
     chest?: number;
     arms?: number;
-    created_at?: string; // For precise sorting
+    created_at?: string;
 }
 
 export interface UserProfile {
@@ -76,6 +75,15 @@ export interface ToDo {
     notify_before?: '10_min' | '1_hour' | '1_day';
     urgency?: 'low' | 'normal' | 'high' | 'critical';
     created_at?: string;
+    shared_with?: string[];
+}
+
+export interface Collaboration {
+    id: string;
+    requester_id: string;
+    receiver_id: string;
+    status: 'pending' | 'accepted';
+    profile?: UserProfile;
 }
 
 interface DataContextType {
@@ -84,18 +92,23 @@ interface DataContextType {
     mindsetLogs: MindsetLog[];
     todos: ToDo[];
     userProfile: UserProfile;
+    collaborations: Collaboration[];
     addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
     deleteWorkout: (id: string) => Promise<void>;
     addMeasurement: (measurement: Omit<Measurement, 'id'>) => Promise<void>;
     deleteMeasurement: (id: string) => Promise<void>;
     addMindsetLog: (log: Omit<MindsetLog, 'id'>) => Promise<void>;
-    addToDo: (todo: Omit<ToDo, 'id'>) => Promise<void>;
+    addToDo: (todo: Omit<ToDo, 'id'>) => Promise<ToDo | null>;
     updateToDo: (id: string, updates: Partial<ToDo>) => Promise<void>;
     deleteToDo: (id: string) => Promise<void>;
+    shareToDo: (todoId: string, userId: string) => Promise<void>;
     updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
     fetchAllUsers: () => Promise<UserProfile[]>;
     appLogo: string;
     updateAppLogo: (url: string) => Promise<void>;
+    sendFriendRequest: (email: string) => Promise<void>;
+    acceptFriendRequest: (id: string) => Promise<void>;
+    refreshCollaborations: () => Promise<void>;
     isLoading: boolean;
 }
 
@@ -131,46 +144,75 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
     const [appLogo, setAppLogo] = useState<string>('/logo.png'); // Default
     const [isLoading, setIsLoading] = useState(true);
+    const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
+
+    const fetchCollaborations = async () => {
+        if (!user) return;
+
+        const { data, error } = await supabase
+            .from('collaborations')
+            .select(`
+                *,
+                requester:profiles!requester_id(*),
+                receiver:profiles!receiver_id(*)
+            `)
+            .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+
+        if (error) {
+            return;
+        }
+
+        const processed = data.map((c: any) => {
+            const isRequester = c.requester_id === user.id;
+            const otherProfile = isRequester ? c.receiver : c.requester;
+            return {
+                ...c,
+                profile: {
+                    id: otherProfile?.id,
+                    displayName: otherProfile?.full_name,
+                    photoURL: otherProfile?.avatar_url,
+                    weekly_workout_goal: otherProfile?.weekly_workout_goal,
+                }
+            };
+        });
+
+        setCollaborations(processed);
+    };
 
     // Fetch Data
     useEffect(() => {
         if (!user) {
             setWorkouts([]);
             setMeasurements([]);
-
             setMindsetLogs([]);
             setTodos([]);
             setUserProfile(initialUserProfile);
+            setCollaborations([]);
             setIsLoading(false);
             return;
         }
 
         const fetchData = async () => {
+            setIsLoading(true);
+
             // 1. Workouts
-            const { data: wData, error: wError } = await supabase.from('workouts').select('*').order('created_at', { ascending: false });
-            if (wError) console.error("Error fetching workouts:", wError);
+            const { data: wData } = await supabase.from('workouts').select('*').order('created_at', { ascending: false });
             if (wData) setWorkouts(wData as any);
 
             // 2. Measurements
-            const { data: mData, error: mError } = await supabase.from('measurements').select('*').order('date', { ascending: true });
-            if (mError) console.error("Error fetching measurements:", mError);
+            const { data: mData } = await supabase.from('measurements').select('*').order('date', { ascending: true });
             if (mData) setMeasurements(mData);
 
             // 3. Mindset Logs
-            const { data: mlData, error: mlError } = await supabase.from('mindset_logs').select('*').order('date', { ascending: false });
-            // Suppress error if table doesn't exist yet (common during dev)
-            if (mlError && mlError.code !== '42P01') console.error("Error fetching mindset logs:", mlError);
+            const { data: mlData } = await supabase.from('mindset_logs').select('*').order('date', { ascending: false });
             if (mlData) setMindsetLogs(mlData);
 
             // 4. ToDos
-            const { data: tData, error: tError } = await supabase.from('todos').select('*').order('created_at', { ascending: false });
-            if (tError && tError.code !== '42P01') console.error("Error fetching todos:", tError);
+            const { data: tData } = await supabase.from('todos').select('*').order('created_at', { ascending: false });
             if (tData) setTodos(tData as any);
 
             // 5. Profile
-            const { data: pData, error: pError } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            if (pError && pError.code !== 'PGRST116') console.error("Error fetching profile:", pError);
-
+            const { data: pData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
             if (pData) {
                 setUserProfile({
                     id: pData.id,
@@ -191,14 +233,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             // 6. App Settings (Logo)
-            // Need to wrap in try/catch or just be safe if table missing before SQL run
-            const { data: sData, error: sError } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
+            const { data: sData } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
             if (sData) {
                 setAppLogo(sData.value);
-            } else if (sError && sError.code !== 'PGRST116') {
-                // Ignore "Row not found" (PGRST116)
-                console.warn("Error fetching logo settings:", sError);
             }
+
+            await fetchCollaborations();
 
             setIsLoading(false);
         };
@@ -303,8 +343,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    const addToDo = async (todo: Omit<ToDo, 'id'>) => {
-        if (!user) return;
+    const addToDo = async (todo: Omit<ToDo, 'id'>): Promise<ToDo | null> => {
+        if (!user) return null;
 
         const { data, error } = await supabase.from('todos').insert([{
             user_id: user.id,
@@ -314,13 +354,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) {
             console.error("Error adding todo:", error);
             toast.error(`Failed to save task: ${error.message}`);
-            return;
+            return null;
         }
 
         if (data) {
             setTodos(prev => [data[0] as any, ...prev]);
             toast.success("Task saved!");
+            return data[0] as ToDo;
         }
+        return null;
     };
 
     const updateToDo = async (id: string, updates: Partial<ToDo>) => {
@@ -335,8 +377,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setTodos(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-        // Recurrence logic could go here or in the component calling this.
-        // For simplicity, we'll confirm update.
         toast.success("Task updated!");
     };
 
@@ -353,6 +393,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setTodos(prev => prev.filter(t => t.id !== id));
         toast.success("Task deleted!");
+    };
+
+    const shareToDo = async (todoId: string, userId: string) => {
+        if (!user) return;
+        const { error } = await supabase.from('todo_collaborators').insert({
+            todo_id: todoId,
+            user_id: userId,
+            permission: 'edit'
+        });
+
+        if (error) {
+            // Check for duplicate key
+            if (error.code === '23505') {
+                toast.error("Already shared with this user.");
+            } else {
+                console.error("Error sharing todo:", error);
+                toast.error("Failed to share task: " + error.message);
+            }
+        } else {
+            toast.success("Task shared successfully!");
+        }
     };
 
     const updateUserProfile = async (profile: Partial<UserProfile>) => {
@@ -373,7 +434,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (profile.age !== undefined) updates.age = profile.age;
         if (profile.starting_weight !== undefined) updates.starting_weight = profile.starting_weight;
 
-        // FIXED: Removed 'updated_at' to prevent "Column not found" error
         const { error } = await supabase.from('profiles').upsert({
             id: user.id,
             ...updates
@@ -390,7 +450,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateAppLogo = async (url: string) => {
         if (!user) return;
-        // Optimistic update
         setAppLogo(url);
 
         const { error } = await supabase.from('app_settings').upsert({
@@ -402,7 +461,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) {
             console.error("Error saving logo:", error);
             toast.error("Failed to save logo setting");
-            // Revert? For now assume admin retry
         } else {
             toast.success("Global Logo Setting Saved!");
         }
@@ -410,7 +468,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const fetchAllUsers = async (): Promise<UserProfile[]> => {
         if (!user) return [];
-        // This query relies on the RLS policy "Admins can view all profiles"
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
@@ -418,7 +475,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (error) {
             console.error("Error fetching all users:", error);
-            // Don't show toast here as it might spam if non-admin tries to load page logic
             return [];
         }
 
@@ -442,29 +498,87 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })) || [];
     };
 
+    const sendFriendRequest = async (email: string) => {
+        if (!user) return;
+
+        const { data: foundUsers, error: searchError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('email', email)
+            .single();
+
+        if (searchError || !foundUsers) {
+            toast.error("User not found with that email.");
+            return;
+        }
+
+        if (foundUsers.id === user.id) {
+            toast.error("You cannot invite yourself.");
+            return;
+        }
+
+        const { error } = await supabase.from('collaborations').insert({
+            requester_id: user.id,
+            receiver_id: foundUsers.id,
+            status: 'pending'
+        });
+
+        if (error) {
+            toast.error(error.message);
+        } else {
+            toast.success("Friend request sent!");
+            fetchCollaborations();
+        }
+    };
+
+    const acceptFriendRequest = async (id: string) => {
+        const { error } = await supabase.from('collaborations').update({ status: 'accepted' }).eq('id', id);
+        if (error) {
+            toast.error("Failed to accept request.");
+        } else {
+            toast.success("Friend request accepted!");
+            fetchCollaborations();
+        }
+    };
+
+    const value = React.useMemo(() => ({
+        workouts,
+        measurements,
+        mindsetLogs,
+        todos,
+        userProfile,
+        collaborations,
+        addWorkout,
+        deleteWorkout,
+        addMeasurement,
+        deleteMeasurement,
+        addMindsetLog,
+        addToDo,
+        updateToDo,
+        deleteToDo,
+        shareToDo,
+        updateUserProfile,
+        fetchAllUsers,
+        appLogo,
+        updateAppLogo,
+        sendFriendRequest,
+        acceptFriendRequest,
+        refreshCollaborations: fetchCollaborations,
+        isLoading
+    }), [
+        workouts,
+        measurements,
+        mindsetLogs,
+        todos,
+        userProfile,
+        collaborations,
+        appLogo,
+        isLoading
+    ]);
+
     return (
-        <DataContext.Provider value={{
-            workouts,
-            measurements,
-            mindsetLogs,
-            todos,
-            userProfile,
-            addWorkout,
-            deleteWorkout,
-            addMeasurement,
-            deleteMeasurement,
-            addMindsetLog,
-            addToDo,
-            updateToDo,
-            deleteToDo,
-            updateUserProfile,
-            fetchAllUsers,
-            appLogo,
-            updateAppLogo,
-            isLoading
-        }}>
+        <DataContext.Provider value={value}>
             {children}
         </DataContext.Provider>
     );
 };
-

@@ -1,15 +1,20 @@
-﻿import { useState, useEffect } from "react";
+﻿import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Dumbbell, Plus, Trash2, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, MapPin, Activity, Clock, Pen } from "lucide-react";
-import { useData, Workout, Exercise, Set } from "@/features/data/DataContext";
+import { Dumbbell, Plus, Trash2, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity, Clock, Pen, BarChart3 } from "lucide-react";
+import { useData, Workout, Exercise, Set as WorkoutSet } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths } from "date-fns";
 
 import confetti from "canvas-confetti";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface FormSet {
     id: string;
@@ -38,6 +43,10 @@ export default function Workouts() {
     const [duration, setDuration] = useState("");
     const [exercises, setExercises] = useState<FormExercise[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
+
+    // Mobile & Pagination State
+    const [mobileView, setMobileView] = useState<'list' | 'calendar'>('list');
+    const [visibleCount, setVisibleCount] = useState(20);
 
     useEffect(() => {
         if (selectedDate && !editingId) {
@@ -151,61 +160,36 @@ export default function Workouts() {
     const workoutsOnSelectedDate = workouts.filter(w => isSameDay(parseISO(w.date), selectedDate));
     const totalWorkouts = workouts.length;
 
+    // Derived list of unique exercises history
+    const uniqueExerciseNames = Array.from(new Set(
+        workouts.flatMap(w => w.exercises.map(e => e.name?.trim())).filter(Boolean)
+    )).sort();
+
     return (
-        <div className="flex flex-col h-full p-4 md:p-6 gap-4 overflow-hidden">
+        <div className="flex flex-col p-4 md:p-6 gap-4">
 
             {/* Top Navigation Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-none">
 
-                {/* Left: Navigation Controls */}
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="icon" onClick={handlePrev} className="h-9 w-9">
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={handleToday} className="h-9 font-medium px-4">
-                        Today
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+                {/* Left: View Toggles & Actions (Swapped from Right) */}
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end sm:justify-start order-2 sm:order-1">
 
-                    <h2 className="text-xl font-bold ml-3 hidden sm:block min-w-[140px]">
-                        {format(currentDate, "MMMM yyyy")}
-                    </h2>
-                </div>
-
-                {/* Right: View Toggles & Actions */}
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-
-                    {/* View Switcher REMOVED */}
-                    {/* <div className="bg-muted p-1 rounded-lg flex items-center shrink-0">
-                        <button
-                            onClick={() => setCalendarView("month")}
-                            className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${calendarView === "month" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                        >
-                            Month
-                        </button>
-                        <button
-                            onClick={() => setCalendarView("week")}
-                            className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${calendarView === "week" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                        >
-                            Week
-                        </button>
-                    </div> */}
-
-                    <div className="h-6 w-px bg-border mx-1 hidden lg:block" />
-
-                    {/* Stats */}
-                    <div className="hidden xl:flex items-center gap-2 mr-2">
+                    <div className="flex items-center gap-2 mr-2">
+                        <Link to="/workouts/analytics">
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground hover:text-white transition-colors">
+                                <BarChart3 className="h-4 w-4" />
+                                <span className="text-xs font-medium">Analytics</span>
+                            </Button>
+                        </Link>
+                        <div className="h-4 w-px bg-border mx-1" />
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap">
                             <Activity className="h-3.5 w-3.5" />
                             <span>{totalWorkouts} Workouts</span>
                         </div>
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap">
-                            <MapPin className="h-3.5 w-3.5" />
-                            <span>Europe/Warsaw</span>
-                        </div>
+
                     </div>
+
+                    <div className="h-6 w-px bg-border mx-1 hidden lg:block" />
 
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -217,7 +201,7 @@ export default function Workouts() {
                                 if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
                                 else setDate(new Date().toISOString().split("T")[0]);
                                 setTime(format(new Date(), "HH:mm"));
-                            }} className="h-11 px-6 bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 flex items-center gap-2">
+                            }} className="h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 flex items-center gap-2">
                                 <Plus className="h-4 w-4" />
                                 <span className="hidden sm:inline">Add Workout</span>
                                 <span className="sm:hidden">Add</span>
@@ -258,8 +242,14 @@ export default function Workouts() {
                                         <div key={ex.id} className="border rounded-md p-3 space-y-3 bg-muted/40">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-bold text-muted-foreground">#{exIndex + 1}</span>
-                                                <Input placeholder="Exercise Name" value={ex.name} onChange={(e) => updateExerciseName(ex.id, e.target.value)} className="h-8" required />
-                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeExercise(ex.id)}><X className="h-4 w-4" /></Button>
+
+                                                <ExerciseAutocomplete
+                                                    value={ex.name}
+                                                    onChange={(val) => updateExerciseName(ex.id, val)}
+                                                    existingExercises={uniqueExerciseNames}
+                                                />
+
+                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeExercise(ex.id)}><X className="h-4 w-4 text-white" /></Button>
                                             </div>
                                             <div className="pl-6 space-y-2">
                                                 {ex.sets.map((set, sIndex) => (
@@ -267,7 +257,7 @@ export default function Workouts() {
                                                         <span className="text-xs w-8 text-muted-foreground">S{sIndex + 1}</span>
                                                         <Input placeholder="kg" type="number" className="h-7 w-20" value={set.weight} onChange={(e) => updateSet(ex.id, set.id, "weight", e.target.value)} required />
                                                         <Input placeholder="reps" type="number" className="h-7 w-20" value={set.reps} onChange={(e) => updateSet(ex.id, set.id, "reps", e.target.value)} required />
-                                                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSet(ex.id, set.id)}><X className="h-3 w-3" /></Button>
+                                                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSet(ex.id, set.id)}><X className="h-3 w-3 text-white" /></Button>
                                                     </div>
                                                 ))}
                                                 <Button type="button" variant="link" size="sm" className="h-6 px-0 text-xs" onClick={() => addSet(ex.id)}>+ Add Set</Button>
@@ -280,24 +270,56 @@ export default function Workouts() {
                         </DialogContent>
                     </Dialog>
                 </div>
+
+                {/* Right: Navigation Controls (Swapped from Left) */}
+                {/* Right: Navigation Controls (Swapped from Left) */}
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end order-1 sm:order-2">
+                    <Button variant="outline" size="icon" onClick={handlePrev} className="h-9 w-9">
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button variant="secondary" size="sm" onClick={handleToday} className="h-9 font-medium px-4">
+                        Today
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+
+                    <h2 className="text-xl font-bold ml-3 hidden sm:block min-w-[140px] text-right">
+                        {format(currentDate, "MMMM yyyy")}
+                    </h2>
+                </div>
+            </div>
+
+            {/* Mobile View Toggle */}
+            <div className="flex lg:hidden bg-muted/50 p-1 rounded-lg w-full shrink-0">
+                <button
+                    onClick={() => setMobileView('list')}
+                    className={cn(
+                        "flex-1 text-xs font-medium py-1.5 rounded-md transition-all",
+                        mobileView === 'list' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    List
+                </button>
+                <button
+                    onClick={() => setMobileView('calendar')}
+                    className={cn(
+                        "flex-1 text-xs font-medium py-1.5 rounded-md transition-all",
+                        mobileView === 'calendar' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    Calendar
+                </button>
             </div>
 
             {/* Main Content Area - Fixed Layout */}
-            <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
 
-                {/* Calendar Component - Takes available space */}
-                <div className="flex-1 min-h-0 flex flex-col bg-card/20 rounded-xl overflow-hidden shadow-sm border border-border/50">
-                    <BigCalendar
-                        workouts={workouts}
-                        selectedDate={selectedDate}
-                        onSelectDate={setSelectedDate}
-                        currentDate={currentDate}
-                        view={calendarView}
-                    />
-                </div>
-
-                {/* Side Panel - Fixed width on Desktop */}
-                <div className="w-full lg:w-80 flex-none flex flex-col gap-4 border lg:border-l-0 border-border/50 bg-card rounded-xl lg:rounded-l-none lg:bg-background lg:border-l lg:border-t-0 lg:border-b-0 lg:border-r-0 lg:shadow-none shadow-sm p-4 h-[30vh] lg:h-full min-h-0">
+                {/* Side Panel - Swapped to Left */}
+                <div className={cn(
+                    "w-full lg:w-80 flex-none flex flex-col gap-4 border lg:border-r border-border/50 bg-card rounded-xl lg:rounded-r-none lg:bg-background lg:border-t-0 lg:border-b-0 lg:border-l-0 lg:shadow-none shadow-sm p-4 min-h-0",
+                    mobileView === 'calendar' ? "hidden lg:flex" : "flex"
+                )}>
                     <div className="flex items-center justify-between shrink-0 mb-1 lg:mb-2 lg:pt-2">
                         <h3 className="text-lg font-bold flex items-center gap-2">
                             <CalendarIcon className="h-5 w-5 text-primary" />
@@ -306,10 +328,7 @@ export default function Workouts() {
                         <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">{workoutsOnSelectedDate.length} sessions</span>
                     </div>
 
-
-
-
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                    <div className="flex-1 space-y-3 pr-2">
                         {isLoading ? (
                             <div className="space-y-3">
                                 <Skeleton className="h-24 w-full" />
@@ -317,31 +336,45 @@ export default function Workouts() {
                                 <Skeleton className="h-24 w-full" />
                             </div>
                         ) : workoutsOnSelectedDate.length > 0 ? (
-                            workoutsOnSelectedDate.sort((a, b) => (a.time || "").localeCompare(b.time || "")).map(workout => (
-                                <WorkoutCard
-                                    key={workout.id}
-                                    workout={workout}
-                                    onDelete={deleteWorkout}
-                                    onEdit={(w: Workout) => {
-                                        // Populate form for editing
-                                        setName(w.name);
-                                        setDate(w.date);
-                                        setTime(w.time || "12:00");
-                                        setDuration(w.duration);
-                                        setExercises(w.exercises.map((ex: Exercise) => ({
-                                            id: ex.id,
-                                            name: ex.name,
-                                            sets: ex.sets.map((s: Set) => ({
-                                                id: s.id,
-                                                weight: s.weight.toString(),
-                                                reps: s.reps.toString()
-                                            }))
-                                        })));
-                                        setEditingId(w.id);
-                                        setOpen(true);
-                                    }}
-                                />
-                            ))
+                            <>
+                                {workoutsOnSelectedDate
+                                    .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+                                    .slice(0, visibleCount)
+                                    .map(workout => (
+                                        <WorkoutCard
+                                            key={workout.id}
+                                            workout={workout}
+                                            onDelete={deleteWorkout}
+                                            onEdit={(w: Workout) => {
+                                                // Populate form for editing
+                                                setName(w.name);
+                                                setDate(w.date);
+                                                setTime(w.time || "12:00");
+                                                setDuration(w.duration);
+                                                setExercises(w.exercises.map((ex: Exercise) => ({
+                                                    id: ex.id,
+                                                    name: ex.name,
+                                                    sets: ex.sets.map((s: WorkoutSet) => ({
+                                                        id: s.id,
+                                                        weight: s.weight.toString(),
+                                                        reps: s.reps.toString()
+                                                    }))
+                                                })));
+                                                setEditingId(w.id);
+                                                setOpen(true);
+                                            }}
+                                        />
+                                    ))}
+                                {workoutsOnSelectedDate.length > visibleCount && (
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full mt-2 text-xs text-muted-foreground hover:text-primary"
+                                        onClick={() => setVisibleCount(prev => prev + 20)}
+                                    >
+                                        Load More ({workoutsOnSelectedDate.length - visibleCount} remaining)
+                                    </Button>
+                                )}
+                            </>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-center p-4 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/10">
                                 <Dumbbell className="h-10 w-10 mb-3 opacity-10" />
@@ -351,8 +384,27 @@ export default function Workouts() {
                         )}
                     </div>
                 </div>
+
+                {/* Calendar Component - Swapped to Right */}
+                <div className={cn(
+                    "flex-1 min-h-0 flex flex-col bg-card/20 rounded-xl overflow-hidden shadow-sm border border-border/50",
+                    mobileView === 'list' ? "hidden lg:flex" : "flex"
+                )}>
+                    <BigCalendar
+                        workouts={workouts}
+                        selectedDate={selectedDate}
+                        onSelectDate={(date) => {
+                            setSelectedDate(date);
+                            if (window.innerWidth < 1024) {
+                                setMobileView('list');
+                            }
+                        }}
+                        currentDate={currentDate}
+                        view={calendarView}
+                    />
+                </div>
             </div>
-        </div>
+        </div >
     );
 }
 
@@ -396,3 +448,49 @@ function WorkoutCard({ workout, onDelete, onEdit }: WorkoutCardProps) {
         </Card>
     )
 }
+const ExerciseAutocomplete = ({ value, onChange, existingExercises }: { value: string, onChange: (val: string) => void, existingExercises: string[] }) => {
+    const [open, setOpen] = useState(false);
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="h-8 w-full justify-between"
+                >
+                    {value || "Select exercise..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 text-white" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                    <CommandInput placeholder="Search exercise..." value={value} onValueChange={onChange} />
+                    <CommandList>
+                        <CommandEmpty>No exercise found. Type to add new.</CommandEmpty>
+                        <CommandGroup>
+                            {existingExercises.map((exercise) => (
+                                <CommandItem
+                                    key={exercise}
+                                    value={exercise}
+                                    onSelect={(currentValue: string) => {
+                                        onChange(currentValue === value ? "" : currentValue);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    <Check
+                                        className={cn(
+                                            "mr-2 h-4 w-4",
+                                            value === exercise ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                    {exercise}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
