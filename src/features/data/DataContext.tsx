@@ -208,8 +208,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (mlData) setMindsetLogs(mlData);
 
             // 4. ToDos
-            const { data: tData } = await supabase.from('todos').select('*').order('created_at', { ascending: false });
-            if (tData) setTodos(tData as any);
+            const { data: tData } = await supabase
+                .from('todos')
+                .select('*, todo_collaborators(user_id)')
+                .order('created_at', { ascending: false });
+
+            if (tData) {
+                const processedTodos = tData.map((t: any) => ({
+                    ...t,
+                    shared_with: t.todo_collaborators?.map((tc: any) => tc.user_id) || []
+                }));
+                setTodos(processedTodos);
+            }
 
             // 5. Profile
             const { data: pData } = await supabase.from('profiles').select('*').eq('id', user.id).single();

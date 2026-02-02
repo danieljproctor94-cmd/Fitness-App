@@ -19,6 +19,7 @@ import Support from "@/pages/Support";
 import Mindset from "@/pages/Mindset";
 import ManageUsers from "@/pages/ManageUsers";
 import ToDos from "@/pages/ToDos";
+import TaskAnalytics from "@/pages/TaskAnalytics";
 import Collaboration from "@/pages/Collaboration";
 import { ReloadPrompt } from "@/components/ReloadPrompt";
 
@@ -72,6 +73,7 @@ function App() {
                                             <Route path="/workouts" element={<Workouts />} />
                                             <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
                                             <Route path="/todos" element={<ToDos />} />
+                                            <Route path="/todos/analytics" element={<TaskAnalytics />} />
                                             <Route path="/measurements" element={<Measurements />} />
                                             <Route path="/leaderboard" element={<Leaderboard />} />
                                             <Route path="/account" element={<Account />} />

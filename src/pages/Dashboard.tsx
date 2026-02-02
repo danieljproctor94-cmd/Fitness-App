@@ -66,11 +66,67 @@ export default function Dashboard() {
     const weightChartData = getFilteredChartData();
 
     // 3. Streak
-    const calculateStreak = () => {
-        if (workouts.length === 0) return 0;
-        return workouts.length > 1 ? 2 : 1;
+    // 3. Streak (Weekly Based)
+    const calculateWeeklyStreaks = () => {
+        if (workouts.length === 0) return { current: 0, record: 0 };
+
+        // Group workouts by Week
+        const weeks: Record<string, number[]> = {};
+
+        workouts.forEach(w => {
+            const date = parseISO(w.date);
+            const weekStr = format(startOfWeek(date, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+            // Day index: 0=Mon, 6=Sun
+            let dayIndex = date.getDay() - 1;
+            if (dayIndex === -1) dayIndex = 6;
+
+            if (!weeks[weekStr]) weeks[weekStr] = [];
+            if (!weeks[weekStr].includes(dayIndex)) weeks[weekStr].push(dayIndex);
+        });
+
+        let maxRecord = 0;
+        let currentWeekStreak = 0;
+
+        Object.keys(weeks).forEach(weekStr => {
+            const days = weeks[weekStr].sort((a, b) => a - b);
+            let maxInThisWeek = 0;
+            let currentRun = 0;
+            let lastDay = -2;
+
+            days.forEach(day => {
+                if (day === lastDay + 1) {
+                    currentRun++;
+                } else {
+                    currentRun = 1;
+                }
+                if (currentRun > maxInThisWeek) maxInThisWeek = currentRun;
+                lastDay = day;
+            });
+
+            if (maxInThisWeek > maxRecord) maxRecord = maxInThisWeek;
+
+            // Check if this is the CURRENT week
+            const thisWeekStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+            if (weekStr === thisWeekStr) {
+                const today = new Date();
+                let todayDayIndex = today.getDay() - 1;
+                if (todayDayIndex === -1) todayDayIndex = 6;
+
+                // Calculate streak ending today or up to now for this week
+                // Simple logic: Max consecutive days in current week so far?
+                // Request says: "show the current consecutive days in a row" and "Dashboard streak should be reset every week".
+                // I will show the max streak achieved THIS week as the "currentstreak" or the active streak?
+                // "Reset every week" implies it starts at 0 on Monday. 
+                // "Consecutive days in a row" - usually means active chain. 
+                // Let's use the max consecutive run found in the current week so far.
+                currentWeekStreak = maxInThisWeek;
+            }
+        });
+
+        return { current: currentWeekStreak || 0, record: maxRecord || 0 };
     };
-    const currentStreak = calculateStreak();
+
+    const { current: currentStreak, record: streakRecord } = calculateWeeklyStreaks();
 
     // 4. BMI Logic (Linear Gauge)
     let bmiValue = 0;
@@ -182,7 +238,7 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Hey {userProfile.displayName || "User"}, welcome back!</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Hey {userProfile.displayName?.split(' ')[0] || "User"}, welcome back!</h1>
                     <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
                 </div>
                 <div className="hidden md:flex gap-2">
@@ -256,7 +312,12 @@ export default function Dashboard() {
                         <Flame className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{currentStreak} Day{currentStreak !== 1 && "s"}</div>}
+                        {isLoading ? <Skeleton className="h-8 w-24" /> : (
+                            <div>
+                                <div className="text-2xl font-bold">{currentStreak} Day{currentStreak !== 1 && "s"}</div>
+                                <p className="text-xs text-muted-foreground mt-1">Record: {streakRecord} Days</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
                 <Card>

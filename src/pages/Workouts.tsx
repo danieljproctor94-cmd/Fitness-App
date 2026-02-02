@@ -8,7 +8,7 @@ import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Dumbbell, Plus, Trash2, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity, Clock, Pen, BarChart3 } from "lucide-react";
 import { useData, Workout, Exercise, Set as WorkoutSet } from "@/features/data/DataContext";
-import { format, isSameDay, parseISO, addMonths, subMonths } from "date-fns";
+import { format, isSameDay, parseISO, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 
 import confetti from "canvas-confetti";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -158,7 +158,15 @@ export default function Workouts() {
     };
 
     const workoutsOnSelectedDate = workouts.filter(w => isSameDay(parseISO(w.date), selectedDate));
-    const totalWorkouts = workouts.length;
+
+    // Weekly Progress Calculation
+    const today = new Date();
+    const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // Monday start
+    const endOfCurrentWeek = endOfWeek(today, { weekStartsOn: 1 });
+
+    const weeklyWorkouts = workouts.filter(w =>
+        isWithinInterval(parseISO(w.date), { start: startOfCurrentWeek, end: endOfCurrentWeek })
+    ).length;
 
     // Derived list of unique exercises history
     const uniqueExerciseNames = Array.from(new Set(
@@ -169,11 +177,12 @@ export default function Workouts() {
         <div className="flex flex-col p-4 md:p-6 gap-4">
 
             {/* Top Navigation Bar */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-none">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
 
                 {/* Left: View Toggles & Actions (Swapped from Right) */}
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-end sm:justify-start order-2 sm:order-1">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
 
+                    {/* Analytics Pills */}
                     <div className="flex items-center gap-2 mr-2">
                         <Link to="/workouts/analytics">
                             <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground hover:text-white transition-colors">
@@ -184,12 +193,12 @@ export default function Workouts() {
                         <div className="h-4 w-px bg-border mx-1" />
                         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap">
                             <Activity className="h-3.5 w-3.5" />
-                            <span>{totalWorkouts} Workouts</span>
+                            <span>{weeklyWorkouts} Workouts This Week</span>
                         </div>
 
                     </div>
 
-                    <div className="h-6 w-px bg-border mx-1 hidden lg:block" />
+                    <div className="h-8 w-px bg-border/60 hidden xl:block" />
 
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -201,7 +210,7 @@ export default function Workouts() {
                                 if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
                                 else setDate(new Date().toISOString().split("T")[0]);
                                 setTime(format(new Date(), "HH:mm"));
-                            }} className="h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shrink-0 flex items-center gap-2">
+                            }} className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 shrink-0 flex items-center gap-2 w-full sm:w-auto font-medium transition-all">
                                 <Plus className="h-4 w-4" />
                                 <span className="hidden sm:inline">Add Workout</span>
                                 <span className="sm:hidden">Add</span>
@@ -272,21 +281,29 @@ export default function Workouts() {
                 </div>
 
                 {/* Right: Navigation Controls (Swapped from Left) */}
-                {/* Right: Navigation Controls (Swapped from Left) */}
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end order-1 sm:order-2">
-                    <Button variant="outline" size="icon" onClick={handlePrev} className="h-9 w-9">
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={handleToday} className="h-9 font-medium px-4">
-                        Today
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center gap-2 w-full xl:w-auto justify-between xl:justify-end">
 
-                    <h2 className="text-xl font-bold ml-3 hidden sm:block min-w-[140px] text-right">
-                        {format(currentDate, "MMMM yyyy")}
-                    </h2>
+
+                    <div className={cn(
+                        "flex items-center gap-2 w-full xl:w-auto justify-between xl:justify-end",
+                        mobileView === 'list' ? "hidden lg:flex" : "flex"
+                    )}>
+                        <div className="flex items-center gap-2 w-full justify-between lg:justify-end">
+                            <Button variant="outline" size="icon" onClick={handlePrev} className="h-10 w-10 border-border/60">
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button variant="secondary" size="sm" onClick={handleToday} className="h-10 font-medium px-5 border border-border/50 bg-card hover:bg-muted">
+                                Today
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={handleNext} className="h-10 w-10 border-border/60">
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+
+                            <h2 className="text-xl font-bold ml-4 hidden sm:block min-w-[160px] text-right tracking-tight">
+                                {format(currentDate, "MMMM yyyy")}
+                            </h2>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -323,7 +340,7 @@ export default function Workouts() {
                     <div className="flex items-center justify-between shrink-0 mb-1 lg:mb-2 lg:pt-2">
                         <h3 className="text-lg font-bold flex items-center gap-2">
                             <CalendarIcon className="h-5 w-5 text-primary" />
-                            {format(selectedDate, "MMM do")}
+                            {isSameDay(selectedDate, new Date()) ? `Today, ${format(selectedDate, "MMM do")}` : format(selectedDate, "MMM do")}
                         </h3>
                         <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">{workoutsOnSelectedDate.length} sessions</span>
                     </div>

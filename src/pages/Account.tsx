@@ -14,7 +14,8 @@ import { useAuth } from "@/features/auth/AuthContext";
 
 export default function Account() {
     const { userProfile, updateUserProfile } = useData();
-    const [name, setName] = useState(userProfile.displayName || "");
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [success, setSuccess] = useState("");
@@ -22,7 +23,13 @@ export default function Account() {
     const { user } = useAuth();
 
     useEffect(() => {
-        setName(userProfile.displayName || "");
+        if (userProfile.displayName) {
+            const parts = userProfile.displayName.split(' ');
+            if (parts.length > 0) {
+                setFirstName(parts[0]);
+                setLastName(parts.slice(1).join(' ')); // Handles multiple middle names correctly
+            }
+        }
     }, [userProfile]);
 
     const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,7 +58,8 @@ export default function Account() {
         setSuccess("");
 
         try {
-            await updateUserProfile({ displayName: name });
+            const fullName = `${firstName} ${lastName}`.trim();
+            await updateUserProfile({ displayName: fullName });
             setSuccess("Profile updated successfully.");
         } catch (error) {
             console.error(error);
@@ -92,7 +100,7 @@ export default function Account() {
                             <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
                                 <Avatar className="h-24 w-24 border-2 border-border group-hover:border-primary transition-colors">
                                     <AvatarImage src={userProfile.photoURL || undefined} className="object-cover" />
-                                    <AvatarFallback className="text-2xl">{name ? name[0].toUpperCase() : "U"}</AvatarFallback>
+                                    <AvatarFallback className="text-2xl">{firstName ? firstName[0].toUpperCase() : "U"}</AvatarFallback>
                                 </Avatar>
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Camera className="h-8 w-8 text-white" />
@@ -110,11 +118,19 @@ export default function Account() {
                             {uploading && <p className="text-xs text-primary animate-pulse">Uploading...</p>}
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium flex items-center gap-2">
-                                <User className="h-4 w-4 text-muted-foreground" /> Full Name
-                            </label>
-                            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your Name" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium flex items-center gap-2">
+                                    <User className="h-4 w-4 text-muted-foreground" /> First Name
+                                </label>
+                                <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="First Name" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium flex items-center gap-2">
+                                    <User className="h-4 w-4 text-muted-foreground" /> Last Name
+                                </label>
+                                <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last Name" />
+                            </div>
                         </div>
 
                         <div className="space-y-2">

@@ -117,7 +117,9 @@ export function AppShell() {
                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="-ml-2">
                         <Menu className="h-6 w-6" />
                     </Button>
-                    <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
+                    <Link to="/">
+                        <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
+                    </Link>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium flex items-center gap-1.5 border border-primary/20 h-7">
@@ -147,7 +149,9 @@ export function AppShell() {
             )}>
                 <div className={cn("flex h-16 items-center border-b px-4 shrink-0 transition-all", isCollapsed ? "justify-center" : "justify-between")}>
                     {!isCollapsed && (
-                        <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" />
+                        <Link to="/">
+                            <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" />
+                        </Link>
                     )}
 
                     {/* Toggle Button (Desktop Only) */}
@@ -175,15 +179,19 @@ export function AppShell() {
                                             <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] px-1.5 py-0.5 rounded-bl-lg font-bold tracking-wider z-20">PRO</div>
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div className="flex -space-x-2.5">
-                                                    <div className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/20 bg-muted/10 ring-1 ring-border/10" />
-                                                    <div className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/20 bg-muted/10 ring-1 ring-border/10" />
+                                                    <Avatar className="h-8 w-8 border-2 border-background ring-1 ring-border/10">
+                                                        <AvatarImage src={userProfile.photoURL} className="object-cover" />
+                                                        <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
+                                                            {getInitials(userProfile.displayName)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
                                                     <button className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-background bg-muted hover:bg-muted/80 transition-colors z-10 ring-1 ring-border/10">
                                                         <Plus className="h-4 w-4 text-muted-foreground" />
                                                     </button>
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-foreground/80">Start Team</span>
+                                                <span className="text-xs font-semibold text-foreground/80">My Team</span>
                                                 <Link to="/collaboration" className="text-xs text-primary hover:text-primary/80 font-medium bg-primary/10 px-2 py-0.5 rounded-full transition-colors">
                                                     Invite
                                                 </Link>

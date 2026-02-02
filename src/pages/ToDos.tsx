@@ -4,8 +4,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, CheckSquare, Users, Share2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, CheckSquare, Users, Pencil, BarChart3, Activity } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useData, ToDo } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -29,7 +30,7 @@ const timeOptions = Array.from({ length: 24 }).map((_, i) => {
 });
 
 export default function ToDos() {
-    const { todos, addToDo, updateToDo, deleteToDo, isLoading, collaborations, shareToDo } = useData();
+    const { todos, addToDo, updateToDo, deleteToDo, isLoading, collaborations, shareToDo, userProfile } = useData();
     const calendarView = "month";
 
     // Navigation State
@@ -97,6 +98,17 @@ export default function ToDos() {
         if (editingId) {
             // @ts-ignore
             await updateToDo(editingId, todoData);
+
+            // Handle sharing for edited task
+            const originalTask = todos.find(t => t.id === editingId);
+            if (originalTask) {
+                const originalShares = originalTask.shared_with || [];
+                const newShares = selectedCollaborators.filter(id => !originalShares.includes(id));
+
+                for (const friendId of newShares) {
+                    await shareToDo(editingId, friendId);
+                }
+            }
         } else {
             // @ts-ignore
             const newTodo = await addToDo(todoData);
@@ -280,280 +292,318 @@ export default function ToDos() {
         return [...items, ...gEvents];
     }, [todos, currentDate, googleEvents]);
 
+    // Stats Logic
+    const todayCount = useMemo(() => {
+        const today = new Date();
+        return todos.filter(t =>
+            !t.completed &&
+            t.due_date &&
+            isSameDay(parseISO(t.due_date), today)
+        ).length;
+    }, [todos]);
+
     const acceptedFriends = collaborations.filter(c => c.status === 'accepted');
 
     const { enablePush, pushEnabled } = useNotifications();
 
     return (
-        <div className="flex flex-col p-4 md:p-6 gap-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 flex-none">
-                <div className="flex flex-col w-full gap-2 order-2 sm:order-1">
-                    <div className="flex items-center gap-3 w-full justify-end sm:justify-start">
-                        <Button
-                            variant="outline"
-                            onClick={connectGoogle}
-                            className={cn(
-                                "gap-2 font-medium transition-all h-11 px-6",
-                                isGoogleConnected
-                                    ? "bg-primary/10 text-primary border-primary/50 hover:bg-primary/20"
-                                    : "hover:bg-muted"
-                            )}
-                        >
-                            <img src={googleIcon} alt="G" className="h-4 w-4" />
-                            {isGoogleConnected ? "Synced" : "Sync Calendar"}
-                        </Button>
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger asChild>
-                                <Button onClick={() => {
-                                    resetForm();
-                                    if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
-                                }} variant="default" className="h-11 px-6 shrink-0 flex items-center gap-2">
-                                    <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Add Task</span>
-                                    <span className="sm:hidden">Add</span>
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
-                                <DialogHeader>
-                                    <DialogTitle>{editingId ? "Edit Task" : "Add Task"}</DialogTitle>
-                                    <DialogDescription>
-                                        Manage your planner and reminders.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-                                    <div className="grid gap-2">
-                                        <Label>Task Title</Label>
-                                        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Buy Groceries" required />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label>Description (Optional)</Label>
-                                        <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." className="resize-none h-20" />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <div className="flex items-center justify-between">
-                                                <Label>Date <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
-                                                {date && (
-                                                    <button type="button" onClick={() => setDate("")} className="text-xs text-muted-foreground hover:text-red-500">
-                                                        Clear
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Time (Optional)</Label>
-                                            <Select value={time} onValueChange={setTime}>
-                                                <SelectTrigger className="h-9">
-                                                    <SelectValue placeholder="Select time" />
-                                                </SelectTrigger>
-                                                <SelectContent className="max-h-[200px]">
-                                                    <SelectItem value="none">None</SelectItem>
-                                                    {timeOptions.map((option) => (
-                                                        <SelectItem key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
-                                        <div className="flex items-center gap-2">
-                                            <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                                            <Label className="cursor-pointer">Recurrence</Label>
-                                        </div>
-                                        <Select value={recurrence} onValueChange={(val: any) => setRecurrence(val)}>
-                                            <SelectTrigger className="w-[140px] h-8 text-xs">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="none">None</SelectItem>
-                                                <SelectItem value="daily">Daily</SelectItem>
-                                                <SelectItem value="weekly">Weekly</SelectItem>
-                                                <SelectItem value="monthly">Monthly</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`h-4 w-4 rounded-full border-2 ${urgency === 'critical' ? 'border-red-500 bg-red-500/20' :
-                                                urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
-                                                    urgency === 'normal' ? 'border-primary bg-primary/20' :
-                                                        'border-slate-500 bg-slate-500/20'
-                                                }`} />
-                                            <Label className="cursor-pointer">Urgency</Label>
-                                        </div>
-                                        <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
-                                            <SelectTrigger className="w-[140px] h-8 text-xs">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="low">Low</SelectItem>
-                                                <SelectItem value="normal">Normal</SelectItem>
-                                                <SelectItem value="high">High</SelectItem>
-                                                <SelectItem value="critical">Critical</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {/* Shared With Section */}
-                                    {!editingId && (
-                                        <div className="flex flex-col gap-3 bg-muted/30 p-3 rounded-lg border">
-                                            <div className="flex items-center gap-2">
-                                                <Users className="h-4 w-4 text-muted-foreground" />
-                                                <Label>Share with Team</Label>
-                                            </div>
-                                            {acceptedFriends.length > 0 ? (
-                                                <div className="flex gap-2 flex-wrap">
-                                                    {acceptedFriends.map((friend) => {
-                                                        const friendId = friend.profile?.id || friend.receiver_id;
-                                                        const isSelected = selectedCollaborators.includes(friendId);
-                                                        return (
-                                                            <div
-                                                                key={friend.id}
-                                                                onClick={() => toggleCollaboratorSelection(friendId)}
-                                                                className={cn(
-                                                                    "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all",
-                                                                    isSelected ? "bg-primary/20 border-primary" : "bg-card border-border hover:bg-muted"
-                                                                )}
-                                                            >
-                                                                <Avatar className="h-6 w-6">
-                                                                    <AvatarImage src={friend.profile?.photoURL} />
-                                                                    <AvatarFallback className="text-[10px]">{friend.profile?.displayName?.[0]}</AvatarFallback>
-                                                                </Avatar>
-                                                                <span className="text-xs font-medium">{friend.profile?.displayName}</span>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <p className="text-xs text-muted-foreground">
-                                                    No team members found. <br />
-                                                    <a href="/collaboration" className="text-primary hover:underline">Invite friends</a> to start collaborating.
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="flex flex-col gap-3 bg-muted/30 p-3 rounded-lg border">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Bell className="h-4 w-4 text-muted-foreground" />
-                                                <Label htmlFor="notify" className="cursor-pointer">Notifications</Label>
-                                            </div>
-                                            <Switch id="notify" checked={notify} onCheckedChange={async (checked) => {
-                                                setNotify(checked);
-                                                if (checked && !pushEnabled) {
-                                                    await enablePush();
-                                                }
-                                            }} />
-                                        </div>
-
-                                        {notify && (
-                                            <div className="flex items-center justify-between pt-1 border-t border-border/50">
-                                                <Label className="text-xs text-muted-foreground">Remind me</Label>
-                                                <Select value={notifyBefore} onValueChange={(val: any) => setNotifyBefore(val)}>
-                                                    <SelectTrigger className="w-[140px] h-8 text-xs">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="10_min">10 Minutes Before</SelectItem>
-                                                        <SelectItem value="1_hour">1 Hour Before</SelectItem>
-                                                        <SelectItem value="1_day">1 Day Before</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <DialogFooter>
-                                        <Button type="submit">{editingId ? "Update Task" : "Save Task"}</Button>
-                                    </DialogFooter>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
-
-                        {/* Share Dialog */}
-                        <Dialog open={!!sharingId} onOpenChange={(open) => !open && setSharingId(null)}>
-                            <DialogContent className="sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle>Share Task</DialogTitle>
-                                    <DialogDescription>
-                                        Select a friend to collaborate on this task with.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-3 py-4 max-h-[300px] overflow-y-auto">
-                                    {acceptedFriends.length === 0 ? (
-                                        <p className="text-center text-muted-foreground py-8">
-                                            You don't have any friends to share with yet.
-                                        </p>
-                                    ) : (
-                                        acceptedFriends.map(friend => (
-                                            <Button
-                                                key={friend.id}
-                                                variant="outline"
-                                                className="justify-start h-auto py-3 px-4"
-                                                onClick={() => handleShare(friend.profile?.id || friend.receiver_id)}
-                                            >
-                                                <Avatar className="h-8 w-8 mr-3">
-                                                    <AvatarImage src={friend.profile?.photoURL} />
-                                                    <AvatarFallback>{friend.profile?.displayName?.[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="text-left">
-                                                    <div className="font-semibold text-sm">{friend.profile?.displayName}</div>
-                                                    <div className="text-xs text-muted-foreground">Teammate</div>
-                                                </div>
-                                            </Button>
-                                        ))
-                                    )}
-                                </div>
-                            </DialogContent>
-                        </Dialog>
+        <div className="flex flex-col p-4 md:p-6 gap-6">
+            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+                {/* Left Side: Analytics & Sync */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+                    {/* Analytics Pills */}
+                    <div className="flex items-center gap-2 mr-2">
+                        <Link to="/todos/analytics">
+                            <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground hover:text-white transition-colors">
+                                <BarChart3 className="h-4 w-4" />
+                                <span className="text-xs font-medium">Analytics</span>
+                            </Button>
+                        </Link>
+                        <div className="h-4 w-px bg-border mx-1" />
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap">
+                            <Activity className="h-3.5 w-3.5 text-emerald-500" />
+                            <span>{todayCount} Tasks Due</span>
+                        </div>
                     </div>
 
-                    {/* Mobile View Toggle */}
-                    <div className="flex lg:hidden bg-muted/50 p-1 rounded-lg w-full">
-                        <button
-                            onClick={() => setMobileView('list')}
-                            className={cn(
-                                "flex-1 text-xs font-medium py-1.5 rounded-md transition-all",
-                                mobileView === 'list' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            List
-                        </button>
-                        <button
-                            onClick={() => setMobileView('calendar')}
-                            className={cn(
-                                "flex-1 text-xs font-medium py-1.5 rounded-md transition-all",
-                                mobileView === 'calendar' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            Calendar
-                        </button>
-                    </div>
+                    <div className="h-8 w-px bg-border/60 hidden xl:block" />
+
+                    {/* Sync Button (Primary Action Style) */}
+                    <Button
+                        onClick={connectGoogle}
+                        className={cn(
+                            "gap-2 font-medium transition-all h-10 px-6 w-full sm:w-auto",
+                            isGoogleConnected
+                                ? "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
+                                : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+                        )}
+                    >
+                        {isGoogleConnected ? (
+                            <>
+                                <img src={googleIcon} alt="G" className="h-4 w-4" />
+                                <span>Synced</span>
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="h-4 w-4" />
+                                <span>Sync Calendar</span>
+                            </>
+                        )}
+                    </Button>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end order-1 sm:order-2">
-                    <h2 className="text-xl font-bold mr-3 hidden sm:block min-w-[140px] text-right">
-                        {format(currentDate, "MMMM yyyy")}
-                    </h2>
-                    <Button variant="outline" size="icon" onClick={handlePrev} className="h-9 w-9">
-                        <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button variant="secondary" size="sm" onClick={handleToday} className="h-9 font-medium px-4">
-                        Today
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
+                {/* Right Side: Date Navigation (Desktop) */}
+                <div className="flex items-center gap-2 w-full xl:w-auto justify-between xl:justify-end">
+
+
+                    <div className={cn(
+                        "flex items-center gap-2 w-full xl:w-auto justify-between xl:justify-end",
+                        mobileView === 'list' ? "hidden lg:flex" : "flex"
+                    )}>
+                        <div className="flex items-center gap-2 w-full justify-between lg:justify-end">
+                            <Button variant="outline" size="icon" onClick={handlePrev} className="h-10 w-10 border-border/60">
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button variant="secondary" size="sm" onClick={handleToday} className="h-10 font-medium px-5 border border-border/50 bg-card hover:bg-muted">
+                                Today
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={handleNext} className="h-10 w-10 border-border/60">
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                            <h2 className="text-xl font-bold ml-4 hidden sm:block min-w-[160px] text-right tracking-tight">
+                                {format(currentDate, "MMMM yyyy")}
+                            </h2>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+            {/* Mobile View Toggle (Full Width Row) */}
+            <div className="flex lg:hidden bg-muted/50 p-1 rounded-lg w-full shrink-0">
+                <button
+                    onClick={() => setMobileView('list')}
+                    className={cn(
+                        "flex-1 text-xs font-medium py-1.5 rounded-md transition-all",
+                        mobileView === 'list' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    List
+                </button>
+                <button
+                    onClick={() => setMobileView('calendar')}
+                    className={cn(
+                        "flex-1 text-xs font-medium py-1.5 rounded-md transition-all",
+                        mobileView === 'calendar' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    Calendar
+                </button>
+            </div>
+
+            <Dialog open={open} onOpenChange={setOpen}>
+                {/* Trigger moved to task list */}
+                <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>{editingId ? "Edit Task" : "Add Task"}</DialogTitle>
+                        <DialogDescription>
+                            Manage your planner and reminders.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label>Task Title</Label>
+                            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Buy Groceries" required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Description (Optional)</Label>
+                            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." className="resize-none h-20" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <div className="flex items-center justify-between">
+                                    <Label>Date <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+                                    {date && (
+                                        <button type="button" onClick={() => setDate("")} className="text-xs text-muted-foreground hover:text-red-500">
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Time (Optional)</Label>
+                                <Select value={time} onValueChange={setTime}>
+                                    <SelectTrigger className="h-9">
+                                        <SelectValue placeholder="Select time" />
+                                    </SelectTrigger>
+                                    <SelectContent className="max-h-[200px]">
+                                        <SelectItem value="none">None</SelectItem>
+                                        {timeOptions.map((option) => (
+                                            <SelectItem key={option.value} value={option.value}>
+                                                {option.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
+                            <div className="flex items-center gap-2">
+                                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                                <Label className="cursor-pointer">Recurrence</Label>
+                            </div>
+                            <Select value={recurrence} onValueChange={(val: any) => setRecurrence(val)}>
+                                <SelectTrigger className="w-[140px] h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">None</SelectItem>
+                                    <SelectItem value="daily">Daily</SelectItem>
+                                    <SelectItem value="weekly">Weekly</SelectItem>
+                                    <SelectItem value="monthly">Monthly</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
+                            <div className="flex items-center gap-2">
+                                <div className={`h-4 w-4 rounded-full border-2 ${urgency === 'critical' ? 'border-red-500 bg-red-500/20' :
+                                    urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
+                                        urgency === 'normal' ? 'border-primary bg-primary/20' :
+                                            'border-slate-500 bg-slate-500/20'
+                                    }`} />
+                                <Label className="cursor-pointer">Urgency</Label>
+                            </div>
+                            <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
+                                <SelectTrigger className="w-[140px] h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="low">Low</SelectItem>
+                                    <SelectItem value="normal">Normal</SelectItem>
+                                    <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="critical">Critical</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Shared With Section */}
+                        <div className="flex flex-col gap-3 bg-muted/30 p-3 rounded-lg border">
+                            <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-muted-foreground" />
+                                <Label>Share with Team</Label>
+                            </div>
+                            {acceptedFriends.length > 0 ? (
+                                <div className="flex gap-2 flex-wrap">
+                                    {acceptedFriends.map((friend) => {
+                                        const friendId = friend.profile?.id || friend.receiver_id;
+                                        const isSelected = selectedCollaborators.includes(friendId);
+                                        return (
+                                            <div
+                                                key={friend.id}
+                                                onClick={() => toggleCollaboratorSelection(friendId)}
+                                                className={cn(
+                                                    "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all",
+                                                    isSelected ? "bg-primary/20 border-primary" : "bg-card border-border hover:bg-muted"
+                                                )}
+                                            >
+                                                <Avatar className="h-6 w-6">
+                                                    <AvatarImage src={friend.profile?.photoURL} />
+                                                    <AvatarFallback className="text-[10px]">{friend.profile?.displayName?.[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="text-xs font-medium">{friend.profile?.displayName}</span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">
+                                    No team members found. <br />
+                                    <a href="/collaboration" className="text-primary hover:underline">Invite friends</a> to start collaborating.
+                                </p>
+                            )}
+                        </div>
+
+
+                        <div className="flex flex-col gap-3 bg-muted/30 p-3 rounded-lg border">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Bell className="h-4 w-4 text-muted-foreground" />
+                                    <Label htmlFor="notify" className="cursor-pointer">Notifications</Label>
+                                </div>
+                                <Switch id="notify" checked={notify} onCheckedChange={async (checked) => {
+                                    setNotify(checked);
+                                    if (checked && !pushEnabled) {
+                                        await enablePush();
+                                    }
+                                }} />
+                            </div>
+
+                            {notify && (
+                                <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                                    <Label className="text-xs text-muted-foreground">Remind me</Label>
+                                    <Select value={notifyBefore} onValueChange={(val: any) => setNotifyBefore(val)}>
+                                        <SelectTrigger className="w-[140px] h-8 text-xs">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="10_min">10 Minutes Before</SelectItem>
+                                            <SelectItem value="1_hour">1 Hour Before</SelectItem>
+                                            <SelectItem value="1_day">1 Day Before</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="submit">{editingId ? "Update Task" : "Save Task"}</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Share Dialog */}
+            <Dialog open={!!sharingId} onOpenChange={(open) => !open && setSharingId(null)}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Share Task</DialogTitle>
+                        <DialogDescription>
+                            Select a friend to collaborate on this task with.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-3 py-4 max-h-[300px] overflow-y-auto">
+                        {acceptedFriends.length === 0 ? (
+                            <p className="text-center text-muted-foreground py-8">
+                                You don't have any friends to share with yet.
+                            </p>
+                        ) : (
+                            acceptedFriends.map(friend => (
+                                <Button
+                                    key={friend.id}
+                                    variant="outline"
+                                    className="justify-start h-auto py-3 px-4"
+                                    onClick={() => handleShare(friend.profile?.id || friend.receiver_id)}
+                                >
+                                    <Avatar className="h-8 w-8 mr-3">
+                                        <AvatarImage src={friend.profile?.photoURL} />
+                                        <AvatarFallback>{friend.profile?.displayName?.[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="text-left">
+                                        <div className="font-semibold text-sm">{friend.profile?.displayName}</div>
+                                        <div className="text-xs text-muted-foreground">Teammate</div>
+                                    </div>
+                                </Button>
+                            ))
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+
+
+            <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
                 <div className={cn(
                     "w-full lg:w-80 flex-none flex flex-col gap-4 border lg:border-l-0 border-border/50 bg-card rounded-xl lg:rounded-l-none lg:bg-background lg:border-l lg:border-t-0 lg:border-b-0 lg:border-r-0 lg:shadow-none shadow-sm p-4 min-h-0",
                     mobileView === 'calendar' ? "hidden lg:flex" : "flex"
@@ -561,7 +611,7 @@ export default function ToDos() {
                     <div className="flex items-center justify-between shrink-0 mb-1 lg:mb-2 lg:pt-2">
                         <h3 className="text-lg font-bold flex items-center gap-2">
                             <CalendarIcon className="h-5 w-5 text-primary" />
-                            {format(selectedDate, "MMM do")}
+                            {isSameDay(selectedDate, new Date()) ? `Today, ${format(selectedDate, "MMM do")}` : format(selectedDate, "MMM do")}
                         </h3>
                     </div>
 
@@ -575,8 +625,25 @@ export default function ToDos() {
                                     <Skeleton className="h-24 w-full" />
                                     <Skeleton className="h-24 w-full" />
                                 </div>
-                            ) : todosOnSelectedDate.length > 0 ? (
+                            ) : (
                                 <div className="space-y-3">
+                                    {/* Add Task Placeholder */}
+                                    <div
+                                        onClick={() => {
+                                            resetForm();
+                                            if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
+                                            setOpen(true);
+                                        }}
+                                        className="group relative flex items-center justify-center border-2 border-dashed border-muted-foreground/20 rounded-xl p-4 cursor-pointer hover:bg-muted/10 hover:border-muted-foreground/40 transition-all min-h-[74px]"
+                                    >
+                                        <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
+                                            <div className="h-8 w-8 rounded-full bg-muted/30 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                                                <Plus className="h-4 w-4" />
+                                            </div>
+                                            <span className="font-medium text-sm">Add New Task</span>
+                                        </div>
+                                    </div>
+
                                     {todosOnSelectedDate.map(todo => (
                                         <Card key={todo.id} className={cn(
                                             "shadow-none border transition-all group relative overflow-hidden",
@@ -618,6 +685,55 @@ export default function ToDos() {
                                                         {todo.description && (
                                                             <p className="text-xs text-muted-foreground line-clamp-2">{todo.description}</p>
                                                         )}
+
+                                                        {/* Avatar Stack / Empty State */}
+                                                        <div className="flex items-center mt-2">
+                                                            {todo.shared_with && todo.shared_with.length > 0 ? (
+                                                                <div className="flex -space-x-2 overflow-hidden">
+                                                                    {todo.shared_with.map((userId) => {
+                                                                        const collaborator = acceptedFriends.find(c => (c.profile?.id === userId || c.receiver_id === userId || c.requester_id === userId));
+                                                                        const profile = collaborator?.profile || (collaborations.find(c => c.receiver_id === userId || c.requester_id === userId)?.profile);
+
+                                                                        // Fallback if we can't find the profile immediately (though we should have it)
+                                                                        if (!profile) return null;
+
+                                                                        return (
+                                                                            <Avatar key={userId} className="inline-block h-6 w-6 rounded-full ring-2 ring-background">
+                                                                                <AvatarImage src={profile.photoURL} />
+                                                                                <AvatarFallback className="text-[9px]">{profile.displayName?.[0]}</AvatarFallback>
+                                                                            </Avatar>
+                                                                        );
+                                                                    })}
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setSharingId(todo.id);
+                                                                        }}
+                                                                        className="flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground hover:bg-muted/80 text-[10px] z-10"
+                                                                    >
+                                                                        <Plus className="h-3 w-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center -space-x-1.5">
+                                                                    <Avatar className="h-6 w-6 rounded-full border-2 border-background ring-1 ring-border/10">
+                                                                        <AvatarImage src={userProfile?.photoURL} className="object-cover" />
+                                                                        <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">
+                                                                            {userProfile?.displayName?.[0] || 'U'}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setSharingId(todo.id);
+                                                                        }}
+                                                                        className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-muted hover:bg-muted/80 border-2 border-background ring-1 ring-border/10 transition-colors"
+                                                                    >
+                                                                        <Plus className="h-3 w-3 text-muted-foreground" />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <div className="flex items-center gap-2 pt-1 text-[10px] text-muted-foreground">
                                                             {todo.due_time && (
                                                                 <span className="flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded">
@@ -639,13 +755,7 @@ export default function ToDos() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={() => setSharingId(todo.id)}
-                                                            className="p-1 hover:bg-blue-500/10 hover:text-blue-500 rounded text-xs text-muted-foreground transition-colors"
-                                                        >
-                                                            <Share2 className="h-3.5 w-3.5" />
-                                                        </button>
+                                                    <div className="flex flex-col gap-1 transition-opacity">
                                                         <button
                                                             onClick={() => {
                                                                 setEditingId(todo.id);
@@ -658,11 +768,12 @@ export default function ToDos() {
                                                                 setUrgency(((todo.urgency as any) === 'medium' ? 'normal' : todo.urgency) || 'normal');
                                                                 setNotify(todo.notify);
                                                                 setNotifyBefore(todo.notify_before || '10_min');
+                                                                setSelectedCollaborators(todo.shared_with || []);
                                                                 setOpen(true);
                                                             }}
                                                             className="p-1 hover:bg-muted rounded text-xs"
                                                         >
-                                                            Edit
+                                                            <Pencil className="h-3.5 w-3.5" />
                                                         </button>
                                                         <button
                                                             onClick={() => deleteToDo(todo.id)}
@@ -675,16 +786,6 @@ export default function ToDos() {
                                             </CardContent>
                                         </Card>
                                     ))}
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center text-center p-4 text-muted-foreground border-2 border-dashed rounded-xl bg-muted/10">
-                                    <CheckSquare className="h-8 w-8 mb-2 opacity-10" />
-                                    <p className="text-xs font-medium">No scheduled tasks</p>
-                                    <Button variant="link" size="sm" onClick={() => {
-                                        resetForm();
-                                        if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
-                                        setOpen(true);
-                                    }} className="text-emerald-600/70 text-xs h-auto p-0 mt-1">Add for today</Button>
                                 </div>
                             )}
                         </div>
@@ -757,6 +858,54 @@ export default function ToDos() {
                                                     {todo.description && (
                                                         <p className="text-xs text-muted-foreground line-clamp-2">{todo.description}</p>
                                                     )}
+
+                                                    {/* Avatar Stack / Empty State - Side List */}
+                                                    <div className="flex items-center mt-2">
+                                                        {todo.shared_with && todo.shared_with.length > 0 ? (
+                                                            <div className="flex -space-x-2 overflow-hidden">
+                                                                {todo.shared_with.map((userId) => {
+                                                                    const collaborator = acceptedFriends.find(c => (c.profile?.id === userId || c.receiver_id === userId || c.requester_id === userId));
+                                                                    const profile = collaborator?.profile || (collaborations.find(c => c.receiver_id === userId || c.requester_id === userId)?.profile);
+
+                                                                    if (!profile) return null;
+
+                                                                    return (
+                                                                        <Avatar key={userId} className="inline-block h-6 w-6 rounded-full ring-2 ring-background">
+                                                                            <AvatarImage src={profile.photoURL} />
+                                                                            <AvatarFallback className="text-[9px]">{profile.displayName?.[0]}</AvatarFallback>
+                                                                        </Avatar>
+                                                                    );
+                                                                })}
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSharingId(todo.id);
+                                                                    }}
+                                                                    className="flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground hover:bg-muted/80 text-[10px] z-10"
+                                                                >
+                                                                    <Plus className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center -space-x-1.5">
+                                                                <Avatar className="h-6 w-6 rounded-full border-2 border-background ring-1 ring-border/10">
+                                                                    <AvatarImage src={userProfile?.photoURL} className="object-cover" />
+                                                                    <AvatarFallback className="text-[9px] bg-muted text-muted-foreground">
+                                                                        {userProfile?.displayName?.[0] || 'U'}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSharingId(todo.id);
+                                                                    }}
+                                                                    className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full bg-muted hover:bg-muted/80 border-2 border-background ring-1 ring-border/10 transition-colors"
+                                                                >
+                                                                    <Plus className="h-3 w-3 text-muted-foreground" />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <div className="flex items-center gap-2 pt-1 text-[10px] text-muted-foreground">
                                                         {todo.due_time && (
                                                             <span className="flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded">
@@ -783,13 +932,7 @@ export default function ToDos() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => setSharingId(todo.id)}
-                                                        className="p-1 hover:bg-blue-500/10 hover:text-blue-500 rounded text-xs text-muted-foreground transition-colors"
-                                                    >
-                                                        <Share2 className="h-3.5 w-3.5" />
-                                                    </button>
+                                                <div className="flex flex-col gap-1 transition-opacity">
                                                     <button
                                                         onClick={() => {
                                                             setEditingId(todo.id);
@@ -802,11 +945,12 @@ export default function ToDos() {
                                                             setUrgency(((todo.urgency as any) === 'medium' ? 'normal' : todo.urgency) || 'normal');
                                                             setNotify(todo.notify);
                                                             setNotifyBefore(todo.notify_before || '10_min');
+                                                            setSelectedCollaborators(todo.shared_with || []);
                                                             setOpen(true);
                                                         }}
                                                         className="p-1 hover:bg-muted rounded text-xs"
                                                     >
-                                                        Edit
+                                                        <Pencil className="h-3.5 w-3.5" />
                                                     </button>
                                                     <button
                                                         onClick={() => deleteToDo(todo.id)}
@@ -841,9 +985,10 @@ export default function ToDos() {
                 </div>
 
                 <div className={cn(
-                    "flex-1 min-h-0 flex-col bg-card/20 rounded-xl overflow-hidden shadow-sm border border-border/50",
+                    "flex-1 min-h-0 flex-col bg-card/20 rounded-xl overflow-hidden shadow-sm border border-border/50 relative",
                     mobileView === 'list' ? "hidden lg:flex" : "flex"
                 )}>
+
                     {/* @ts-ignore */}
                     <BigCalendar
                         workouts={calendarItems as any}
@@ -860,6 +1005,6 @@ export default function ToDos() {
                     />
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
