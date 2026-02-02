@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, CheckSquare, Users, Pencil, BarChart3, Activity } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useData, ToDo } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
