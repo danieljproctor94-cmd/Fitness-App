@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Dumbbell, Flame, Plus, Weight } from "lucide-react";
+import { Activity, Dumbbell, Flame, Weight } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, subMonths, isAfter, parseISO, startOfWeek } from "date-fns";
@@ -241,18 +241,7 @@ export default function Dashboard() {
                     <h1 className="text-3xl font-bold tracking-tight">Hey {userProfile.displayName?.split(' ')[0] || "User"}, welcome back!</h1>
                     <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
                 </div>
-                <div className="hidden md:flex gap-2">
-                    <Button asChild className="h-11 px-6">
-                        <Link to="/workouts" className="flex items-center gap-2">
-                            <Plus className="h-4 w-4" /> Log Workout
-                        </Link>
-                    </Button>
-                    <Button variant="outline" asChild className="h-11 px-6">
-                        <Link to="/measurements" className="flex items-center gap-2">
-                            <Weight className="h-4 w-4" /> Log Weight
-                        </Link>
-                    </Button>
-                </div>
+
             </div>
 
             {/* Core Metrics */}

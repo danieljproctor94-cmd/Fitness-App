@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Dumbbell, Plus, Trash2, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity, Clock, Pen, BarChart3 } from "lucide-react";
@@ -39,7 +40,7 @@ export default function Workouts() {
     // Form State
     const [name, setName] = useState("");
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
-    const [time, setTime] = useState("12:00");
+    const [time, setTime] = useState(format(new Date(), "HH:mm"));
     const [duration, setDuration] = useState("");
     const [exercises, setExercises] = useState<FormExercise[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -223,56 +224,75 @@ export default function Workouts() {
                                     {editingId ? "Modify details, exercises, sets, and reps." : "Add details, exercises, sets, and reps."}
                                 </DialogDescription>
                             </DialogHeader>
-                            <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                            <form onSubmit={handleSubmit} className="grid gap-5 py-4">
                                 <div className="grid gap-2">
-                                    <label className="text-sm font-medium">Workout Name</label>
+                                    <Label>Workout Name</Label>
                                     <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Leg Day" required />
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Date</label>
-                                        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid gap-1.5">
+                                        <Label className="text-xs text-muted-foreground">Date</Label>
+                                        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 text-xs" required />
                                     </div>
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Time</label>
-                                        <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+                                    <div className="grid gap-1.5">
+                                        <Label className="text-xs text-muted-foreground">Time</Label>
+                                        <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9 text-xs" required />
                                     </div>
-                                    <div className="grid gap-2">
-                                        <label className="text-sm font-medium">Duration (min)</label>
-                                        <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} required />
+                                    <div className="grid gap-1.5">
+                                        <Label className="text-xs text-muted-foreground">Duration (min)</Label>
+                                        <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="h-9 text-xs" required />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-sm font-medium">Exercises</h3>
-                                        <Button type="button" variant="outline" size="sm" onClick={addExercise}>+ Add Exercise</Button>
+                                        <Label className="font-medium">Exercises</Label>
+                                        <Button type="button" variant="outline" size="sm" onClick={addExercise} className="h-8 text-xs">+ Add Exercise</Button>
                                     </div>
-                                    {exercises.map((ex, exIndex) => (
-                                        <div key={ex.id} className="border rounded-md p-3 space-y-3 bg-muted/40">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm font-bold text-muted-foreground">#{exIndex + 1}</span>
-
-                                                <ExerciseAutocomplete
-                                                    value={ex.name}
-                                                    onChange={(val) => updateExerciseName(ex.id, val)}
-                                                    existingExercises={uniqueExerciseNames}
-                                                />
-
-                                                <Button type="button" variant="ghost" size="icon" onClick={() => removeExercise(ex.id)}><X className="h-4 w-4 text-white" /></Button>
-                                            </div>
-                                            <div className="pl-6 space-y-2">
-                                                {ex.sets.map((set, sIndex) => (
-                                                    <div key={set.id} className="flex items-center gap-2">
-                                                        <span className="text-xs w-8 text-muted-foreground">S{sIndex + 1}</span>
-                                                        <Input placeholder="kg" type="number" className="h-7 w-20" value={set.weight} onChange={(e) => updateSet(ex.id, set.id, "weight", e.target.value)} required />
-                                                        <Input placeholder="reps" type="number" className="h-7 w-20" value={set.reps} onChange={(e) => updateSet(ex.id, set.id, "reps", e.target.value)} required />
-                                                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSet(ex.id, set.id)}><X className="h-3 w-3 text-white" /></Button>
+                                    <div className="space-y-0 divide-y border rounded-lg overflow-hidden">
+                                        {exercises.map((ex, exIndex) => (
+                                            <div key={ex.id} className="p-3 bg-card hover:bg-muted/20 transition-colors">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <span className="text-xs font-mono text-muted-foreground w-4">#{exIndex + 1}</span>
+                                                    <div className="flex-1">
+                                                        <ExerciseAutocomplete
+                                                            value={ex.name}
+                                                            onChange={(val) => updateExerciseName(ex.id, val)}
+                                                            existingExercises={uniqueExerciseNames}
+                                                        />
                                                     </div>
-                                                ))}
-                                                <Button type="button" variant="link" size="sm" className="h-6 px-0 text-xs" onClick={() => addSet(ex.id)}>+ Add Set</Button>
+                                                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-red-500" onClick={() => removeExercise(ex.id)}>
+                                                        <X className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                                <div className="pl-7 space-y-2">
+                                                    {ex.sets.map((set, sIndex) => (
+                                                        <div key={set.id} className="flex items-center gap-2">
+                                                            <span className="text-[10px] text-muted-foreground w-4">S{sIndex + 1}</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <Input placeholder="0" type="number" className="h-7 w-16 text-center text-xs" value={set.weight} onChange={(e) => updateSet(ex.id, set.id, "weight", e.target.value)} required />
+                                                                <span className="text-xs text-muted-foreground">kg</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                <Input placeholder="0" type="number" className="h-7 w-16 text-center text-xs" value={set.reps} onChange={(e) => updateSet(ex.id, set.id, "reps", e.target.value)} required />
+                                                                <span className="text-xs text-muted-foreground">reps</span>
+                                                            </div>
+                                                            <Button type="button" variant="ghost" size="icon" className="h-6 w-6 ml-auto" onClick={() => removeSet(ex.id, set.id)}>
+                                                                <X className="h-3 w-3 text-muted-foreground/50 hover:text-red-500" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                    <Button type="button" variant="link" size="sm" className="h-auto p-0 text-[10px] text-primary" onClick={() => addSet(ex.id)}>
+                                                        + Add Set
+                                                    </Button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                        {exercises.length === 0 && (
+                                            <div className="p-8 text-center text-muted-foreground text-sm">
+                                                No exercises added yet. Use the button above.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <DialogFooter><Button type="submit">Save Workout</Button></DialogFooter>
                             </form>

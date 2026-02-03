@@ -20,14 +20,7 @@ import googleIcon from "@/assets/google.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNotifications } from "@/features/notifications/NotificationContext";
 
-const timeOptions = Array.from({ length: 24 }).map((_, i) => {
-    const hour = i;
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 || 12;
-    const value = `${hour.toString().padStart(2, '0')}:00`;
-    const label = `${displayHour}:00 ${ampm}`;
-    return { value, label };
-});
+
 
 export default function ToDos() {
     const { todos, addToDo, updateToDo, deleteToDo, isLoading, collaborations, shareToDo, userProfile } = useData();
@@ -403,162 +396,149 @@ export default function ToDos() {
             <Dialog open={open} onOpenChange={setOpen}>
                 {/* Trigger moved to task list */}
                 <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>{editingId ? "Edit Task" : "Add Task"}</DialogTitle>
-                        <DialogDescription>
-                            Manage your planner and reminders.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+
+                    <form onSubmit={handleSubmit} className="grid gap-5 py-4 pt-6">
                         <div className="grid gap-2">
-                            <Label>Task Title</Label>
+                            <Label>Task Name</Label>
                             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Buy Groceries" required />
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Description (Optional)</Label>
-                            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." className="resize-none h-20" />
-                        </div>
+
+                        {/* Compact Grid for Settings */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
+                            <div className="grid gap-1.5">
                                 <div className="flex items-center justify-between">
-                                    <Label>Date <span className="text-xs text-muted-foreground font-normal">(Optional)</span></Label>
+                                    <Label className="text-xs text-muted-foreground">Date <span className="font-normal opacity-70">(Optional)</span></Label>
                                     {date && (
-                                        <button type="button" onClick={() => setDate("")} className="text-xs text-muted-foreground hover:text-red-500">
+                                        <button type="button" onClick={() => setDate("")} className="text-[10px] text-primary hover:text-primary/80 font-medium">
                                             Clear
                                         </button>
                                     )}
                                 </div>
-                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 text-xs" />
                             </div>
-                            <div className="grid gap-2">
-                                <Label>Time (Optional)</Label>
-                                <Select value={time} onValueChange={setTime}>
-                                    <SelectTrigger className="h-9">
-                                        <SelectValue placeholder="Select time" />
+                            <div className="grid gap-1.5">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-xs text-muted-foreground">Time <span className="font-normal opacity-70">(Optional)</span></Label>
+                                    {time && time !== "none" && (
+                                        <button type="button" onClick={() => setTime("none")} className="text-[10px] text-primary hover:text-primary/80 font-medium">
+                                            Clear
+                                        </button>
+                                    )}
+                                </div>
+                                <Input
+                                    type="time"
+                                    value={time === "none" ? "" : time}
+                                    onChange={(e) => setTime(e.target.value)}
+                                    className="h-9 text-xs"
+                                />
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label className="text-xs text-muted-foreground">Urgency</Label>
+                                <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                        <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="max-h-[200px]">
+                                    <SelectContent>
+                                        <SelectItem value="low">Low</SelectItem>
+                                        <SelectItem value="normal">Normal</SelectItem>
+                                        <SelectItem value="high">High</SelectItem>
+                                        <SelectItem value="critical">Critical</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-1.5">
+                                <Label className="text-xs text-muted-foreground">Recurrence</Label>
+                                <Select value={recurrence} onValueChange={(val: any) => setRecurrence(val)}>
+                                    <SelectTrigger className="h-9 text-xs">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
                                         <SelectItem value="none">None</SelectItem>
-                                        {timeOptions.map((option) => (
-                                            <SelectItem key={option.value} value={option.value}>
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value="daily">Daily</SelectItem>
+                                        <SelectItem value="weekly">Weekly</SelectItem>
+                                        <SelectItem value="monthly">Monthly</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
-                            <div className="flex items-center gap-2">
-                                <RefreshCw className="h-4 w-4 text-muted-foreground" />
-                                <Label className="cursor-pointer">Recurrence</Label>
-                            </div>
-                            <Select value={recurrence} onValueChange={(val: any) => setRecurrence(val)}>
-                                <SelectTrigger className="w-[140px] h-8 text-xs">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">None</SelectItem>
-                                    <SelectItem value="daily">Daily</SelectItem>
-                                    <SelectItem value="weekly">Weekly</SelectItem>
-                                    <SelectItem value="monthly">Monthly</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="grid gap-2">
+                            <Label>Description <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." className="resize-none h-20 text-sm" />
                         </div>
 
-                        <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border">
-                            <div className="flex items-center gap-2">
-                                <div className={`h-4 w-4 rounded-full border-2 ${urgency === 'critical' ? 'border-red-500 bg-red-500/20' :
-                                    urgency === 'high' ? 'border-orange-500 bg-orange-500/20' :
-                                        urgency === 'normal' ? 'border-primary bg-primary/20' :
-                                            'border-slate-500 bg-slate-500/20'
-                                    }`} />
-                                <Label className="cursor-pointer">Urgency</Label>
-                            </div>
-                            <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
-                                <SelectTrigger className="w-[140px] h-8 text-xs">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="low">Low</SelectItem>
-                                    <SelectItem value="normal">Normal</SelectItem>
-                                    <SelectItem value="high">High</SelectItem>
-                                    <SelectItem value="critical">Critical</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Shared With Section */}
-                        <div className="flex flex-col gap-3 bg-muted/30 p-3 rounded-lg border">
-                            <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-muted-foreground" />
-                                <Label>Share with Team</Label>
-                            </div>
-                            {acceptedFriends.length > 0 ? (
-                                <div className="flex gap-2 flex-wrap">
-                                    {acceptedFriends.map((friend) => {
-                                        const friendId = friend.profile?.id || friend.receiver_id;
-                                        const isSelected = selectedCollaborators.includes(friendId);
-                                        return (
-                                            <div
-                                                key={friend.id}
-                                                onClick={() => toggleCollaboratorSelection(friendId)}
-                                                className={cn(
-                                                    "flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all",
-                                                    isSelected ? "bg-primary/20 border-primary" : "bg-card border-border hover:bg-muted"
-                                                )}
-                                            >
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarImage src={friend.profile?.photoURL} />
-                                                    <AvatarFallback className="text-[10px]">{friend.profile?.displayName?.[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="text-xs font-medium">{friend.profile?.displayName}</span>
-                                            </div>
-                                        )
-                                    })}
+                        {/* Collapsed Sections Container */}
+                        <div className="space-y-4 pt-2">
+                            {/* Team */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-sm font-medium flex items-center gap-2">
+                                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                                        Share with Team
+                                    </Label>
+                                    {selectedCollaborators.length > 0 && (
+                                        <span className="text-xs text-primary font-medium">{selectedCollaborators.length} selected</span>
+                                    )}
                                 </div>
-                            ) : (
-                                <p className="text-xs text-muted-foreground">
-                                    No team members found. <br />
-                                    <a href="/collaboration" className="text-primary hover:underline">Invite friends</a> to start collaborating.
-                                </p>
-                            )}
-                        </div>
+                                {acceptedFriends.length > 0 ? (
+                                    <div className="flex gap-2 flex-wrap">
+                                        {acceptedFriends.map((friend) => {
+                                            const friendId = friend.profile?.id || friend.receiver_id;
+                                            const isSelected = selectedCollaborators.includes(friendId);
+                                            return (
+                                                <div
+                                                    key={friend.id}
+                                                    onClick={() => toggleCollaboratorSelection(friendId)}
+                                                    className={cn(
+                                                        "flex items-center gap-2 px-2 py-1.5 rounded-md border cursor-pointer transition-all",
+                                                        isSelected ? "bg-primary/15 border-primary/30 text-primary" : "bg-muted/30 border-transparent hover:bg-muted"
+                                                    )}
+                                                >
+                                                    <Avatar className="h-5 w-5">
+                                                        <AvatarImage src={friend.profile?.photoURL} />
+                                                        <AvatarFallback className="text-[9px]">{friend.profile?.displayName?.[0]}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="text-xs font-medium truncate max-w-[80px]">{friend.profile?.displayName?.split(' ')[0]}</span>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-muted-foreground italic pl-1">No team members available.</p>
+                                )}
+                            </div>
 
-
-                        <div className="flex flex-col gap-3 bg-muted/30 p-3 rounded-lg border">
+                            {/* Notifications */}
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Bell className="h-4 w-4 text-muted-foreground" />
-                                    <Label htmlFor="notify" className="cursor-pointer">Notifications</Label>
+                                    <Bell className="h-3.5 w-3.5 text-muted-foreground" />
+                                    <Label htmlFor="notify" className="text-sm font-medium cursor-pointer">Reminders</Label>
                                 </div>
-                                <Switch id="notify" checked={notify} onCheckedChange={async (checked) => {
-                                    setNotify(checked);
-                                    if (checked && !pushEnabled) {
-                                        await enablePush();
-                                    }
-                                }} />
+                                <div className="flex items-center gap-3">
+                                    {notify && (
+                                        <Select value={notifyBefore} onValueChange={(val: any) => setNotifyBefore(val)}>
+                                            <SelectTrigger className="w-[110px] h-7 text-[10px]">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="10_min">10 Min Before</SelectItem>
+                                                <SelectItem value="1_hour">1 Hour Before</SelectItem>
+                                                <SelectItem value="1_day">1 Day Before</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                    <Switch id="notify" checked={notify} onCheckedChange={async (checked) => {
+                                        setNotify(checked);
+                                        if (checked && !pushEnabled) {
+                                            await enablePush();
+                                        }
+                                    }} />
+                                </div>
                             </div>
-
-                            {notify && (
-                                <div className="flex items-center justify-between pt-1 border-t border-border/50">
-                                    <Label className="text-xs text-muted-foreground">Remind me</Label>
-                                    <Select value={notifyBefore} onValueChange={(val: any) => setNotifyBefore(val)}>
-                                        <SelectTrigger className="w-[140px] h-8 text-xs">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="10_min">10 Minutes Before</SelectItem>
-                                            <SelectItem value="1_hour">1 Hour Before</SelectItem>
-                                            <SelectItem value="1_day">1 Day Before</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
                         </div>
 
-                        <DialogFooter>
-                            <Button type="submit">{editingId ? "Update Task" : "Save Task"}</Button>
+                        <DialogFooter className="pt-2">
+                            <Button type="submit" className="w-full sm:w-auto">{editingId ? "Update Task" : "Save Task"}</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>

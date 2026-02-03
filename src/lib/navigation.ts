@@ -1,4 +1,4 @@
-import { Home, Dumbbell, Calendar, Ruler, Trophy, BarChart3, Users } from "lucide-react";
+import { Home, Dumbbell, Calendar, Ruler, Trophy, Users } from "lucide-react";
 
 export interface NavItem {
     href: string;
@@ -12,10 +12,7 @@ export const navItems: NavItem[] = [
     {
         href: "/workouts",
         label: "Workouts",
-        icon: Dumbbell,
-        children: [
-            { href: "/workouts/analytics", label: "Analytics", icon: BarChart3 }
-        ]
+        icon: Dumbbell
     },
     { href: "/measurements", label: "Measurements", icon: Ruler },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
