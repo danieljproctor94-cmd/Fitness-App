@@ -106,6 +106,10 @@ interface DataContextType {
     fetchAllUsers: () => Promise<UserProfile[]>;
     appLogo: string;
     updateAppLogo: (url: string) => Promise<void>;
+    socialUrl: string;
+    updateSocialUrl: (url: string) => Promise<void>;
+    appFavicon: string;
+    updateAppFavicon: (url: string) => Promise<void>;
     sendFriendRequest: (email: string) => Promise<void>;
     acceptFriendRequest: (id: string) => Promise<void>;
     refreshCollaborations: () => Promise<void>;
@@ -142,7 +146,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [mindsetLogs, setMindsetLogs] = useState<MindsetLog[]>([]);
     const [todos, setTodos] = useState<ToDo[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-    const [appLogo, setAppLogo] = useState<string>('/logo.png'); // Default
+    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '/logo.png'); // Default from cache or fallback
+    const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '/favicon.ico');
+    const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
     const [isLoading, setIsLoading] = useState(true);
     const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
 
@@ -246,6 +252,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: sData } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
             if (sData) {
                 setAppLogo(sData.value);
+                localStorage.setItem('app_logo_url', sData.value);
+            }
+
+            // 7. App Settings (Social URL)
+            const { data: socialData } = await supabase.from('app_settings').select('value').eq('key', 'social_url').single();
+            if (socialData) {
+                setSocialUrl(socialData.value);
+                localStorage.setItem('social_url', socialData.value);
+            }
+
+            if (socialData) {
+                setSocialUrl(socialData.value);
+                localStorage.setItem('social_url', socialData.value);
+            }
+
+            // 8. App Settings (Favicon)
+            const { data: faviconData } = await supabase.from('app_settings').select('value').eq('key', 'app_favicon').single();
+            if (faviconData) {
+                setAppFavicon(faviconData.value);
+                localStorage.setItem('app_favicon_url', faviconData.value);
             }
 
             await fetchCollaborations();
@@ -461,6 +487,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updateAppLogo = async (url: string) => {
         if (!user) return;
         setAppLogo(url);
+        localStorage.setItem('app_logo_url', url);
 
         const { error } = await supabase.from('app_settings').upsert({
             key: 'app_logo',
@@ -473,6 +500,44 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             toast.error("Failed to save logo setting");
         } else {
             toast.success("Global Logo Setting Saved!");
+        }
+    };
+
+    const updateSocialUrl = async (url: string) => {
+        if (!user) return;
+        setSocialUrl(url);
+        localStorage.setItem('social_url', url);
+
+        const { error } = await supabase.from('app_settings').upsert({
+            key: 'social_url',
+            value: url,
+            updated_at: new Date().toISOString()
+        });
+
+        if (error) {
+            console.error("Error saving social url:", error);
+            toast.error("Failed to save social url");
+        } else {
+            toast.success("Social URL Saved!");
+        }
+    };
+
+    const updateAppFavicon = async (url: string) => {
+        if (!user) return;
+        setAppFavicon(url);
+        localStorage.setItem('app_favicon_url', url);
+
+        const { error } = await supabase.from('app_settings').upsert({
+            key: 'app_favicon',
+            value: url,
+            updated_at: new Date().toISOString()
+        });
+
+        if (error) {
+            console.error("Error saving favicon:", error);
+            toast.error("Failed to save favicon");
+        } else {
+            toast.success("Favicon Saved!");
         }
     };
 
@@ -571,6 +636,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchAllUsers,
         appLogo,
         updateAppLogo,
+        socialUrl,
+        updateSocialUrl,
+        appFavicon,
+        updateAppFavicon,
         sendFriendRequest,
         acceptFriendRequest,
         refreshCollaborations: fetchCollaborations,

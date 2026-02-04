@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useData, ToDo } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
@@ -46,6 +46,8 @@ export default function ToDos() {
     const [notifyBefore, setNotifyBefore] = useState<'10_min' | '1_hour' | '1_day'>('10_min');
 
     const [editingId, setEditingId] = useState<string | null>(null);
+    // Delete Confirmation State
+    const [todoToDelete, setTodoToDelete] = useState<string | null>(null);
 
     // Load More State for Undated Tasks
     const [visibleUndatedCount, setVisibleUndatedCount] = useState(20);
@@ -76,7 +78,7 @@ export default function ToDos() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const todoData = {
+        const commonData = {
             title,
             description,
             due_date: date || undefined,
@@ -85,12 +87,11 @@ export default function ToDos() {
             urgency,
             notify,
             notify_before: notify ? notifyBefore : undefined,
-            completed: false
         };
 
         if (editingId) {
             // @ts-ignore
-            await updateToDo(editingId, todoData);
+            await updateToDo(editingId, commonData);
 
             // Handle sharing for edited task
             const originalTask = todos.find(t => t.id === editingId);
@@ -104,7 +105,7 @@ export default function ToDos() {
             }
         } else {
             // @ts-ignore
-            const newTodo = await addToDo(todoData);
+            const newTodo = await addToDo({ ...commonData, completed: false });
             if (newTodo && selectedCollaborators.length > 0) {
                 // Share with selected friends
                 for (const friendId of selectedCollaborators) {
@@ -229,6 +230,7 @@ export default function ToDos() {
             // Base item structure
             const baseItem = {
                 ...t,
+                time: t.due_time,
                 name: t.title,
                 type: 'todo',
                 exercises: [],
@@ -282,7 +284,21 @@ export default function ToDos() {
                 duration: '0'
             }));
 
-        return [...items, ...gEvents];
+        const combinedItems = [...items, ...gEvents];
+
+        // Sort items: No time (all day) first, then by time ascending
+        combinedItems.sort((a, b) => {
+            // If both have no time, stable sort (or by title if needed)
+            if (!a.time && !b.time) return 0;
+            // If a has no time (all day), it comes first
+            if (!a.time) return -1;
+            // If b has no time, it comes first
+            if (!b.time) return 1;
+            // Both have time, sort ascending
+            return a.time.localeCompare(b.time);
+        });
+
+        return combinedItems;
     }, [todos, currentDate, googleEvents]);
 
     // Stats Logic
@@ -357,15 +373,12 @@ export default function ToDos() {
                             <Button variant="outline" size="icon" onClick={handlePrev} className="h-10 w-10 border-border/60">
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
-                            <Button variant="secondary" size="sm" onClick={handleToday} className="h-10 font-medium px-5 border border-border/50 bg-card hover:bg-muted">
-                                Today
+                            <Button variant="secondary" size="sm" onClick={handleToday} className="h-10 font-medium px-5 border border-border/50 bg-card hover:bg-muted min-w-[120px]">
+                                {format(currentDate, "MMMM")}
                             </Button>
                             <Button variant="outline" size="icon" onClick={handleNext} className="h-10 w-10 border-border/60">
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
-                            <h2 className="text-xl font-bold ml-4 hidden sm:block min-w-[160px] text-right tracking-tight">
-                                {format(currentDate, "MMMM yyyy")}
-                            </h2>
                         </div>
                     </div>
                 </div>
@@ -439,10 +452,30 @@ export default function ToDos() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="low">Low</SelectItem>
-                                        <SelectItem value="normal">Normal</SelectItem>
-                                        <SelectItem value="high">High</SelectItem>
-                                        <SelectItem value="critical">Critical</SelectItem>
+                                        <SelectItem value="low">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowDown className="h-3.5 w-3.5 text-slate-500" />
+                                                <span className="text-slate-600">Low</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="normal">
+                                            <div className="flex items-center gap-2">
+                                                <Circle className="h-3.5 w-3.5 text-primary fill-primary/20" />
+                                                <span className="text-primary">Normal</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="high">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUp className="h-3.5 w-3.5 text-orange-500" />
+                                                <span className="text-orange-600">High</span>
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="critical">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+                                                <span className="text-red-600">Critical</span>
+                                            </div>
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -578,6 +611,32 @@ export default function ToDos() {
                             ))
                         )}
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={!!todoToDelete} onOpenChange={(open) => !open && setTodoToDelete(null)}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle>Delete Task</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this task? This action cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="grid grid-cols-2 gap-2 mt-2">
+                        <Button variant="outline" onClick={() => setTodoToDelete(null)}>Cancel</Button>
+                        <Button
+                            variant="destructive"
+                            onClick={async () => {
+                                if (todoToDelete) {
+                                    await deleteToDo(todoToDelete);
+                                    setTodoToDelete(null);
+                                }
+                            }}
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -756,7 +815,7 @@ export default function ToDos() {
                                                             <Pencil className="h-3.5 w-3.5" />
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteToDo(todo.id)}
+                                                            onClick={() => setTodoToDelete(todo.id)}
                                                             className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-xs text-muted-foreground hover:text-white transition-colors"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
@@ -933,7 +992,7 @@ export default function ToDos() {
                                                         <Pencil className="h-3.5 w-3.5" />
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteToDo(todo.id)}
+                                                        onClick={() => setTodoToDelete(todo.id)}
                                                         className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-xs text-muted-foreground hover:text-white transition-colors"
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />

@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -50,6 +50,60 @@ export function AppShell() {
     };
 
     const { enablePush } = useNotifications();
+    const { todos, updateToDo } = useData();
+
+    // Poll for Task Notifications
+    useEffect(() => {
+        if (!user) return;
+
+        const checkTasks = async () => {
+            const now = new Date();
+            const dueTasks = todos.filter(t => {
+                // @ts-ignore
+                if (t.notification_sent || t.completed || !t.notify) return false;
+                if (!t.due_date) return false;
+
+                const dueDate = parseISO(t.due_date);
+                if (!isSameDay(dueDate, now)) return false;
+
+                if (!t.due_time) return false;
+
+                // Check time match (simple minute precision)
+                const [hours, minutes] = t.due_time.split(':').map(Number);
+                const dueDateTime = new Date(dueDate);
+                dueDateTime.setHours(hours, minutes, 0, 0);
+
+                // Calculate notification time
+                let notifyTime = new Date(dueDateTime);
+                if (t.notify_before === '1_hour') notifyTime.setHours(notifyTime.getHours() - 1);
+                else if (t.notify_before === '1_day') notifyTime.setDate(notifyTime.getDate() - 1);
+                else notifyTime.setMinutes(notifyTime.getMinutes() - 10); // Default 10 min
+
+                // Check if we are past the notify time (and within reasonable window, e.g., last 15 mins to avoid old alarms)
+                const diff = (now.getTime() - notifyTime.getTime()) / 1000 / 60; // diff in minutes
+                return diff >= 0 && diff < 15;
+            });
+
+            for (const task of dueTasks) {
+                // 1. Insert Notification (triggering bell/system)
+                await supabase.from('notifications').insert({
+                    user_id: user.id,
+                    title: "Task Reminder",
+                    message: `Reminder: ${task.title} is coming up!`,
+                    type: 'info'
+                });
+
+                // 2. Mark task as notified
+                // @ts-ignore
+                await updateToDo(task.id, { notification_sent: true });
+            }
+        };
+
+        const interval = setInterval(checkTasks, 60000); // Check every minute
+        checkTasks(); // Run immediately
+
+        return () => clearInterval(interval);
+    }, [user, todos, updateToDo]);
 
     useEffect(() => {
         // Show permission prompt on first load if default
@@ -74,8 +128,17 @@ export function AppShell() {
 
     // Legacy LocalStorage logic removed.
     // Use Global DB Setting
-    const { appLogo } = useData();
+    const { appLogo, socialUrl, appFavicon } = useData();
     const logoUrl = appLogo || '/logo.png';
+    const faviconUrl = appFavicon || '/favicon.ico';
+
+    useEffect(() => {
+        const link = (document.querySelector("link[rel*='icon']") || document.createElement('link')) as HTMLLinkElement;
+        link.type = 'image/x-icon';
+        link.rel = 'icon';
+        link.href = faviconUrl;
+        document.getElementsByTagName('head')[0].appendChild(link);
+    }, [faviconUrl]);
 
     const [onlineCount, setOnlineCount] = useState(1);
 
@@ -165,7 +228,7 @@ export function AppShell() {
                     </Button>
                 </div>
 
-                <nav className="flex-1 space-y-1 p-2 overflow-y-auto overflow-x-hidden">
+                <nav className="flex-1 space-y-1 p-2 overflow-y-auto overflow-x-hidden no-scrollbar">
                     {navItems.map((item) => {
                         const isExpanded = expandedItems.includes(item.href);
                         const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
@@ -397,6 +460,18 @@ export function AppShell() {
                                 </>
                             )}
 
+                            {socialUrl && (
+                                <>
+                                    <DropdownMenuItem asChild>
+                                        <a href={socialUrl} target="_blank" rel="noopener noreferrer" className="cursor-pointer w-full flex items-center text-pink-500 focus:text-pink-500 font-medium">
+                                            <Globe className="mr-2 h-4 w-4" />
+                                            Follow Us
+                                        </a>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                </>
+                            )}
+
                             <DropdownMenuItem onClick={() => setInstallModalOpen(true)} className="cursor-pointer">
                                 <Download className="mr-2 h-4 w-4" />
                                 Install App
@@ -432,7 +507,7 @@ export function AppShell() {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
+                <div className="flex-1 overflow-y-auto pb-16 md:pb-0 no-scrollbar">
                     <Outlet />
                 </div>
                 <BottomNav />

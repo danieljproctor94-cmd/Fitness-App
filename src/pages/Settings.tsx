@@ -9,6 +9,7 @@ import { Bell, Moon, Globe, Sparkles } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { useData } from "@/features/data/DataContext";
 import { uploadAvatar } from "@/lib/storage-utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Settings() {
     // Theme
@@ -22,21 +23,37 @@ export default function Settings() {
     const [units, setUnits] = useState('metric'); // metric | imperial
 
     // Admin Settings
-    const { updateAppLogo, appLogo } = useData();
+    const { updateAppLogo, appLogo, updateSocialUrl, socialUrl, updateAppFavicon, appFavicon } = useData();
     const [adminLogoUrl, setAdminLogoUrl] = useState(appLogo || '/logo.png');
+    const [adminFaviconUrl, setAdminFaviconUrl] = useState(appFavicon || '/favicon.ico');
+    const [adminSocialUrl, setAdminSocialUrl] = useState(socialUrl || '');
 
     // Sync local state with context when context loads
     useEffect(() => {
         if (appLogo && appLogo !== '/logo.png') {
             setAdminLogoUrl(appLogo);
         }
-    }, [appLogo]);
+        if (socialUrl) {
+            setAdminSocialUrl(socialUrl);
+        }
+        if (appFavicon) {
+            setAdminFaviconUrl(appFavicon);
+        }
+    }, [appLogo, socialUrl, appFavicon]);
 
     const handleSaveLogo = async () => {
         // localStorage.setItem('app_logo', adminLogoUrl); // Legacy
         // window.dispatchEvent(new Event('logo-update')); // Legacy
 
         await updateAppLogo(adminLogoUrl);
+    };
+
+    const handleSaveSocial = async () => {
+        await updateSocialUrl(adminSocialUrl);
+    };
+
+    const handleSaveFavicon = async () => {
+        await updateAppFavicon(adminFaviconUrl);
     };
 
     return (
@@ -108,6 +125,68 @@ export default function Settings() {
                                 <img src={adminLogoUrl} alt="Preview" className="h-12 object-contain" />
                             </div>
                         )}
+
+                        <div className="space-y-2 pt-4 border-t border-indigo-500/20">
+                            <Label>App Icon / Favicon URL</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={adminFaviconUrl}
+                                    onChange={(e) => setAdminFaviconUrl(e.target.value)}
+                                    placeholder="/favicon.ico"
+                                />
+                                <Button onClick={handleSaveFavicon}>Save</Button>
+                            </div>
+                            <div className="flex gap-2">
+                                <Input
+                                    type="file"
+                                    accept="image/x-icon,image/png,image/svg+xml"
+                                    className="cursor-pointer"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file && userProfile.id) {
+                                            toast.info("Uploading favicon...");
+                                            const { url: publicUrl, error } = await uploadAvatar(file, userProfile.id);
+                                            if (publicUrl) {
+                                                setAdminFaviconUrl(publicUrl);
+                                                toast.success("Favicon uploaded!");
+                                            } else {
+                                                console.error("Upload failed:", error);
+                                                toast.error(`Upload failed: ${error?.message || "Unknown error"}`);
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Upload an icon (ICO, PNG, SVG) for the browser tab.
+                            </p>
+
+                            <div className="pt-2">
+                                <Label className="text-xs mb-2 block">Icon Preview</Label>
+                                {adminFaviconUrl ? (
+                                    <div className="p-2 border rounded-xl bg-background/50 inline-flex shadow-sm">
+                                        <img src={adminFaviconUrl} alt="Favicon Preview" className="h-16 w-16 object-contain rounded-lg" />
+                                    </div>
+                                ) : (
+                                    <Skeleton className="h-20 w-20 rounded-xl" />
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 pt-4 border-t border-indigo-500/20">
+                            <Label>Social Media URL</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={adminSocialUrl}
+                                    onChange={(e) => setAdminSocialUrl(e.target.value)}
+                                    placeholder="https://instagram.com/your-gym"
+                                />
+                                <Button onClick={handleSaveSocial}>Save</Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Add a link to your community or social page.
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
             )}
