@@ -129,7 +129,9 @@ export function AppShell() {
     // Legacy LocalStorage logic removed.
     // Use Global DB Setting
     const { appLogo, socialUrl, appFavicon } = useData();
-    const logoUrl = appLogo || '/logo.png';
+    // Prevent default logo flash: only show default if explicitly loaded as such or if we want a hard fallback. 
+    // Better: Allow null/empty to show skeleton or nothing.
+    const logoUrl = appLogo;
     const faviconUrl = appFavicon || '/favicon.ico';
 
     useEffect(() => {
@@ -181,7 +183,12 @@ export function AppShell() {
                         <Menu className="h-6 w-6" />
                     </Button>
                     <Link to="/">
-                        <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
+                        {logoUrl ? (
+                            <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
+                        ) : (
+                            // Show nothing or a spacer while loading to prevent default flash
+                            <div className="h-8 w-8"></div>
+                        )}
                     </Link>
                 </div>
                 <div className="flex items-center gap-3">
@@ -213,7 +220,11 @@ export function AppShell() {
                 <div className={cn("flex h-16 items-center border-b px-4 shrink-0 transition-all", isCollapsed ? "justify-center" : "justify-between")}>
                     {!isCollapsed && (
                         <Link to="/">
-                            <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" />
+                            {logoUrl ? (
+                                <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" />
+                            ) : (
+                                <div className="h-8 w-8"></div>
+                            )}
                         </Link>
                     )}
 
