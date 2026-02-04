@@ -92,7 +92,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                         type: newNotif.type as any
                     };
 
-                    setNotifications(prev => [formatted, ...prev]);
+                    setNotifications(prev => {
+                        if (prev.some(n => n.id === newNotif.id)) return prev;
+                        return [formatted, ...prev];
+                    });
 
                     // Trigger System Notification
                     const triggerNotification = async () => {
@@ -103,6 +106,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;
                                 if (registration && registration.active) {
+                                    // Check if we are focused? Maybe not needed, SW handles it.
                                     await registration.showNotification(formatted.title, {
                                         body: formatted.message,
                                         icon: '/pwa-192x192.png',

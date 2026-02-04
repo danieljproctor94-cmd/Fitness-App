@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -142,6 +143,12 @@ export default function ToDos() {
                 origin: { y: 0.7 },
                 colors: ['#10B981', '#34D399']
             });
+            toast.success("Task completed", {
+                action: {
+                    label: "Undo",
+                    onClick: () => toggleComplete(todo)
+                }
+            });
         }
     };
 
@@ -160,7 +167,7 @@ export default function ToDos() {
     };
 
     const todosOnSelectedDate = todos.filter(t => {
-        if (!t.due_date) return false;
+        if (!t.due_date || t.completed) return false;
         const dueDate = parseISO(t.due_date);
 
         // If it's a one-time task
@@ -189,7 +196,7 @@ export default function ToDos() {
     });
 
     // List Filter State
-    const [listFilter, setListFilter] = useState<'anytime' | 'recurring' | 'overdue'>('anytime');
+    const [listFilter, setListFilter] = useState<'anytime' | 'recurring' | 'overdue' | 'completed'>('anytime');
 
     // Mobile View State
     const [mobileView, setMobileView] = useState<'list' | 'calendar'>('list');
@@ -201,16 +208,18 @@ export default function ToDos() {
             return todos.filter(t => !t.due_date && !t.completed);
         }
         if (listFilter === 'recurring') {
-            return todos.filter(t => t.recurrence !== 'none');
+            return todos.filter(t => t.recurrence !== 'none' && !t.completed);
         }
         if (listFilter === 'overdue') {
             return todos.filter(t => {
                 if (!t.due_date || t.completed) return false;
                 const dueDate = parseISO(t.due_date);
-                // Check if strictly before today (ignoring time for simplicity, or include time if needed)
-                // Using startOfToday comparison
+                // Check if strictly before today (ignoring time for simplicity, or include time for correctness)
                 return isBefore(dueDate, today);
             });
+        }
+        if (listFilter === 'completed') {
+            return todos.filter(t => t.completed);
         }
         return [];
     }, [todos, listFilter]);
@@ -225,6 +234,9 @@ export default function ToDos() {
 
         todos.forEach(t => {
             if (!t.due_date) return;
+            // Filter out completed tasks from calendar
+            if (t.completed) return;
+
             const dueDate = parseISO(t.due_date);
 
             // Base item structure
@@ -845,6 +857,8 @@ export default function ToDos() {
                                         <SelectItem value="anytime">Anytime</SelectItem>
                                         <SelectItem value="recurring">Recurring</SelectItem>
                                         <SelectItem value="overdue">Overdue</SelectItem>
+                                        <div className="h-px bg-border my-1" />
+                                        <SelectItem value="completed">Completed</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -871,10 +885,11 @@ export default function ToDos() {
                                                     onClick={() => toggleComplete(todo)}
                                                     className={cn(
                                                         "mt-1 h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-colors",
-                                                        todo.completed ? "bg-emerald-500 border-emerald-500 text-white" : "border-muted-foreground/30 hover:border-emerald-500"
+                                                        todo.completed ? "bg-muted text-muted-foreground border-transparent hover:bg-muted/80" : "border-muted-foreground/30 hover:border-emerald-500"
                                                     )}
+                                                    title={todo.completed ? "Undo completion" : "Mark as completed"}
                                                 >
-                                                    {todo.completed && <CheckSquareIcon className="h-3.5 w-3.5" />}
+                                                    {todo.completed ? <RefreshCw className="h-3 w-3" /> : null}
                                                 </button>
                                                 <div className="flex-1 min-w-0 space-y-1">
                                                     <div className="flex items-center justify-between">
@@ -972,6 +987,15 @@ export default function ToDos() {
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-1 transition-opacity">
+                                                    {todo.completed && (
+                                                        <button
+                                                            onClick={() => toggleComplete(todo)}
+                                                            className="p-1 hover:bg-primary/10 hover:text-primary rounded text-xs text-muted-foreground transition-colors"
+                                                            title="Undo completion"
+                                                        >
+                                                            <RefreshCw className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => {
                                                             setEditingId(todo.id);
@@ -1016,7 +1040,10 @@ export default function ToDos() {
 
                             {filteredSideList.length === 0 && (
                                 <div className="text-center p-4 text-xs text-muted-foreground italic">
-                                    {listFilter === 'anytime' ? "No anytime tasks" : listFilter === 'recurring' ? "No recurring tasks" : "No overdue tasks"}
+                                    {listFilter === 'anytime' ? "No anytime tasks" :
+                                        listFilter === 'recurring' ? "No recurring tasks" :
+                                            listFilter === 'completed' ? "No completed tasks found" :
+                                                "No overdue tasks"}
                                 </div>
                             )}
                         </div>
