@@ -146,18 +146,18 @@ export default function Leaderboard() {
                 {/* Filters & Toggles */}
                 <div className="flex flex-col sm:flex-row justify-between gap-4 items-center bg-muted/30 p-2 rounded-lg border">
                     <Tabs value={filterMode} onValueChange={(v) => setFilterMode(v as any)} className="w-full sm:w-auto">
-                        <TabsList>
-                            <TabsTrigger value="friends" className="gap-2"><Users className="h-4 w-4" /> Friends</TabsTrigger>
+                        <TabsList className="w-full grid grid-cols-2 sm:flex sm:w-auto">
+                            <TabsTrigger value="friends" className="gap-2"><Users className="h-4 w-4" /> Team Members</TabsTrigger>
                             <TabsTrigger value="everyone" className="gap-2"><Globe className="h-4 w-4" /> Everyone</TabsTrigger>
                         </TabsList>
                     </Tabs>
 
-                    <div className="flex bg-muted p-1 rounded-lg">
+                    <div className="grid grid-cols-2 gap-1 w-full sm:w-auto sm:flex bg-muted p-1 rounded-lg">
                         <Button
                             variant={viewMode === "weight" ? "secondary" : "ghost"}
                             size="sm"
                             onClick={() => setViewMode("weight")}
-                            className="gap-2"
+                            className="gap-2 w-full sm:w-auto"
                         >
                             <Weight className="h-4 w-4" /> Weight Loss
                         </Button>
@@ -165,7 +165,7 @@ export default function Leaderboard() {
                             variant={viewMode === "activity" ? "secondary" : "ghost"}
                             size="sm"
                             onClick={() => setViewMode("activity")}
-                            className="gap-2"
+                            className="gap-2 w-full sm:w-auto"
                         >
                             <Activity className="h-4 w-4" /> Activity
                         </Button>
