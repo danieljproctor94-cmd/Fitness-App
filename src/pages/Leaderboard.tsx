@@ -154,18 +154,18 @@ export default function Leaderboard() {
 
                     <div className="grid grid-cols-2 gap-1 w-full sm:w-auto sm:flex bg-muted p-1 rounded-lg">
                         <Button
-                            variant={viewMode === "weight" ? "secondary" : "ghost"}
+                            variant="ghost"
                             size="sm"
                             onClick={() => setViewMode("weight")}
-                            className="gap-2 w-full sm:w-auto"
+                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "weight" ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <Weight className="h-4 w-4" /> Weight Loss
                         </Button>
                         <Button
-                            variant={viewMode === "activity" ? "secondary" : "ghost"}
+                            variant="ghost"
                             size="sm"
                             onClick={() => setViewMode("activity")}
-                            className="gap-2 w-full sm:w-auto"
+                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "activity" ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <Activity className="h-4 w-4" /> Activity
                         </Button>
