@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Calendar, Calculator, Save, Weight } from "lucide-react";
+import { Trash2, Calendar, Calculator, Save } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO } from "date-fns";
@@ -14,12 +13,6 @@ import { AiMetricsOverview } from "@/components/AiMetricsOverview";
 
 export default function Measurements() {
     const { measurements, addMeasurement, deleteMeasurement, userProfile, updateUserProfile, isLoading } = useData();
-    const [open, setOpen] = useState(false);
-
-    // Dialog State
-    const [dialogWeight, setDialogWeight] = useState("");
-    const [dialogDate, setDialogDate] = useState(new Date().toISOString().split('T')[0]);
-
     // Body Stats State
     const [localProfile, setLocalProfile] = useState(userProfile);
     // Add local weight state for the calculator form
@@ -68,16 +61,8 @@ export default function Measurements() {
         }
     };
 
-    // Dialog Submit
-    const handleDialogSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        addMeasurement({
-            date: dialogDate,
-            weight: parseFloat(dialogWeight)
-        });
-        setOpen(false);
-        setDialogWeight("");
-    };
+    // Dialog logic removed
+
 
     const sortedForChart = [...measurements].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const sortedForHistory = [...measurements].sort((a, b) => {
@@ -86,43 +71,46 @@ export default function Measurements() {
         return isNewestFirst ? timeB - timeA : timeA - timeB;
     });
 
+    // Calculate Header Stats
+    const bmi = (localProfile.height && currentWeight)
+        ? (parseFloat(currentWeight.toString()) / Math.pow(parseFloat(String(localProfile.height)) / 100, 2)).toFixed(1)
+        : "N/A";
+
+    const totalChange = (localProfile.starting_weight && currentWeight)
+        ? (parseFloat(currentWeight.toString()) - parseFloat(String(localProfile.starting_weight))).toFixed(1)
+        : null;
+
     return (
         <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">Measurements</h1>
                     <p className="text-muted-foreground">Track your body metrics and composition.</p>
                 </div>
 
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="h-11 px-6 flex items-center gap-2">
-                            <Weight className="h-4 w-4" />
-                            Log Weight
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Log Weight</DialogTitle>
-                            <DialogDescription>
-                                Enter your current weight in kg.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleDialogSubmit} className="grid gap-4 py-4">
-                            <div className="grid gap-2">
-                                <label htmlFor="m-date" className="text-sm font-medium">Date</label>
-                                <Input id="m-date" type="date" value={dialogDate} onChange={(e) => setDialogDate(e.target.value)} required />
+                {/* Stats Summary - Replaces Log Weight Button */}
+                {!isLoading && currentWeight && (
+                    <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 -mx-6 px-6 md:mx-0 md:px-0 hide-scrollbar scroll-smooth">
+                        <div className="flex flex-col items-center justify-center bg-card border border-border/50 shadow-sm rounded-xl px-4 py-2 min-w-[100px] shrink-0">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Weight</span>
+                            <span className="text-xl font-bold">{currentWeight} <span className="text-sm font-normal text-muted-foreground">kg</span></span>
+                        </div>
+
+                        {totalChange && (
+                            <div className="flex flex-col items-center justify-center bg-card border border-border/50 shadow-sm rounded-xl px-4 py-2 min-w-[100px] shrink-0">
+                                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Change</span>
+                                <span className={cn("text-xl font-bold", parseFloat(totalChange) <= 0 ? "text-green-500" : "text-amber-500")}>
+                                    {parseFloat(totalChange) > 0 ? "+" : ""}{totalChange} <span className="text-sm font-normal">kg</span>
+                                </span>
                             </div>
-                            <div className="grid gap-2">
-                                <label htmlFor="weight" className="text-sm font-medium">Weight (kg)</label>
-                                <Input id="weight" type="number" step="0.1" value={dialogWeight} onChange={(e) => setDialogWeight(e.target.value)} required />
-                            </div>
-                            <DialogFooter>
-                                <Button type="submit">Save</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                        )}
+
+                        <div className="flex flex-col items-center justify-center bg-card border border-border/50 shadow-sm rounded-xl px-4 py-2 min-w-[100px] shrink-0">
+                            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">BMI</span>
+                            <span className="text-xl font-bold">{bmi}</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
