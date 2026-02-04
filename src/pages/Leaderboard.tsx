@@ -115,10 +115,31 @@ export default function Leaderboard() {
                         <p className="text-muted-foreground">Compare performance with your fitness circle.</p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <Button onClick={handleInvite} className="gap-2">
-                            <Share2 className="h-4 w-4" /> Invite Friends
-                        </Button>
+                    {/* Team Header UI */}
+                    <div className="flex items-center gap-4 bg-card/50 p-2 rounded-xl border border-border/40 backdrop-blur-sm self-start md:self-auto">
+                        <div className="flex -space-x-3 items-center">
+                            {collaborations.filter(c => c.status === 'accepted').slice(0, 3).map((collab) => (
+                                <Avatar key={collab.id} className="h-10 w-10 border-2 border-background ring-1 ring-border/20">
+                                    <AvatarImage src={collab.profile?.photoURL} />
+                                    <AvatarFallback>{collab.profile?.displayName?.charAt(0) || "U"}</AvatarFallback>
+                                </Avatar>
+                            ))}
+                            <button
+                                onClick={handleInvite}
+                                className="h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center border-2 border-dashed border-primary/30 text-primary transition-colors z-10"
+                                title="Invite more friends"
+                            >
+                                <Share2 className="h-4 w-4" />
+                            </button>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm">
+                                {collaborations.filter(c => c.status === 'accepted').length} Team Members
+                            </span>
+                            <button onClick={handleInvite} className="text-xs text-primary hover:underline text-left font-medium">
+                                + Invite to Team
+                            </button>
+                        </div>
                     </div>
                 </div>
 
