@@ -248,7 +248,7 @@ export default function Workouts() {
                                         <Label className="font-medium">Exercises</Label>
                                         <Button type="button" variant="outline" size="sm" onClick={addExercise} className="h-8 text-xs">+ Add Exercise</Button>
                                     </div>
-                                    <div className="space-y-0 divide-y border rounded-lg overflow-hidden">
+                                    <div className="space-y-0 divide-y border rounded-xl overflow-hidden">
                                         {exercises.map((ex, exIndex) => (
                                             <div key={ex.id} className="p-3 bg-card hover:bg-muted/20 transition-colors">
                                                 <div className="flex items-center gap-3 mb-2">

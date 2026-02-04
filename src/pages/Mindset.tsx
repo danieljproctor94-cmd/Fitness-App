@@ -173,7 +173,7 @@ export default function Mindset() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="bg-background/80 p-4 rounded-lg border shadow-sm">
+                        <div className="bg-background/80 p-4 rounded-xl border shadow-sm">
                             <div className="flex items-start gap-3">
                                 <Sparkles className="h-5 w-5 text-purple-500 mt-1 shrink-0" />
                                 <div className="space-y-1">
@@ -184,13 +184,13 @@ export default function Mindset() {
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-4 pt-2">
-                            <div className="p-4 bg-background rounded-lg border">
+                            <div className="p-4 bg-background rounded-xl border">
                                 <h4 className="flex items-center gap-2 font-medium mb-2 text-sm text-muted-foreground">
                                     <Heart className="h-4 w-4 text-red-400" /> Grateful For
                                 </h4>
                                 <p>{todayLog.grateful_for}</p>
                             </div>
-                            <div className="p-4 bg-background rounded-lg border">
+                            <div className="p-4 bg-background rounded-xl border">
                                 <h4 className="flex items-center gap-2 font-medium mb-2 text-sm text-muted-foreground">
                                     <ArrowUpCircle className="h-4 w-4 text-blue-400" /> Improvements
                                 </h4>

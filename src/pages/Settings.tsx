@@ -121,7 +121,7 @@ export default function Settings() {
                             </p>
                         </div>
                         {adminLogoUrl && (
-                            <div className="p-4 border rounded-lg bg-background/50 flex justify-center">
+                            <div className="p-4 border rounded-xl bg-background/50 flex justify-center">
                                 <img src={adminLogoUrl} alt="Preview" className="h-12 object-contain" />
                             </div>
                         )}

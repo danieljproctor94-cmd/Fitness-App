@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus, Globe } from "lucide-react";
+import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus, Globe, User, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -405,14 +405,14 @@ export function AppShell() {
 
                             <DropdownMenuItem asChild>
                                 <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
-                                    <SettingsIcon className="mr-2 h-4 w-4" />
+                                    <User className="mr-2 h-4 w-4" />
                                     Account
                                 </Link>
                             </DropdownMenuItem>
 
                             <DropdownMenuItem asChild>
                                 <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="cursor-pointer w-full flex items-center">
-                                    <SettingsIcon className="mr-2 h-4 w-4" />
+                                    <CreditCard className="mr-2 h-4 w-4" />
                                     Billing
                                 </Link>
                             </DropdownMenuItem>

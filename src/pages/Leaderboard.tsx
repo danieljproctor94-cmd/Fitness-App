@@ -144,7 +144,7 @@ export default function Leaderboard() {
                 </div>
 
                 {/* Filters & Toggles */}
-                <div className="flex flex-col sm:flex-row justify-between gap-4 items-center bg-muted/30 p-2 rounded-lg border">
+                <div className="flex flex-col sm:flex-row justify-between gap-4 items-center bg-muted/30 p-2 rounded-xl border">
                     <Tabs value={filterMode} onValueChange={(v) => setFilterMode(v as any)} className="w-full sm:w-auto">
                         <TabsList className="w-full grid grid-cols-2 sm:flex sm:w-auto">
                             <TabsTrigger value="friends" className="gap-2"><Users className="h-4 w-4" /> Team Members</TabsTrigger>

@@ -675,10 +675,10 @@ export default function ToDos() {
 
 
 
-            <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+            <div className="flex-1 flex flex-col xl:flex-row gap-4 min-h-0">
                 <div className={cn(
-                    "w-full lg:w-80 flex-none flex flex-col gap-4 border lg:border-l-0 border-border/50 bg-card rounded-xl lg:rounded-l-none lg:bg-background lg:border-l lg:border-t-0 lg:border-b-0 lg:border-r-0 lg:shadow-none shadow-sm p-4 min-h-0",
-                    mobileView === 'calendar' ? "hidden lg:flex" : "flex"
+                    "w-full xl:w-80 flex-none flex flex-col gap-4 border xl:border-r border-border/50 bg-card rounded-xl xl:rounded-r-none xl:bg-background xl:border-t-0 xl:border-b-0 xl:border-l-0 xl:shadow-none shadow-sm p-4 min-h-0",
+                    mobileView === 'calendar' ? "hidden xl:flex" : "flex"
                 )}>
                     <div className="flex items-center justify-between shrink-0 mb-1 lg:mb-2 lg:pt-2">
                         <h3 className="text-lg font-bold flex items-center gap-2">
