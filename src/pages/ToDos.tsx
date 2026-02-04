@@ -20,6 +20,8 @@ import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
 import googleIcon from "@/assets/google.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNotifications } from "@/features/notifications/NotificationContext";
+import { VoiceTaskModal } from "@/components/VoiceTaskModal";
+import { Mic } from "lucide-react";
 
 
 
@@ -60,6 +62,25 @@ export default function ToDos() {
             setDate(format(selectedDate, "yyyy-MM-dd"));
         }
     }, [selectedDate, editingId]);
+
+    // Voice Modal
+    const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+
+    const handleVoiceTasks = async (tasks: { title: string; due_date?: string }[]) => {
+        for (const task of tasks) {
+            await addToDo({
+                title: task.title,
+                description: "Created via Voice",
+                due_date: task.due_date || (selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined),
+                recurrence: 'none',
+                urgency: 'normal',
+                notify: false,
+                notify_before: '10_min',
+                tags: ['voice']
+            });
+        }
+        toast.success(`Added ${tasks.length} tasks from voice`);
+    };
 
     // Navigation Handlers
     const handlePrev = () => {
@@ -664,6 +685,17 @@ export default function ToDos() {
                             <CalendarIcon className="h-5 w-5 text-primary" />
                             {isSameDay(selectedDate, new Date()) ? `Today, ${format(selectedDate, "MMM do")}` : format(selectedDate, "MMM do")}
                         </h3>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                onClick={() => setVoiceModalOpen(true)}
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-100"
+                                title="Voice Input"
+                            >
+                                <Mic className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
