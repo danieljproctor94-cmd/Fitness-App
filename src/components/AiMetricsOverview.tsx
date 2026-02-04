@@ -53,7 +53,8 @@ export function AiMetricsOverview() {
     }
 
     return (
-        <Card className="overflow-hidden border-border/50 shadow-sm bg-gradient-to-br from-card to-muted/20">
+        <Card className="relative overflow-hidden border-border/50 shadow-sm">
+            {/* Gradient Strip - hidden on mobile if requested, or just kept contained */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-indigo-500 to-purple-500" />
             <CardHeader className="bg-muted/10 pb-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
