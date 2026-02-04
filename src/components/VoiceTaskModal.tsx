@@ -138,7 +138,9 @@ export function VoiceTaskModal({ isOpen, onClose, onAddTasks }: VoiceTaskModalPr
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Voice to Task</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                        Voice to Task
+                    </DialogTitle>
                     <DialogDescription>
                         Speak your plans and AI will create a task list.
                     </DialogDescription>

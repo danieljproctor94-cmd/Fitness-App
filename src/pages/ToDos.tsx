@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useData, ToDo } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
@@ -21,7 +21,7 @@ import googleIcon from "@/assets/google.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNotifications } from "@/features/notifications/NotificationContext";
 import { VoiceTaskModal } from "@/components/VoiceTaskModal";
-import { Mic } from "lucide-react";
+
 
 
 
@@ -688,12 +688,13 @@ export default function ToDos() {
                         <div className="flex items-center gap-2">
                             <Button
                                 onClick={() => setVoiceModalOpen(true)}
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-100"
-                                title="Voice Input"
+                                size="sm"
+                                className="h-8 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-md transition-all hover:scale-105"
                             >
-                                <Mic className="h-4 w-4" />
+                                <div className="flex items-center gap-1.5">
+                                    <Sparkles className="h-3.5 w-3.5 text-indigo-200" />
+                                    <span className="text-xs font-semibold">Voice AI</span>
+                                </div>
                             </Button>
                         </div>
                     </div>
@@ -1103,6 +1104,11 @@ export default function ToDos() {
                     />
                 </div>
             </div>
-        </div >
+            <VoiceTaskModal
+                isOpen={voiceModalOpen}
+                onClose={() => setVoiceModalOpen(false)}
+                onAddTasks={handleVoiceTasks}
+            />
+        </div>
     );
 }
