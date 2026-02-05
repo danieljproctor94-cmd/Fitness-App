@@ -76,7 +76,8 @@ export default function ToDos() {
                 urgency: 'normal',
                 notify: false,
                 notify_before: '10_min',
-                tags: ['voice']
+                completed: false
+
             });
         }
         toast.success(`Added ${tasks.length} tasks from voice`);

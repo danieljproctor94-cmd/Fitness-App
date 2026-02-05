@@ -8,8 +8,8 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mic, Square, Sparkles, Plus, Check } from 'lucide-react';
-import { format, addDays, nextMonday, nextSunday } from 'date-fns';
+import { Mic, Square, Sparkles, Plus } from 'lucide-react';
+import { format, addDays, nextMonday } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
@@ -78,7 +78,7 @@ export function VoiceTaskModal({ isOpen, onClose, onAddTasks }: VoiceTaskModalPr
                 }
             }
             // Simple accumulation
-            setTranscript(prev => {
+            setTranscript(() => {
                 // Heuristic: If we have a finalized chunk, append it. 
                 // However, continuous mode replaces results. 
                 // To keep it simple, we'll just track the latest result set for now 
