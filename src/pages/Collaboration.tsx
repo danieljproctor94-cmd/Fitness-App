@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 
 export default function Collaboration() {
-    const { collaborations, sendFriendRequest, acceptFriendRequest, resendFriendRequest, removeFriend, userProfile } = useData();
+    const { collaborations, sendFriendRequest, acceptFriendRequest, resendFriendRequest, removeFriend } = useData();
     const { user } = useAuth();
     const [inviteEmail, setInviteEmail] = useState("");
     const [isInviting, setIsInviting] = useState(false);

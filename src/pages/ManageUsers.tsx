@@ -120,18 +120,6 @@ export default function ManageUsers() {
         return name[0].toUpperCase();
     };
 
-    const handleInvite = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Since we can't create users client-side without logging out, we'll simulate an invite
-        // real implementation would use a server function or mailto
-        const subject = encodeURIComponent("Join Fitness App");
-        const body = encodeURIComponent(`You've been invited to join the Fitness App! Sign up here: ${window.location.origin}`);
-        window.open(`mailto:${inviteEmail}?subject=${subject}&body=${body}`);
-        toast.success(`Invite prepared for ${inviteEmail}`);
-        setInviteOpen(false);
-        setInviteEmail("");
-    };
-
     const handleSendNotification = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSending(true);
