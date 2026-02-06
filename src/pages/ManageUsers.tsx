@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { useData, UserProfile } from "@/features/data/DataContext";
 import { useAuth } from "@/features/auth/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,6 +30,16 @@ export default function ManageUsers() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [inviteOpen, setInviteOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
+    const [manualName, setManualName] = useState("");
+    const [manualPassword, setManualPassword] = useState("");
+    const [manualTier, setManualTier] = useState("free_user");
+
+    // Temp client for manual creation (avoids logging out admin)
+    const tempClient = createClient(
+        'https://mhwxdqcnlibqxeiyyuxl.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1od3hkcWNubGlicXhlaXl5dXhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MTMyOTYsImV4cCI6MjA4NDk4OTI5Nn0.lRUMvDKer6xGl4h5af9E2rlKzxc1FhmNbH9osihx-14',
+        { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+    );
 
     // Notification State
     const [notifyOpen, setNotifyOpen] = useState(false);
@@ -156,6 +167,58 @@ export default function ManageUsers() {
         }
     };
 
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSending(true);
+
+        try {
+            // 1. Sign Up User (using temp client)
+            const { data, error } = await tempClient.auth.signUp({
+                email: inviteEmail,
+                password: manualPassword,
+                options: {
+                    data: {
+                        full_name: manualName
+                        // We set metadata, but will also update Admin profile manually to be sure
+                    }
+                }
+            });
+
+            if (error) throw error;
+
+            if (data.user) {
+                // 2. Update Profile privileges (using Main Admin Client)
+                // Wait small delay to ensure trigger might have created the row (optional, upsert is safer)
+                await new Promise(r => setTimeout(r, 1000));
+
+                const { error: updateError } = await supabase.from('profiles').upsert({
+                    id: data.user.id,
+                    full_name: manualName,
+                    email: inviteEmail,
+                    subscription_tier: manualTier
+                });
+
+                if (updateError) {
+                    console.error("Profile update error:", updateError);
+                    toast.warning("User created, but failed to set tier. Please edit manually.");
+                } else {
+                    toast.success("User created successfully!");
+                    setInviteOpen(false);
+                    setRefreshTrigger(prev => prev + 1);
+                    // Reset form
+                    setInviteEmail("");
+                    setManualName("");
+                    setManualPassword("");
+                    setManualTier("free_user");
+                }
+            }
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
     if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
     return (
@@ -178,12 +241,24 @@ export default function ManageUsers() {
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add New User</DialogTitle>
+                                <DialogTitle>Create New User</DialogTitle>
                                 <DialogDescription>
-                                    Invite a new user to the platform via email.
+                                    Manually create a user account.
                                 </DialogDescription>
                             </DialogHeader>
-                            <form onSubmit={handleInvite} className="space-y-4 py-4">
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                handleCreateUser(e);
+                            }} className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Full Name</label>
+                                    <Input
+                                        placeholder="John Doe"
+                                        required
+                                        value={manualName}
+                                        onChange={(e) => setManualName(e.target.value)}
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Email Address</label>
                                     <Input
@@ -194,11 +269,35 @@ export default function ManageUsers() {
                                         onChange={(e) => setInviteEmail(e.target.value)}
                                     />
                                 </div>
-                                <div className="bg-muted p-3 rounded-md text-xs text-muted-foreground">
-                                    Note: This will open your default email client with a pre-filled invitation. The user must complete the sign-up process themselves.
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Password</label>
+                                    <Input
+                                        type="password"
+                                        placeholder="••••••••"
+                                        required
+                                        minLength={6}
+                                        value={manualPassword}
+                                        onChange={(e) => setManualPassword(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Package</label>
+                                    <Select value={manualTier} onValueChange={setManualTier}>
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="free_user">Free User</SelectItem>
+                                            <SelectItem value="pro">Pro</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <DialogFooter>
-                                    <Button type="submit">Send Invitation</Button>
+                                    <Button type="submit" disabled={isSending}>
+                                        {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        {isSending ? "Creating..." : "Create User"}
+                                    </Button>
                                 </DialogFooter>
                             </form>
                         </DialogContent>

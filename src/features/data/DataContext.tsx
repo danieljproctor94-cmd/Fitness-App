@@ -112,6 +112,8 @@ interface DataContextType {
     updateAppFavicon: (url: string) => Promise<void>;
     sendFriendRequest: (email: string) => Promise<void>;
     acceptFriendRequest: (id: string) => Promise<void>;
+    resendFriendRequest: (id: string) => Promise<void>;
+    removeFriend: (id: string) => Promise<void>;
     refreshCollaborations: () => Promise<void>;
     isLoading: boolean;
 }
@@ -165,6 +167,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
 
         if (error) {
+            console.error("Error fetching collaborations:", error);
             return;
         }
 
@@ -413,7 +416,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setTodos(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-        toast.success("Task updated!");
     };
 
     const deleteToDo = async (id: string) => {
@@ -448,7 +450,35 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 toast.error("Failed to share task: " + error.message);
             }
         } else {
-            toast.success("Task shared successfully!");
+            // Success - Send Notification
+            // 1. Get the ToDo title for the notification text
+            const todo = todos.find(t => t.id === todoId);
+            const todoTitle = todo ? todo.title : 'a task';
+
+            // 2. Insert Notification
+            await supabase.from('notifications').insert({
+                user_id: userId, // The person receiving the share
+                type: 'share_todo',
+                title: 'New Shared Task',
+                message: `${user?.user_metadata?.full_name || 'A teammate'} shared a task with you: "${todoTitle}"`,
+                read: false,
+                data: { todo_id: todoId }
+            });
+
+            toast.success("Task shared!");
+
+            // Update local state to reflect the new collaborator instantly - Refetch or update optimistic
+            // For simplicity, we might just let the subscription or partial update handle it, 
+            // but strictly we should update the todos state to add the shared_with user.
+            setTodos(prev => prev.map(t => {
+                if (t.id === todoId) {
+                    const currentShared = t.shared_with || [];
+                    if (!currentShared.includes(userId)) {
+                        return { ...t, shared_with: [...currentShared, userId] };
+                    }
+                }
+                return t;
+            }));
         }
     };
 
@@ -599,8 +629,41 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (error) {
-            toast.error(error.message);
+            // @ts-ignore
+            if (error.code === '23505') {
+                // Check the ACTUAL status of the existing row to give better feedback
+                const { data: existing } = await supabase
+                    .from('collaborations')
+                    .select('status')
+                    .match({ requester_id: user.id, receiver_id: foundUsers.id })
+                    .maybeSingle();
+
+                if (existing) {
+                    if (existing.status === 'accepted') {
+                        toast.info("This user is already in your team!");
+                    } else if (existing.status === 'pending') {
+                        toast.warning("Invitation is pending. If you don't see it below, try refreshing.");
+                        // Force refresh just in case
+                        fetchCollaborations();
+                    } else {
+                        toast.info(`Invitation status is currently: ${existing.status}`);
+                    }
+                } else {
+                    toast.error("Invitation conflict detected, but could not verify status. Please refresh.");
+                }
+            } else {
+                toast.error(error.message);
+            }
         } else {
+            // Send Notification
+            // We do this optimistically (don't fail the whole request if notification fails)
+            await supabase.from('notifications').insert({
+                user_id: foundUsers.id,
+                title: "New Team Invitation",
+                message: `${userProfile.displayName || "Someone"} invited you to join their team!`,
+                type: 'info'
+            });
+
             toast.success("Friend request sent!");
             fetchCollaborations();
         }
@@ -613,6 +676,46 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
             toast.success("Friend request accepted!");
             fetchCollaborations();
+        }
+    };
+
+    const resendFriendRequest = async (id: string) => {
+        // 1. Get the collaboration details to know who to email/notify
+        const { data: collab, error: fetchError } = await supabase
+            .from('collaborations')
+            .select('*, receiver:profiles!receiver_id(*)')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !collab) {
+            toast.error("Could not find invitation.");
+            return;
+        }
+
+        // 2. Send Notification
+        const { error: notifyError } = await supabase.from('notifications').insert({
+            user_id: collab.receiver_id,
+            title: "Team Invitation Reminder",
+            message: `${userProfile.displayName || "Someone"} is inviting you to join their team!`,
+            type: 'info'
+        });
+
+        if (notifyError) {
+            toast.error("Failed to resend notification: " + notifyError.message);
+        } else {
+            toast.success(`Invitation resent to ${collab.receiver?.full_name || "user"}!`);
+        }
+    };
+
+    const removeFriend = async (id: string) => {
+        const { error } = await supabase.from('collaborations').delete().eq('id', id);
+
+        if (error) {
+            console.error("Error removing friend:", error);
+            toast.error("Failed to remove teammate.");
+        } else {
+            toast.success("Teammate removed.");
+            setCollaborations(prev => prev.filter(c => c.id !== id));
         }
     };
 
@@ -642,6 +745,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateAppFavicon,
         sendFriendRequest,
         acceptFriendRequest,
+        resendFriendRequest,
+        removeFriend,
         refreshCollaborations: fetchCollaborations,
         isLoading
     }), [

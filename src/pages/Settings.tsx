@@ -187,6 +187,43 @@ export default function Settings() {
                                 Add a link to your community or social page.
                             </p>
                         </div>
+
+                        {/* AI Config */}
+                        <div className="space-y-4 pt-4 border-t border-indigo-500/20">
+                            <div className="flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-pink-500" />
+                                <Label className="text-base font-semibold text-foreground">AI Configuration</Label>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>OpenAI API Key</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        type="password"
+                                        placeholder="sk-..."
+                                        defaultValue={localStorage.getItem('openai_api_key') || ''}
+                                        onChange={(e) => localStorage.setItem('openai_api_key', e.target.value)}
+                                        className="font-mono text-xs"
+                                    />
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Required for advanced voice analysis. Stored locally on your device.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Voice AI Prompt (System Instructions)</Label>
+                                <textarea
+                                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder="You are a helpful assistant..."
+                                    defaultValue={localStorage.getItem('voice_ai_prompt') || ''}
+                                    onChange={(e) => localStorage.setItem('voice_ai_prompt', e.target.value)}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Customize how the AI interprets your voice commands.
+                                </p>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
             )}

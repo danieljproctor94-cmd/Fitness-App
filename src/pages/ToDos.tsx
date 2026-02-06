@@ -66,15 +66,16 @@ export default function ToDos() {
     // Voice Modal
     const [voiceModalOpen, setVoiceModalOpen] = useState(false);
 
-    const handleVoiceTasks = async (tasks: { title: string; due_date?: string }[]) => {
+    const handleVoiceTasks = async (tasks: { title: string; due_date?: string; due_time?: string }[]) => {
         for (const task of tasks) {
             await addToDo({
                 title: task.title,
                 description: "Created via Voice",
                 due_date: task.due_date || (selectedDate ? format(selectedDate, 'yyyy-MM-dd') : undefined),
+                due_time: task.due_time,
                 recurrence: 'none',
                 urgency: 'normal',
-                notify: false,
+                notify: !!task.due_time, // Auto-enable notify if time is set
                 notify_before: '10_min',
                 completed: false
 
@@ -690,12 +691,13 @@ export default function ToDos() {
                             <Button
                                 onClick={() => setVoiceModalOpen(true)}
                                 size="sm"
-                                className="h-8 gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-md transition-all hover:scale-105"
+                                className="relative overflow-hidden h-8 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-md transition-all hover:scale-105 px-4"
                             >
                                 <div className="flex items-center gap-1.5">
                                     <Sparkles className="h-3.5 w-3.5 text-indigo-200" />
                                     <span className="text-xs font-semibold">Voice AI</span>
                                 </div>
+                                <span className="absolute top-0 right-0 bg-white/20 text-[6px] font-extrabold px-1.5 py-[2px] rounded-bl-md text-indigo-100 leading-none tracking-wider">BETA</span>
                             </Button>
                         </div>
                     </div>
@@ -775,6 +777,12 @@ export default function ToDos() {
                                                         <div className="flex items-center mt-2">
                                                             {todo.shared_with && todo.shared_with.length > 0 ? (
                                                                 <div className="flex -space-x-2 overflow-hidden">
+                                                                    {/* User Avatar */}
+                                                                    <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-background">
+                                                                        <AvatarImage src={userProfile?.photoURL} />
+                                                                        <AvatarFallback className="text-[9px]">{userProfile?.displayName?.[0] || 'U'}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    {/* Collaborator Avatars */}
                                                                     {todo.shared_with.map((userId) => {
                                                                         const collaborator = acceptedFriends.find(c => (c.profile?.id === userId || c.receiver_id === userId || c.requester_id === userId));
                                                                         const profile = collaborator?.profile || (collaborations.find(c => c.receiver_id === userId || c.requester_id === userId)?.profile);
@@ -789,15 +797,6 @@ export default function ToDos() {
                                                                             </Avatar>
                                                                         );
                                                                     })}
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setSharingId(todo.id);
-                                                                        }}
-                                                                        className="flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground hover:bg-muted/80 text-[10px] z-10"
-                                                                    >
-                                                                        <Plus className="h-3 w-3" />
-                                                                    </button>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex items-center -space-x-1.5">
@@ -951,6 +950,12 @@ export default function ToDos() {
                                                     <div className="flex items-center mt-2">
                                                         {todo.shared_with && todo.shared_with.length > 0 ? (
                                                             <div className="flex -space-x-2 overflow-hidden">
+                                                                {/* User Avatar */}
+                                                                <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-background">
+                                                                    <AvatarImage src={userProfile?.photoURL} />
+                                                                    <AvatarFallback className="text-[9px]">{userProfile?.displayName?.[0] || 'U'}</AvatarFallback>
+                                                                </Avatar>
+                                                                {/* Collaborator Avatars */}
                                                                 {todo.shared_with.map((userId) => {
                                                                     const collaborator = acceptedFriends.find(c => (c.profile?.id === userId || c.receiver_id === userId || c.requester_id === userId));
                                                                     const profile = collaborator?.profile || (collaborations.find(c => c.receiver_id === userId || c.requester_id === userId)?.profile);
@@ -964,15 +969,6 @@ export default function ToDos() {
                                                                         </Avatar>
                                                                     );
                                                                 })}
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setSharingId(todo.id);
-                                                                    }}
-                                                                    className="flex h-6 w-6 items-center justify-center rounded-full ring-2 ring-background bg-muted text-muted-foreground hover:bg-muted/80 text-[10px] z-10"
-                                                                >
-                                                                    <Plus className="h-3 w-3" />
-                                                                </button>
                                                             </div>
                                                         ) : (
                                                             <div className="flex items-center -space-x-1.5">
@@ -1110,6 +1106,6 @@ export default function ToDos() {
                 onClose={() => setVoiceModalOpen(false)}
                 onAddTasks={handleVoiceTasks}
             />
-        </div>
+        </div >
     );
 }

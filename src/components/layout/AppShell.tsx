@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus, Globe, User, CreditCard } from "lucide-react";
+import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus, Globe, User, CreditCard, BadgeDollarSign, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -22,13 +22,19 @@ export function AppShell() {
     // Force Re-render match
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { userProfile, mindsetLogs } = useData();
+    const { userProfile, mindsetLogs, collaborations } = useData();
     const { logout, user } = useAuth();
     const { setTheme } = useTheme();
     const [installModalOpen, setInstallModalOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const isMindsetLoggedToday = mindsetLogs.some(log => isSameDay(parseISO(log.date), new Date()));
     const [expandedItems, setExpandedItems] = useState<string[]>(["/workouts"]); // Default expand workous
+
+    // Get accepted friends for sidebar
+    const acceptedFriends = collaborations.filter(c => c.status === 'accepted');
+    // Show max 3 friends + user
+    const displayFriends = acceptedFriends.slice(0, 3);
+    const remainingFriends = acceptedFriends.length - displayFriends.length;
 
     const toggleExpand = (href: string, e: React.MouseEvent) => {
         e.preventDefault();
@@ -259,15 +265,32 @@ export function AppShell() {
                                                             {getInitials(userProfile.displayName)}
                                                         </AvatarFallback>
                                                     </Avatar>
-                                                    <button className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-background bg-muted hover:bg-muted/80 transition-colors z-10 ring-1 ring-border/10">
-                                                        <Plus className="h-4 w-4 text-muted-foreground" />
-                                                    </button>
+
+                                                    {/* Teammate Avatars */}
+                                                    {displayFriends.map((friend) => (
+                                                        <Avatar key={friend.id} className="h-8 w-8 border-2 border-background ring-1 ring-border/10">
+                                                            <AvatarImage src={friend.profile?.photoURL} className="object-cover" />
+                                                            <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
+                                                                {getInitials(friend.profile?.displayName || 'T')}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                    ))}
+
+                                                    {remainingFriends > 0 ? (
+                                                        <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-background bg-muted text-[10px] font-medium text-muted-foreground ring-1 ring-border/10">
+                                                            +{remainingFriends}
+                                                        </div>
+                                                    ) : acceptedFriends.length === 0 ? (
+                                                        <Link to="/collaboration" className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-background bg-muted hover:bg-muted/80 transition-colors z-10 ring-1 ring-border/10">
+                                                            <Plus className="h-4 w-4 text-muted-foreground" />
+                                                        </Link>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs font-semibold text-foreground/80">My Team</span>
                                                 <Link to="/collaboration" className="text-xs text-primary hover:text-primary/80 font-medium bg-primary/10 px-2 py-0.5 rounded-full transition-colors">
-                                                    Invite
+                                                    {acceptedFriends.length === 0 ? "Invite" : "Manage"}
                                                 </Link>
                                             </div>
                                         </div>
@@ -335,7 +358,7 @@ export function AppShell() {
                     })}
                 </nav>
 
-                <div className={cn("px-4 py-2 mt-auto mb-2", isCollapsed ? "flex justify-center px-0" : "")}>
+                <div className={cn("px-4 py-2 mt-auto mb-2", isCollapsed ? "flex flex-col items-center px-0" : "")}>
                     {!isCollapsed && (
                         <h4 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             Integrations
@@ -344,7 +367,7 @@ export function AppShell() {
                     <Button
                         variant="ghost"
                         className={cn(
-                            "w-full px-3 font-normal hover:bg-orange-500/10 hover:text-orange-600 transition-colors",
+                            "w-full px-3 font-normal hover:bg-orange-500/10 hover:text-orange-600 transition-colors relative overflow-hidden",
                             isCollapsed ? "justify-center px-0 w-10 h-10 rounded-full" : "justify-start gap-3"
                         )}
                         onClick={() => toast.info("Strava integration coming soon!")}
@@ -356,9 +379,53 @@ export function AppShell() {
                             <>
                                 <img src="/strava.png" alt="Strava" className="h-5 w-5 object-contain" />
                                 Sync with Strava
+                                <span className="absolute top-0 right-0 bg-orange-500/20 text-[6px] font-extrabold px-1.5 py-[2px] rounded-bl-md text-orange-700 leading-none tracking-wider">BETA</span>
                             </>
                         )}
                     </Button>
+
+                    <div className="my-2 border-t border-border/50" />
+
+                    <Link to="/settings">
+                        <Button
+                            variant="ghost"
+                            className={cn(
+                                "w-full font-normal text-muted-foreground hover:text-foreground transition-colors",
+                                isCollapsed ? "justify-center px-0 w-10 h-10 rounded-full mb-1" : "justify-start gap-3 px-3 mb-1"
+                            )}
+                            title={isCollapsed ? "Settings" : undefined}
+                        >
+                            <SettingsIcon className="h-5 w-5" />
+                            {!isCollapsed && <span>Settings</span>}
+                        </Button>
+                    </Link>
+
+                    <Button
+                        variant="ghost"
+                        onClick={() => toast.info("Referral program coming soon!")}
+                        className={cn(
+                            "w-full font-normal text-muted-foreground hover:text-foreground transition-colors",
+                            isCollapsed ? "justify-center px-0 w-10 h-10 rounded-full mb-1" : "justify-start gap-3 px-3 mb-1"
+                        )}
+                        title={isCollapsed ? "Earn 40% Referral" : undefined}
+                    >
+                        <BadgeDollarSign className="h-5 w-5" />
+                        {!isCollapsed && <span>Earn 40% Referral</span>}
+                    </Button>
+
+                    <Link to="/support">
+                        <Button
+                            variant="ghost"
+                            className={cn(
+                                "w-full font-normal text-muted-foreground hover:text-foreground transition-colors",
+                                isCollapsed ? "justify-center px-0 w-10 h-10 rounded-full" : "justify-start gap-3 px-3"
+                            )}
+                            title={isCollapsed ? "Support & Feedback" : undefined}
+                        >
+                            <MessageSquare className="h-5 w-5" />
+                            {!isCollapsed && <span>Support & Feedback</span>}
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className={cn("border-t shrink-0 flex flex-col gap-2", isCollapsed ? "p-2 items-center" : "p-4")}>
