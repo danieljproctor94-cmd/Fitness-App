@@ -23,6 +23,10 @@ import TaskAnalytics from "@/pages/TaskAnalytics";
 import Collaboration from "@/pages/Collaboration";
 import { ReloadPrompt } from "@/components/ReloadPrompt";
 
+// Public Pages
+import { PublicLayout } from "@/components/public/PublicLayout";
+import Landing from "@/pages/public/Landing";
+
 import { Component, ErrorInfo, ReactNode } from "react";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
@@ -64,16 +68,23 @@ function App() {
                         <NotificationProvider>
                             <BrowserRouter>
                                 <Routes>
+                                    {/* Public Routes */}
+                                    <Route element={<PublicLayout />}>
+                                        <Route path="/" element={<Landing />} />
+                                    </Route>
+
+                                    {/* Auth Routes */}
                                     <Route path="/login" element={<Login />} />
                                     <Route path="/register" element={<Register />} />
 
+                                    {/* Protected Routes */}
                                     <Route element={<ProtectedLayout />}>
                                         <Route element={<AppShell />}>
-                                            <Route path="/" element={<Dashboard />} />
+                                            <Route path="/dashboard" element={<Dashboard />} />
                                             <Route path="/workouts" element={<Workouts />} />
                                             <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                            <Route path="/todos" element={<ToDos />} />
-                                            <Route path="/todos/analytics" element={<TaskAnalytics />} />
+                                            <Route path="/planner" element={<ToDos />} />
+                                            <Route path="/planner/analytics" element={<TaskAnalytics />} />
                                             <Route path="/measurements" element={<Measurements />} />
                                             <Route path="/leaderboard" element={<Leaderboard />} />
                                             <Route path="/account" element={<Account />} />

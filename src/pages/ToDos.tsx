@@ -104,13 +104,13 @@ export default function ToDos() {
 
         const commonData = {
             title,
-            description,
-            due_date: date || undefined,
-            due_time: time || undefined,
+            description: description || null,
+            due_date: date || null,
+            due_time: time || null,
             recurrence,
             urgency,
             notify,
-            notify_before: notify ? notifyBefore : undefined,
+            notify_before: notify ? notifyBefore : null,
         };
 
         if (editingId) {
@@ -357,7 +357,7 @@ export default function ToDos() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
                     {/* Analytics Pills */}
                     <div className="flex items-center gap-2 mr-2">
-                        <Link to="/todos/analytics">
+                        <Link to="/planner/analytics">
                             <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-muted-foreground hover:text-white transition-colors">
                                 <BarChart3 className="h-4 w-4" />
                                 <span className="text-xs font-medium">Analytics</span>

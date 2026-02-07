@@ -1,5 +1,5 @@
 ﻿import { Link, Outlet, useLocation } from "react-router-dom";
-import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, Activity, ChevronDown, ChevronRight, Plus, Globe, User, CreditCard, BadgeDollarSign, MessageSquare } from "lucide-react";
+import { Menu, Settings as SettingsIcon, LogOut, Sun, Moon, ChevronsUpDown, LifeBuoy, Laptop, Shield, PanelLeft, PanelLeftClose, ChevronDown, ChevronRight, Plus, Globe, User, CreditCard, BadgeDollarSign, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -188,7 +188,7 @@ export function AppShell() {
                     <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="-ml-2">
                         <Menu className="h-6 w-6" />
                     </Button>
-                    <Link to="/">
+                    <Link to="/dashboard">
                         {logoUrl ? (
                             <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
                         ) : (
@@ -359,32 +359,7 @@ export function AppShell() {
                 </nav>
 
                 <div className={cn("px-4 py-2 mt-auto mb-2", isCollapsed ? "flex flex-col items-center px-0" : "")}>
-                    {!isCollapsed && (
-                        <h4 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Integrations
-                        </h4>
-                    )}
-                    <Button
-                        variant="ghost"
-                        className={cn(
-                            "w-full px-3 font-normal hover:bg-orange-500/10 hover:text-orange-600 transition-colors relative overflow-hidden",
-                            isCollapsed ? "justify-center px-0 w-10 h-10 rounded-full" : "justify-start gap-3"
-                        )}
-                        onClick={() => toast.info("Strava integration coming soon!")}
-                        title={isCollapsed ? "Sync with Strava" : undefined}
-                    >
-                        {isCollapsed ? (
-                            <Activity className="h-5 w-5 text-orange-600" />
-                        ) : (
-                            <>
-                                <img src="/strava.png" alt="Strava" className="h-5 w-5 object-contain" />
-                                Sync with Strava
-                                <span className="absolute top-0 right-0 bg-orange-500/20 text-[6px] font-extrabold px-1.5 py-[2px] rounded-bl-md text-orange-700 leading-none tracking-wider">BETA</span>
-                            </>
-                        )}
-                    </Button>
 
-                    <div className="my-2 border-t border-border/50" />
 
                     <Link to="/settings">
                         <Button

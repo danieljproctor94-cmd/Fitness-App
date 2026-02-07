@@ -66,13 +66,13 @@ export interface MindsetLog {
 export interface ToDo {
     id: string;
     title: string;
-    description?: string;
-    due_date?: string;
-    due_time?: string;
+    description?: string | null;
+    due_date?: string | null;
+    due_time?: string | null;
     completed: boolean;
     recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
     notify: boolean;
-    notify_before?: '10_min' | '1_hour' | '1_day';
+    notify_before?: '10_min' | '1_hour' | '1_day' | null;
     urgency?: 'low' | 'normal' | 'high' | 'critical';
     created_at?: string;
     shared_with?: string[];
