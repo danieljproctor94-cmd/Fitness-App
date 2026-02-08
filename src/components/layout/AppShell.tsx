@@ -191,7 +191,7 @@ export function AppShell() {
                     </Button>
                     <Link to="/dashboard">
                         {logoUrl ? (
-                            <img src={logoUrl} alt="Logo" className="h-8 object-contain" />
+                            <img src={logoUrl} alt="Logo" className="h-8 object-contain" fetchPriority="high" />
                         ) : (
                             // Show nothing or a spacer while loading to prevent default flash
                             <div className="h-8 w-8"></div>
@@ -228,7 +228,7 @@ export function AppShell() {
                     {!isCollapsed && (
                         <Link to="/">
                             {logoUrl ? (
-                                <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" />
+                                <img src={logoUrl} alt="Logo" className="h-8 object-contain object-left transition-all" fetchPriority="high" />
                             ) : (
                                 <div className="h-8 w-8"></div>
                             )}
