@@ -8,7 +8,9 @@ import { cn } from "@/lib/utils";
 export function WorkTimer({ compact = false }: { compact?: boolean }) {
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
-    const [permission, setPermission] = useState(Notification.permission);
+    const [permission, setPermission] = useState(() =>
+        'Notification' in window ? Notification.permission : 'default'
+    );
 
     useEffect(() => {
         let interval: NodeJS.Timeout | null = null;
