@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/AuthContext";
+import { useData } from "@/features/data/DataContext";
 import { supabase } from "@/lib/supabase";
 import { getAppUrl } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
+    const { appLogo } = useData();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -50,7 +52,12 @@ export default function Login() {
     return (
         <div className="flex h-screen items-center justify-center bg-muted/40 px-4">
             <Card className="w-full max-w-md">
-                <CardHeader>
+                <CardHeader className="text-center">
+                    {appLogo && (
+                        <div className="flex justify-center mb-4">
+                            <img src={appLogo} alt="App Logo" className="h-12 w-auto object-contain" />
+                        </div>
+                    )}
                     <CardTitle className="text-2xl">Welcome back</CardTitle>
                     <CardDescription>
                         Enter your credentials to access your account.

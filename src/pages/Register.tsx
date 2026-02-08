@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { useData } from "@/features/data/DataContext";
 import { getAppUrl } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ export default function Register() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { appLogo } = useData();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,7 +87,12 @@ export default function Register() {
     return (
         <div className="flex h-screen items-center justify-center bg-muted/40 px-4">
             <Card className="w-full max-w-md">
-                <CardHeader>
+                <CardHeader className="text-center">
+                    {appLogo && (
+                        <div className="flex justify-center mb-4">
+                            <img src={appLogo} alt="App Logo" className="h-12 w-auto object-contain" />
+                        </div>
+                    )}
                     <CardTitle className="text-2xl">Create an account</CardTitle>
                     <CardDescription>
                         Enter your details to create your account.
