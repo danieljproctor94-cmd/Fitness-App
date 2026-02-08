@@ -180,8 +180,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [todoCompletions, setTodoCompletions] = useState<ToDoCompletion[]>([]);
     const [todoExceptions, setTodoExceptions] = useState<ToDoException[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '/logo_horizontal.png'); // Default from cache or local asset
-    const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '/logo.png');
+    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || ''); // Default empty
+    const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '');
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
     const [isLoading, setIsLoading] = useState(true);
     const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
