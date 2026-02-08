@@ -424,7 +424,7 @@ export default function Dashboard() {
                                 {format(currentDate, "EEEE, MMM do")}
                             </CardDescription>
                         </div>
-                        <Link to="/todos">
+                        <Link to="/planner">
                             <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
                         </Link>
                     </CardHeader>
@@ -496,7 +496,7 @@ export default function Dashboard() {
                                             <p className="text-xs">No pending tasks for today.</p>
                                         </div>
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link to="/todos">Plan Ahead</Link>
+                                            <Link to="/planner">Plan Ahead</Link>
                                         </Button>
                                     </div>
                                 );
@@ -536,7 +536,7 @@ export default function Dashboard() {
                                                     )}
                                                 </div>
                                             </div>
-                                            <Link to="/todos">
+                                            <Link to="/planner">
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-emerald-500" />
                                                 </Button>
