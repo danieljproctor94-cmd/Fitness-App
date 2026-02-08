@@ -8,6 +8,7 @@ import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight } from "lucide-r
 import { useData } from "@/features/data/DataContext";
 import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function Dashboard() {
     const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions } = useData();
@@ -215,6 +216,20 @@ export default function Dashboard() {
 
         weightChangeLabel = `${sign}${diff.toFixed(1)} kg`;
     }
+
+    const handleToggleComplete = async (todo: any) => {
+        // Optimistic update for UI responsiveness
+        const isRecurring = todo.recurrence !== 'none';
+        const dateStr = format(new Date(), 'yyyy-MM-dd');
+
+        if (isRecurring) {
+            await useData().toggleRecurringCompletion(todo.id, dateStr, true);
+        } else {
+            await useData().updateToDo(todo.id, { completed: true });
+        }
+
+        toast.success("Task completed!");
+    };
 
     return (
         <div className="p-6 space-y-8">
@@ -545,11 +560,15 @@ export default function Dashboard() {
                                                     )}
                                                 </div>
                                             </div>
-                                            <Link to="/planner">
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-emerald-500" />
-                                                </Button>
-                                            </Link>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => handleToggleComplete(task)}
+                                                title="Mark as completed"
+                                            >
+                                                <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-emerald-500" />
+                                            </Button>
                                         </div>
                                     ))}
                                 </div>

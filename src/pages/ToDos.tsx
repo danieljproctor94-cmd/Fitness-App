@@ -170,29 +170,45 @@ export default function ToDos() {
         setSelectedCollaborators([]);
     };
 
-    const toggleComplete = async (todo: ToDo) => {
+    const toggleComplete = async (todo: any, overrideDate?: Date) => {
         const isRecurring = todo.recurrence !== 'none';
+        // Use instance date if available (virtual item), otherwise override, otherwise selected
+        const targetDateStr = todo.recurrence_instance_date
+            ? todo.recurrence_instance_date
+            : format(overrideDate || selectedDate, 'yyyy-MM-dd');
 
         if (isRecurring) {
-            // Check if currently completed for this selected date
-            const dateStr = format(selectedDate, 'yyyy-MM-dd');
-            const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === todo.id && tc.completed_date === dateStr);
+            // Check if currently completed for this target date
+            const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === (todo.original_id || todo.id) && tc.completed_date === targetDateStr);
 
-            await toggleRecurringCompletion(todo.id, dateStr, !isCompletedForDate);
+            // Use original_id if it's a virtual instance, otherwise normal id
+            // If it's a completed virtual instance, isCompletedForDate should be true
+            // If we are "undoing", we want to set it to false.
+
+            // Logic flip: If it's in the completed list (filteredSideList), it IS completed.
+            // If we click it, we want to UN-complete it.
+
+            const idToToggle = todo.original_id || todo.id;
+
+            await toggleRecurringCompletion(idToToggle, targetDateStr, !isCompletedForDate);
 
             if (!isCompletedForDate) {
+                // Completing (restoring completion)
                 confetti({
                     particleCount: 50,
                     spread: 50,
                     origin: { y: 0.7 },
                     colors: ['#10B981', '#34D399']
                 });
-                toast.success("Task completed for today", {
+                toast.success("Task completed for " + targetDateStr, {
                     action: {
                         label: "Undo",
-                        onClick: () => toggleRecurringCompletion(todo.id, dateStr, false)
+                        onClick: () => toggleRecurringCompletion(idToToggle, targetDateStr, false)
                     }
                 });
+            } else {
+                // Un-completing
+                toast.success("Recurring instance restored (incomplete)");
             }
         } else {
             // Standard behavior for non-recurring
@@ -209,9 +225,11 @@ export default function ToDos() {
                 toast.success("Task completed", {
                     action: {
                         label: "Undo",
-                        onClick: () => toggleComplete(todo)
+                        onClick: () => updateToDo(todo.id, { completed: false })
                     }
                 });
+            } else {
+                toast.success("Task marked as incomplete");
             }
         }
     };
@@ -339,10 +357,47 @@ export default function ToDos() {
             });
         }
         if (listFilter === 'completed') {
-            return todos.filter(t => t.completed);
+            // 1. Master completed tasks
+            const masterCompleted = todos.filter(t => t.completed);
+
+            // 2. All completed recurring instances
+            // We need to create a "virtual" todo item for each completion instance
+            const recurringCompletedInstances: any[] = [];
+
+            todos.forEach(t => {
+                if (t.recurrence === 'none') return;
+                if (t.completed) return; // Already in master list
+
+                // Find all completions for this todo
+                const completions = todoCompletions.filter(tc => tc.todo_id === t.id);
+
+                completions.forEach(tc => {
+                    recurringCompletedInstances.push({
+                        ...t,
+                        // Create a specific ID for this instance so React keys don't clash
+                        id: `${t.id}_${tc.completed_date}`,
+                        original_id: t.id,
+                        // It is completed
+                        completed: true,
+                        // Use the completion date as the effective due date for display/sorting
+                        due_date: tc.completed_date,
+                        recurrence_instance_date: tc.completed_date
+                    });
+                });
+            });
+
+            const combined = [...masterCompleted, ...recurringCompletedInstances];
+
+            // Sort by date descending (newest first)
+            return combined.sort((a, b) => {
+                const dateA = a.due_date || a.created_at || '';
+                const dateB = b.due_date || b.created_at || '';
+                // Handle potential nulls safely, though typical ISO strings sort fine
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+            });
         }
         return [];
-    }, [todos, listFilter]);
+    }, [todos, listFilter, todoCompletions]);
 
     const visibleSideList = filteredSideList.slice(0, visibleUndatedCount);
 
@@ -999,7 +1054,9 @@ export default function ToDos() {
                         <div className="flex flex-col pr-2 space-y-3">
                             <div className="flex items-center justify-between">
                                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {listFilter === 'anytime' ? 'Anytime' : listFilter === 'recurring' ? 'Recurring' : 'Overdue'}
+                                    {listFilter === 'anytime' ? 'Anytime' :
+                                        listFilter === 'recurring' ? 'Recurring' :
+                                            listFilter === 'completed' ? 'Completed' : 'Overdue'}
                                 </h4>
                                 <Select value={listFilter} onValueChange={(v: any) => {
                                     setListFilter(v);
@@ -1037,7 +1094,7 @@ export default function ToDos() {
                                         <CardContent className="p-3">
                                             <div className="flex items-start gap-3">
                                                 <button
-                                                    onClick={() => toggleComplete(todo)}
+                                                    onClick={() => toggleComplete(todo, listFilter === 'completed' ? new Date() : undefined)}
                                                     className={cn(
                                                         "mt-1 h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-colors",
                                                         todo.completed ? "bg-muted text-muted-foreground border-transparent hover:bg-muted/80" : "border-muted-foreground/30 hover:border-emerald-500"
@@ -1141,7 +1198,7 @@ export default function ToDos() {
                                                 <div className="flex flex-col gap-1 transition-opacity">
                                                     {todo.completed && (
                                                         <button
-                                                            onClick={() => toggleComplete(todo)}
+                                                            onClick={() => toggleComplete(todo, listFilter === 'completed' ? new Date() : undefined)}
                                                             className="p-1 hover:bg-primary/10 hover:text-primary rounded text-xs text-muted-foreground transition-colors"
                                                             title="Undo completion"
                                                         >

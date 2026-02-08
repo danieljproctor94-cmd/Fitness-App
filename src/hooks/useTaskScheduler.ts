@@ -4,13 +4,14 @@ import { useNotifications } from '@/features/notifications/NotificationContext';
 import { parseISO, isSameDay, subMinutes, subHours, subDays, isAfter, set } from 'date-fns';
 
 export function useTaskScheduler() {
-    const { todos } = useData();
+    const { todos, userProfile } = useData();
     const { addNotification } = useNotifications();
 
     useEffect(() => {
         const checkTasks = () => {
             const now = new Date();
 
+            // 1. Check Todos
             todos.forEach(todo => {
                 // Skip if not notifying or already completed
                 if (!todo.notify || todo.completed) return;
@@ -100,6 +101,28 @@ export function useTaskScheduler() {
                     }
                 }
             });
+
+            // 2. Check Mindset Reminder
+            if (userProfile?.mindset_reminder_enabled) {
+                const [hours, minutes] = (userProfile.mindset_reminder_time || '20:00').split(':').map(Number);
+                const reminderTime = set(now, { hours, minutes, seconds: 0, milliseconds: 0 });
+
+                // If currently after the reminder time
+                if (isAfter(now, reminderTime)) {
+                    const dateKey = now.toISOString().split('T')[0];
+                    const storageKey = `fitness_app_mindset_notified_${dateKey}`;
+                    const alreadyNotified = localStorage.getItem(storageKey);
+
+                    if (!alreadyNotified) {
+                        addNotification({
+                            title: "Daily Mindset",
+                            message: "It's time to log your mindset for today!",
+                            type: 'info'
+                        });
+                        localStorage.setItem(storageKey, 'true');
+                    }
+                }
+            }
         };
 
         // Check immediately on mount, then interval
@@ -108,5 +131,5 @@ export function useTaskScheduler() {
         const interval = setInterval(checkTasks, 60 * 1000); // Check every minute
         return () => clearInterval(interval);
 
-    }, [todos, addNotification]);
+    }, [todos, addNotification, userProfile]);
 }

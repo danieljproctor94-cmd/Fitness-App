@@ -105,7 +105,9 @@ export default function Settings() {
                                             const { url: publicUrl, error } = await uploadAvatar(file, userProfile.id);
                                             if (publicUrl) {
                                                 setAdminLogoUrl(publicUrl);
-                                                toast.success("Logo uploaded!");
+                                                // Auto-save
+                                                await updateAppLogo(publicUrl);
+                                                toast.success("Logo updated successfully!");
                                             } else {
                                                 console.error("Upload failed:", error);
                                                 toast.error(`Upload failed: ${error?.message || "Unknown error"}`);
@@ -148,7 +150,9 @@ export default function Settings() {
                                             const { url: publicUrl, error } = await uploadAvatar(file, userProfile.id);
                                             if (publicUrl) {
                                                 setAdminFaviconUrl(publicUrl);
-                                                toast.success("Favicon uploaded!");
+                                                // Auto-save
+                                                await updateAppFavicon(publicUrl);
+                                                toast.success("Favicon updated successfully!");
                                             } else {
                                                 console.error("Upload failed:", error);
                                                 toast.error(`Upload failed: ${error?.message || "Unknown error"}`);
