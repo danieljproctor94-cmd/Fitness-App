@@ -28,6 +28,7 @@ import { FaviconUpdater } from "@/components/FaviconUpdater";
 // Public Pages
 import { PublicLayout } from "@/components/public/PublicLayout";
 import Landing from "@/pages/public/Landing";
+import { PublicRoute } from "@/features/auth/PublicRoute";
 
 import { Component, ErrorInfo, ReactNode } from "react";
 
@@ -83,8 +84,10 @@ function App() {
                                     appRoutes={
                                         <Routes>
                                             {/* Auth Routes */}
-                                            <Route path="/login" element={<Login />} />
-                                            <Route path="/register" element={<Register />} />
+                                            <Route element={<PublicRoute />}>
+                                                <Route path="/login" element={<Login />} />
+                                                <Route path="/register" element={<Register />} />
+                                            </Route>
 
                                             {/* Protected Routes */}
                                             <Route element={<ProtectedLayout />}>
