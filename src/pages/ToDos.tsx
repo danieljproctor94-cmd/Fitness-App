@@ -636,7 +636,7 @@ export default function ToDos() {
                                         </button>
                                     )}
                                 </div>
-                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 text-sm" />
+                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 text-base md:text-sm block w-full" style={{ colorScheme: "dark" }} />
                             </div>
                             <div className="grid gap-1.5">
                                 <div className="flex items-center justify-between">
@@ -651,13 +651,14 @@ export default function ToDos() {
                                     type="time"
                                     value={time === "none" ? "" : time}
                                     onChange={(e) => setTime(e.target.value)}
-                                    className="h-10 text-sm"
+                                    className="h-10 text-base md:text-sm block w-full"
+                                    style={{ colorScheme: "dark" }}
                                 />
                             </div>
                             <div className="grid gap-1.5">
                                 <Label className="text-xs text-muted-foreground">Urgency</Label>
                                 <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
-                                    <SelectTrigger className="h-10 text-sm">
+                                    <SelectTrigger className="h-10 text-base md:text-sm">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -691,7 +692,7 @@ export default function ToDos() {
                             <div className="grid gap-1.5">
                                 <Label className="text-xs text-muted-foreground">Recurrence</Label>
                                 <Select value={recurrence} onValueChange={(val: any) => setRecurrence(val)}>
-                                    <SelectTrigger className="h-10 text-sm">
+                                    <SelectTrigger className="h-10 text-base md:text-sm">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
