@@ -257,7 +257,7 @@ export function AppShell() {
                                 {item.label === "Collaboration" && !isCollapsed ? (
                                     <div className="mx-2 mt-6 mb-2">
                                         <div className="rounded-xl border border-border/50 bg-card/50 p-3 shadow-sm bg-gradient-to-br from-background to-muted/30 relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] px-1.5 py-0.5 rounded-bl-lg font-bold tracking-wider z-20">PRO</div>
+                                            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[9px] px-1.5 py-0.5 rounded-bl-lg font-bold tracking-wider z-20">PRO</div>
                                             <div className="flex items-center gap-3 mb-2">
                                                 <div className="flex -space-x-2.5">
                                                     <Avatar className="h-8 w-8 border-2 border-background ring-1 ring-border/10">
