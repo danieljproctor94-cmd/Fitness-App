@@ -275,25 +275,25 @@ export default function Mindset() {
                         </CardHeader>
                         <CardContent className="space-y-8 p-6">
                             <div className="space-y-4">
-                                <Label htmlFor="grateful" className="text-base font-medium text-foreground/80">
+                                <Label htmlFor="grateful" className="text-lg font-medium text-foreground/80 mb-6 block">
                                     What are you grateful for today?
                                 </Label>
                                 <Textarea
                                     id="grateful"
                                     placeholder="I am grateful for..."
-                                    className="min-h-[120px] resize-none text-base p-4"
+                                    className="min-h-[120px] resize-none text-base p-4 mt-2"
                                     value={gratefulFor}
                                     onChange={(e) => setGratefulFor(e.target.value)}
                                 />
                             </div>
                             <div className="space-y-4">
-                                <Label htmlFor="improve" className="text-base font-medium text-foreground/80">
+                                <Label htmlFor="improve" className="text-lg font-medium text-foreground/80 mb-6 block">
                                     What do you wish to improve on?
                                 </Label>
                                 <Textarea
                                     id="improve"
                                     placeholder="I want to work on..."
-                                    className="min-h-[120px] resize-none text-base p-4"
+                                    className="min-h-[120px] resize-none text-base p-4 mt-2"
                                     value={improvements}
                                     onChange={(e) => setImprovements(e.target.value)}
                                 />
