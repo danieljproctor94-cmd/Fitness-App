@@ -264,64 +264,62 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const fetchUserData = async () => {
             setIsLoading(true);
 
-            // 1. Workouts
-            const { data: wData } = await supabase.from('workouts').select('*').order('created_at', { ascending: false });
-            if (wData) setWorkouts(wData as any);
+            try {
+                const [
+                    { data: wData },
+                    { data: mData },
+                    { data: mlData },
+                    { data: tData },
+                    { data: tcData },
+                    { data: pData }
+                ] = await Promise.all([
+                    supabase.from('workouts').select('*').order('created_at', { ascending: false }),
+                    supabase.from('measurements').select('*').order('date', { ascending: true }),
+                    supabase.from('mindset_logs').select('*').order('date', { ascending: false }),
+                    supabase.from('todos').select('*, todo_collaborators(user_id)').order('created_at', { ascending: false }),
+                    supabase.from('todo_completions').select('*'),
+                    supabase.from('profiles').select('*').eq('id', user.id).single()
+                ]);
 
-            // 2. Measurements
-            const { data: mData } = await supabase.from('measurements').select('*').order('date', { ascending: true });
-            if (mData) setMeasurements(mData);
+                if (wData) setWorkouts(wData as any);
+                if (mData) setMeasurements(mData);
+                if (mlData) setMindsetLogs(mlData);
+                if (tData) {
+                    const processedTodos = tData.map((t: any) => ({
+                        ...t,
+                        shared_with: t.todo_collaborators?.map((tc: any) => tc.user_id) || []
+                    }));
+                    setTodos(processedTodos);
+                }
+                if (tcData) setTodoCompletions(tcData);
+                if (pData) {
+                    setUserProfile({
+                        id: pData.id,
+                        displayName: pData.full_name || '',
+                        photoURL: pData.avatar_url || '',
+                        gender: pData.gender || 'male',
+                        height: pData.height || '',
+                        waist: pData.waist || '',
+                        neck: pData.neck || '',
+                        chest: pData.chest || '',
+                        arms: pData.arms || '',
+                        subscription_tier: pData.subscription_tier,
+                        weekly_workout_goal: pData.weekly_workout_goal || 4,
+                        age: pData.age,
+                        starting_weight: pData.starting_weight,
+                        activity_level: pData.activity_level,
+                        mindset_reminder_enabled: pData.mindset_reminder_enabled,
+                        mindset_reminder_time: pData.mindset_reminder_time
+                    } as UserProfile);
+                }
 
-            // 3. Mindset Logs
-            const { data: mlData } = await supabase.from('mindset_logs').select('*').order('date', { ascending: false });
-            if (mlData) setMindsetLogs(mlData);
-
-            // 4. ToDos
-            const { data: tData } = await supabase
-                .from('todos')
-                .select('*, todo_collaborators(user_id)')
-                .order('created_at', { ascending: false });
-
-            if (tData) {
-                const processedTodos = tData.map((t: any) => ({
-                    ...t,
-                    shared_with: t.todo_collaborators?.map((tc: any) => tc.user_id) || []
-                }));
-                setTodos(processedTodos);
+                await fetchCollaborations();
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                toast.error("Failed to load data.");
+            } finally {
+                setIsLoading(false);
             }
-
-            // 4b. ToDo Completions (for recurring tasks)
-            const { data: tcData } = await supabase.from('todo_completions').select('*');
-            if (tcData) setTodoCompletions(tcData);
-
-            // 5. Profile
-            const { data: pData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            if (pData) {
-                setUserProfile({
-                    id: pData.id,
-                    displayName: pData.full_name || '',
-                    photoURL: pData.avatar_url || '',
-                    gender: pData.gender || 'male',
-                    height: pData.height || '',
-                    waist: pData.waist || '',
-                    neck: pData.neck || '',
-                    chest: pData.chest || '',
-                    arms: pData.arms || '',
-                    subscription_tier: pData.subscription_tier,
-                    weekly_workout_goal: pData.weekly_workout_goal || 4,
-                    age: pData.age,
-                    starting_weight: pData.starting_weight,
-                    activity_level: pData.activity_level,
-                    mindset_reminder_enabled: pData.mindset_reminder_enabled,
-                    mindset_reminder_time: pData.mindset_reminder_time
-                } as UserProfile);
-            }
-
-            // Note: Settings fetching moved to fetchPublicSettings
-
-            await fetchCollaborations();
-
-            setIsLoading(false);
         };
 
         fetchUserData();

@@ -10,20 +10,25 @@ import { NotificationProvider } from "@/features/notifications/NotificationConte
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import Workouts from "@/pages/Workouts";
-import WorkoutAnalytics from "@/pages/WorkoutAnalytics";
-import Measurements from "@/pages/Measurements";
-import Account from "@/pages/Account";
-import Settings from "@/pages/Settings";
-import Leaderboard from "@/pages/Leaderboard";
-import Support from "@/pages/Support";
-import Mindset from "@/pages/Mindset";
-import ManageUsers from "@/pages/ManageUsers";
-import ToDos from "@/pages/ToDos";
-import TaskAnalytics from "@/pages/TaskAnalytics";
-import Collaboration from "@/pages/Collaboration";
-import { ReloadPrompt } from "@/components/ReloadPrompt";
-import { FaviconUpdater } from "@/components/FaviconUpdater";
+import { lazy, Suspense } from "react";
+
+// Lazy Load Pages
+const Workouts = lazy(() => import("@/pages/Workouts"));
+const WorkoutAnalytics = lazy(() => import("@/pages/WorkoutAnalytics"));
+const MeasurementAnalytics = lazy(() => import("@/pages/MeasurementAnalytics"));
+const Measurements = lazy(() => import("@/pages/Measurements"));
+const Account = lazy(() => import("@/pages/Account"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const Leaderboard = lazy(() => import("@/pages/Leaderboard"));
+const Support = lazy(() => import("@/pages/Support"));
+const Mindset = lazy(() => import("@/pages/Mindset"));
+const ManageUsers = lazy(() => import("@/pages/ManageUsers"));
+const ToDos = lazy(() => import("@/pages/ToDos"));
+const TaskAnalytics = lazy(() => import("@/pages/TaskAnalytics"));
+const Collaboration = lazy(() => import("@/pages/Collaboration"));
+const ReloadPrompt = lazy(() => import("@/components/ReloadPrompt").then(module => ({ default: module.ReloadPrompt })));
+const FaviconUpdater = lazy(() => import("@/components/FaviconUpdater").then(module => ({ default: module.FaviconUpdater })));
+
 
 // Public Pages
 import { PublicLayout } from "@/components/public/PublicLayout";
@@ -82,33 +87,36 @@ function App() {
                                         </Routes>
                                     }
                                     appRoutes={
-                                        <Routes>
-                                            {/* Auth Routes */}
-                                            <Route element={<PublicRoute />}>
-                                                <Route path="/login" element={<Login />} />
-                                                <Route path="/register" element={<Register />} />
-                                            </Route>
-
-                                            {/* Protected Routes */}
-                                            <Route element={<ProtectedLayout />}>
-                                                <Route element={<AppShell />}>
-                                                    <Route path="/" element={<Dashboard />} /> {/* App Root is Dashboard */}
-                                                    <Route path="/dashboard" element={<Dashboard />} />
-                                                    <Route path="/workouts" element={<Workouts />} />
-                                                    <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                                    <Route path="/planner" element={<ToDos />} />
-                                                    <Route path="/planner/analytics" element={<TaskAnalytics />} />
-                                                    <Route path="/measurements" element={<Measurements />} />
-                                                    <Route path="/leaderboard" element={<Leaderboard />} />
-                                                    <Route path="/account" element={<Account />} />
-                                                    <Route path="/settings" element={<Settings />} />
-                                                    <Route path="/support" element={<Support />} />
-                                                    <Route path="/mindset" element={<Mindset />} />
-                                                    <Route path="/collaboration" element={<Collaboration />} />
-                                                    <Route path="/admin/users" element={<ManageUsers />} />
+                                        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
+                                            <Routes>
+                                                {/* Auth Routes */}
+                                                <Route element={<PublicRoute />}>
+                                                    <Route path="/login" element={<Login />} />
+                                                    <Route path="/register" element={<Register />} />
                                                 </Route>
-                                            </Route>
-                                        </Routes>
+
+                                                {/* Protected Routes */}
+                                                <Route element={<ProtectedLayout />}>
+                                                    <Route element={<AppShell />}>
+                                                        <Route path="/" element={<Dashboard />} /> {/* App Root is Dashboard */}
+                                                        <Route path="/dashboard" element={<Dashboard />} />
+                                                        <Route path="/workouts" element={<Workouts />} />
+                                                        <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
+                                                        <Route path="/planner" element={<ToDos />} />
+                                                        <Route path="/planner/analytics" element={<TaskAnalytics />} />
+                                                        <Route path="/measurements" element={<Measurements />} />
+                                                        <Route path="/measurements/analytics" element={<MeasurementAnalytics />} />
+                                                        <Route path="/leaderboard" element={<Leaderboard />} />
+                                                        <Route path="/account" element={<Account />} />
+                                                        <Route path="/settings" element={<Settings />} />
+                                                        <Route path="/support" element={<Support />} />
+                                                        <Route path="/mindset" element={<Mindset />} />
+                                                        <Route path="/collaboration" element={<Collaboration />} />
+                                                        <Route path="/admin/users" element={<ManageUsers />} />
+                                                    </Route>
+                                                </Route>
+                                            </Routes>
+                                        </Suspense>
                                     }
                                 />
                             </BrowserRouter>

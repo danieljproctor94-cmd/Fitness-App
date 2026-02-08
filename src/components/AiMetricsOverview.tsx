@@ -18,6 +18,12 @@ export function AiMetricsOverview() {
         // Get current weight (last one)
         const currentWeight = sortedMeasurements[sortedMeasurements.length - 1].weight;
 
+        // Calculate Target Weight Range (BMI 18.5 - 24.9)
+        const heightM = parseFloat(userProfile.height) / 100;
+        const minW = (18.5 * heightM * heightM).toFixed(1);
+        const maxW = (24.9 * heightM * heightM).toFixed(1);
+        const targetWeightRange = `${minW} - ${maxW} kg`;
+
         return generateAiOverview({
             gender: userProfile.gender || 'male',
             age: parseInt(userProfile.age || "30"),
@@ -26,7 +32,8 @@ export function AiMetricsOverview() {
             waistCm: userProfile.waist ? parseFloat(userProfile.waist) : undefined,
             neckCm: userProfile.neck ? parseFloat(userProfile.neck) : undefined,
             activityLevel: userProfile.activity_level,
-            weightHistory: weightHistory
+            weightHistory: weightHistory,
+            targetWeightRange: targetWeightRange
         });
     }, [userProfile, measurements]);
 

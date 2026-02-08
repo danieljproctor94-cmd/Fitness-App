@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { WorkTimer } from "@/components/dashboard/WorkTimer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -235,13 +236,17 @@ export default function Dashboard() {
 
             </div>
 
+
+
             {/* Core Metrics */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Weekly Goal</CardTitle>
                         <Dumbbell className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
+                    {/* ... content ... */}
                     <CardContent>
                         <div className="flex items-center gap-4">
                             <div className="relative h-16 w-16">
@@ -424,10 +429,14 @@ export default function Dashboard() {
                                 {format(currentDate, "EEEE, MMM do")}
                             </CardDescription>
                         </div>
-                        <Link to="/planner">
-                            <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <WorkTimer compact />
+                            <Link to="/planner">
+                                <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
+                            </Link>
+                        </div>
                     </CardHeader>
+
                     <CardContent className="flex-1 overflow-y-auto pr-2 scrollbar-thin min-h-[250px] max-h-[350px]">
                         {isLoading ? (
                             <div className="space-y-3">

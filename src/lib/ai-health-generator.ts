@@ -18,10 +18,11 @@ interface UserMetrics {
     neckCm?: number;
     activityLevel?: string;
     weightHistory: { date: string; weight: number }[];
+    targetWeightRange?: string; // e.g. "60-75 kg"
 }
 
 export function generateAiOverview(data: UserMetrics): AiOverviewData {
-    const { age, heightCm, weightKg, waistCm, weightHistory } = data;
+    const { age, heightCm, weightKg, waistCm, weightHistory, targetWeightRange } = data;
 
     // 1. Calculate Core Metrics
     const heightM = heightCm / 100;
@@ -100,21 +101,62 @@ export function generateAiOverview(data: UserMetrics): AiOverviewData {
     // 7. Normalization and Reassurance
     const reassurance = "Bodies are dynamic and fluctuate daily. Fluctuations of 1-3% are normal water variance and not necessarily tissue changes. Consistency over weeks matters more than precision in days.";
 
-    // 8. Trajectory Insight
+    // 8. Trajectory Insight (Enhanced with Speed & Target)
     let trajectory = "Insufficient data for a trend analysis yet.";
     if (weightHistory.length >= 2) {
-        // Sort by date just in case
+        // Sort newest first
         const sorted = [...weightHistory].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        const current = sorted[0].weight;
-        const previous = sorted[1].weight;
-        const diff = current - previous;
+        const current = sorted[0];
 
-        if (Math.abs(diff) < 0.5) {
-            trajectory = "Your recent weight has been very stable. This stability is a great foundation for maintenance or controlled changes.";
-        } else if (diff < 0) {
-            trajectory = "You are currently in a downward trend. Sustaining this pace gradually is typically more maintainable than rapid drops.";
+        // Find comparison point ~4 weeks ago (28 days)
+        // Or default to oldest if less than 4 weeks
+        const now = new Date(current.date).getTime();
+        const fourWeeksMs = 28 * 24 * 60 * 60 * 1000;
+
+        let comparison = sorted[sorted.length - 1]; // Default to oldest
+
+        // Try to find a better comparison point close to 4 weeks ago
+        for (let i = 1; i < sorted.length; i++) {
+            const timeDiff = now - new Date(sorted[i].date).getTime();
+            if (timeDiff >= fourWeeksMs) {
+                comparison = sorted[i];
+                break;
+            }
+        }
+
+        const weeksPassed = Math.max(1, (now - new Date(comparison.date).getTime()) / (7 * 24 * 60 * 60 * 1000));
+        const totalDiff = current.weight - comparison.weight;
+        const weeklySpeed = totalDiff / weeksPassed;
+        const speedStr = Math.abs(weeklySpeed).toFixed(2);
+        const sign = weeklySpeed > 0 ? "+" : "-";
+
+        let speedCategory = "";
+        let recommendation = "";
+
+        if (weeklySpeed < -1.0) {
+            speedCategory = "Rapid Loss";
+            recommendation = "This is a fast pace. Ensure you're eating enough protein to prevent muscle loss.";
+        } else if (weeklySpeed <= -0.5) {
+            speedCategory = "Healthy Loss";
+            recommendation = "Great pace! Keep this sustainable rhythm.";
+        } else if (weeklySpeed < 0 && weeklySpeed > -0.5) {
+            speedCategory = "Gradual Loss";
+            recommendation = "Slow progress is often the most sustainable. Consistency is key.";
+        } else if (weeklySpeed === 0 || (weeklySpeed > 0 && weeklySpeed < 0.2)) {
+            speedCategory = "Maintenance";
+            recommendation = "Your weight is stable, which is a great sign of metabolic balance.";
+        } else if (weeklySpeed > 0.5) {
+            speedCategory = "Rapid Gain";
+            recommendation = "Watch for surplus calories. If bulking, ensure you are training hard to minimize fat gain.";
         } else {
-            trajectory = "There is a slight upward trend recently. This is common during muscle building phases or seasonal shifts.";
+            speedCategory = "Gradual Gain";
+            recommendation = "Slight upward trend. Verify if this aligns with your muscle building goals.";
+        }
+
+        trajectory = `Current Trend: ${sign}${speedStr} kg/week (${speedCategory}). ${recommendation}`;
+
+        if (targetWeightRange) {
+            trajectory += ` Target Context: You are currently working towards your healthy target range of ${targetWeightRange}.`;
         }
     }
 

@@ -4,15 +4,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Calendar, Calculator, Save } from "lucide-react";
+import { Trash2, Calendar, Calculator, Save, TrendingUp } from "lucide-react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AiMetricsOverview } from "@/components/AiMetricsOverview";
+import { useNavigate } from "react-router-dom";
 
 export default function Measurements() {
     const { measurements, addMeasurement, deleteMeasurement, userProfile, updateUserProfile, isLoading } = useData();
+    const navigate = useNavigate();
     // Body Stats State
     const [localProfile, setLocalProfile] = useState(userProfile);
     // Add local weight state for the calculator form
@@ -84,7 +86,16 @@ export default function Measurements() {
         <div className="p-6 space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Measurements</h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold tracking-tight">Measurements</h1>
+                        <Button variant="outline" size="sm" onClick={() => navigate("/measurements/analytics")} className="hidden md:flex">
+                            <TrendingUp className="h-4 w-4 mr-2" />
+                            Analytics
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => navigate("/measurements/analytics")} className="md:hidden">
+                            <TrendingUp className="h-5 w-5" />
+                        </Button>
+                    </div>
                     <p className="text-muted-foreground">Track your body metrics and composition.</p>
                 </div>
 
