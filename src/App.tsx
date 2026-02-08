@@ -27,7 +27,7 @@ const ToDos = lazy(() => import("@/pages/ToDos"));
 const TaskAnalytics = lazy(() => import("@/pages/TaskAnalytics"));
 const Collaboration = lazy(() => import("@/pages/Collaboration"));
 const ReloadPrompt = lazy(() => import("@/components/ReloadPrompt").then(module => ({ default: module.ReloadPrompt })));
-const FaviconUpdater = lazy(() => import("@/components/FaviconUpdater").then(module => ({ default: module.FaviconUpdater })));
+import { FaviconUpdater } from "@/components/FaviconUpdater";
 
 
 // Public Pages
