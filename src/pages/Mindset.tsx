@@ -273,23 +273,27 @@ export default function Mindset() {
                             <CardTitle>Daily Check-in</CardTitle>
                             <CardDescription>What's on your mind today?</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="grateful">What are you grateful for today?</Label>
+                        <CardContent className="space-y-8 p-6">
+                            <div className="space-y-4">
+                                <Label htmlFor="grateful" className="text-base font-medium text-foreground/80">
+                                    What are you grateful for today?
+                                </Label>
                                 <Textarea
                                     id="grateful"
                                     placeholder="I am grateful for..."
-                                    className="min-h-[100px] resize-none"
+                                    className="min-h-[120px] resize-none text-base p-4"
                                     value={gratefulFor}
                                     onChange={(e) => setGratefulFor(e.target.value)}
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="improve">What do you wish to improve on?</Label>
+                            <div className="space-y-4">
+                                <Label htmlFor="improve" className="text-base font-medium text-foreground/80">
+                                    What do you wish to improve on?
+                                </Label>
                                 <Textarea
                                     id="improve"
                                     placeholder="I want to work on..."
-                                    className="min-h-[100px] resize-none"
+                                    className="min-h-[120px] resize-none text-base p-4"
                                     value={improvements}
                                     onChange={(e) => setImprovements(e.target.value)}
                                 />
