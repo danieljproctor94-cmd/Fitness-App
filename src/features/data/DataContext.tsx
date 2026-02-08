@@ -220,6 +220,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Fetch Data
     useEffect(() => {
+        // 1. Fetch Public Settings (Run once on mount, independent of user)
+        const fetchPublicSettings = async () => {
+            // App Settings (Logo)
+            const { data: sData } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
+            if (sData) {
+                setAppLogo(sData.value);
+                localStorage.setItem('app_logo_url', sData.value);
+            }
+
+            // App Settings (Social URL)
+            const { data: socialData } = await supabase.from('app_settings').select('value').eq('key', 'social_url').single();
+            if (socialData) {
+                setSocialUrl(socialData.value);
+                localStorage.setItem('social_url', socialData.value);
+            }
+
+            // App Settings (Favicon)
+            const { data: faviconData } = await supabase.from('app_settings').select('value').eq('key', 'app_favicon').single();
+            if (faviconData) {
+                setAppFavicon(faviconData.value);
+                localStorage.setItem('app_favicon_url', faviconData.value);
+            }
+        };
+
+        fetchPublicSettings();
+
+        // 2. Fetch User Data (Only if user exists)
         if (!user) {
             setWorkouts([]);
             setMeasurements([]);
@@ -232,7 +259,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
 
-        const fetchData = async () => {
+        const fetchUserData = async () => {
             setIsLoading(true);
 
             // 1. Workouts
@@ -286,38 +313,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 } as UserProfile);
             }
 
-            // 6. App Settings (Logo)
-            const { data: sData } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
-            if (sData) {
-                setAppLogo(sData.value);
-                localStorage.setItem('app_logo_url', sData.value);
-            }
-
-            // 7. App Settings (Social URL)
-            const { data: socialData } = await supabase.from('app_settings').select('value').eq('key', 'social_url').single();
-            if (socialData) {
-                setSocialUrl(socialData.value);
-                localStorage.setItem('social_url', socialData.value);
-            }
-
-            if (socialData) {
-                setSocialUrl(socialData.value);
-                localStorage.setItem('social_url', socialData.value);
-            }
-
-            // 8. App Settings (Favicon)
-            const { data: faviconData } = await supabase.from('app_settings').select('value').eq('key', 'app_favicon').single();
-            if (faviconData) {
-                setAppFavicon(faviconData.value);
-                localStorage.setItem('app_favicon_url', faviconData.value);
-            }
+            // Note: Settings fetching moved to fetchPublicSettings
 
             await fetchCollaborations();
 
             setIsLoading(false);
         };
 
-        fetchData();
+        fetchUserData();
 
     }, [user]);
 
