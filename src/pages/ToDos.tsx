@@ -8,7 +8,7 @@ import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useData, ToDo } from "@/features/data/DataContext";
+import { useData } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -1135,7 +1135,7 @@ export default function ToDos() {
                                                                     <AvatarFallback className="text-[9px]">{userProfile?.displayName?.[0] || 'U'}</AvatarFallback>
                                                                 </Avatar>
                                                                 {/* Collaborator Avatars */}
-                                                                {todo.shared_with.map((userId) => {
+                                                                {todo.shared_with.map((userId: string) => {
                                                                     const collaborator = acceptedFriends.find(c => (c.profile?.id === userId || c.receiver_id === userId || c.requester_id === userId));
                                                                     const profile = collaborator?.profile || (collaborations.find(c => c.receiver_id === userId || c.requester_id === userId)?.profile);
 
