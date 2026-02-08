@@ -228,7 +228,6 @@ export default function Dashboard() {
                     ) : (
                         <>
                             <h1 className="text-3xl font-bold tracking-tight">Hi {userProfile.displayName?.split(' ')[0] || "User"}, welcome back!</h1>
-                            <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
                         </>
                     )}
                 </div>
