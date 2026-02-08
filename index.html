@@ -7,7 +7,20 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
 
-  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="icon" type="image/png" id="app-favicon" href="/logo.png" />
+  <script>
+    (function () {
+      try {
+        var storedFavicon = localStorage.getItem('app_favicon_url');
+        if (storedFavicon) {
+          var link = document.getElementById('app-favicon');
+          if (link) link.href = storedFavicon;
+        }
+      } catch (e) {
+        console.error('Error loading favicon preference:', e);
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Progress Syncer</title>
 </head>
