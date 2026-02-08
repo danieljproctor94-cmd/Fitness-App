@@ -636,7 +636,7 @@ export default function ToDos() {
                                         </button>
                                     )}
                                 </div>
-                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 text-base md:text-sm block w-full" style={{ colorScheme: "dark" }} />
+                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 text-base md:text-sm w-full appearance-none" style={{ colorScheme: "dark" }} />
                             </div>
                             <div className="grid gap-1.5">
                                 <div className="flex items-center justify-between">
@@ -651,7 +651,7 @@ export default function ToDos() {
                                     type="time"
                                     value={time === "none" ? "" : time}
                                     onChange={(e) => setTime(e.target.value)}
-                                    className="h-10 text-base md:text-sm block w-full"
+                                    className="h-10 text-base md:text-sm w-full appearance-none"
                                     style={{ colorScheme: "dark" }}
                                 />
                             </div>

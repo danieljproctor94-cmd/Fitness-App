@@ -233,18 +233,18 @@ export default function Workouts() {
                                     <Label>Workout Name</Label>
                                     <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Leg Day" required />
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <div className="grid gap-1.5">
                                         <Label className="text-xs text-muted-foreground">Date</Label>
-                                        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 text-base md:text-xs block w-full" style={{ colorScheme: "dark" }} required />
+                                        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 text-base md:text-xs w-full appearance-none" style={{ colorScheme: "dark" }} required />
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label className="text-xs text-muted-foreground">Time</Label>
-                                        <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9 text-base md:text-xs block w-full" style={{ colorScheme: "dark" }} required />
+                                        <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9 text-base md:text-xs w-full appearance-none" style={{ colorScheme: "dark" }} required />
                                     </div>
                                     <div className="grid gap-1.5">
                                         <Label className="text-xs text-muted-foreground">Duration (min)</Label>
-                                        <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="h-9 text-base md:text-xs block w-full" required />
+                                        <Input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="h-9 text-base md:text-xs w-full appearance-none" required />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
