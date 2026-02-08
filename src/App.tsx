@@ -10,7 +10,7 @@ import { NotificationProvider } from "@/features/notifications/NotificationConte
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 
 // Lazy Load Pages
 const Workouts = lazy(() => import("@/pages/Workouts"));
@@ -68,6 +68,29 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 }
 
 function App() {
+    useEffect(() => {
+        const handleChunkError = (event: ErrorEvent | PromiseRejectionEvent) => {
+            const error = event instanceof PromiseRejectionEvent ? event.reason : event.error;
+            if (error?.message?.includes("Failed to fetch dynamically imported module") ||
+                error?.message?.includes("Importing a module script failed")) {
+                // Prevent infinite reload loop if server is actually down
+                const lastReload = sessionStorage.getItem('chunk_reload');
+                if (!lastReload || Date.now() - parseInt(lastReload) > 10000) {
+                    sessionStorage.setItem('chunk_reload', Date.now().toString());
+                    window.location.reload();
+                }
+            }
+        };
+
+        window.addEventListener('error', handleChunkError);
+        window.addEventListener('unhandledrejection', handleChunkError);
+
+        return () => {
+            window.removeEventListener('error', handleChunkError);
+            window.removeEventListener('unhandledrejection', handleChunkError);
+        };
+    }, []);
+
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <ErrorBoundary>
