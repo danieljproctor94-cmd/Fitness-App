@@ -7,7 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame, Bell, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { MindsetLog } from "@/features/data/DataContext";
 
@@ -66,7 +68,7 @@ const calculateStreak = (logs: MindsetLog[]) => {
 };
 
 export default function Mindset() {
-    const { mindsetLogs, addMindsetLog, isLoading } = useData();
+    const { mindsetLogs, addMindsetLog, isLoading, userProfile, updateUserProfile } = useData();
     const [todayLog, setTodayLog] = useState<any | null>(null);
     const [gratefulFor, setGratefulFor] = useState("");
     const [improvements, setImprovements] = useState("");
@@ -86,6 +88,29 @@ export default function Mindset() {
             setAiSummary(generateAISummary(existingLog.grateful_for, existingLog.improvements));
         }
     }, [mindsetLogs]);
+
+    const handleReminderToggle = async (checked: boolean) => {
+        if (checked) {
+            // Request permission
+            if ("Notification" in window) {
+                const permission = await Notification.requestPermission();
+                if (permission !== "granted") {
+                    toast.error("Notification permission denied. We cannot send you reminders.");
+                    return; // Don't enable if denied
+                }
+            }
+        }
+        await updateUserProfile({ mindset_reminder_enabled: checked });
+        toast.success(checked ? "Reminders enabled" : "Reminders disabled");
+    };
+
+    const handleTimeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newTime = e.target.value;
+        await updateUserProfile({ mindset_reminder_time: newTime });
+        // Implicitly success, no toast needed for every keystroke if it was debounced, but for simple change on blur/enter it's fine. 
+        // HTML time input fires change on commit usually.
+        toast.success("Reminder time updated");
+    };
 
 
     const handleSubmit = async () => {
@@ -135,6 +160,49 @@ export default function Mindset() {
                     </div>
                 )}
             </div>
+
+            {/* Reminder Settings Card */}
+            <Card className="bg-muted/50 border-dashed">
+                <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                            <Bell className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold flex items-center gap-2">
+                                Daily Journal Reminder
+                                {userProfile?.mindset_reminder_enabled && (
+                                    <span className="text-[10px] bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full border border-green-500/20 font-medium uppercase tracking-wide">
+                                        Active
+                                    </span>
+                                )}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">Get a notification to reflect on your day.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 w-full sm:w-auto">
+                        {userProfile?.mindset_reminder_enabled && (
+                            <div className="flex items-center gap-2 bg-background border px-3 py-1.5 rounded-md shadow-sm">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <input
+                                    type="time"
+                                    className="bg-transparent border-none text-sm focus:outline-none w-24"
+                                    value={userProfile.mindset_reminder_time || "20:00"}
+                                    onChange={handleTimeChange}
+                                />
+                            </div>
+                        )}
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="reminder-mode"
+                                checked={userProfile?.mindset_reminder_enabled || false}
+                                onCheckedChange={handleReminderToggle}
+                            />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Today's Section */}
             {isLoading ? (

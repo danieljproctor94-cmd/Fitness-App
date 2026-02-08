@@ -53,6 +53,8 @@ export interface UserProfile {
     id?: string;
     weekly_workout_goal?: number;
     starting_weight?: number;
+    mindset_reminder_enabled?: boolean;
+    mindset_reminder_time?: string;
 }
 
 export interface MindsetLog {
@@ -309,7 +311,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     weekly_workout_goal: pData.weekly_workout_goal || 4,
                     age: pData.age,
                     starting_weight: pData.starting_weight,
-                    activity_level: pData.activity_level
+                    activity_level: pData.activity_level,
+                    mindset_reminder_enabled: pData.mindset_reminder_enabled,
+                    mindset_reminder_time: pData.mindset_reminder_time
                 } as UserProfile);
             }
 
@@ -625,7 +629,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (profile.weekly_workout_goal !== undefined) updates.weekly_workout_goal = profile.weekly_workout_goal;
         if (profile.activity_level !== undefined) updates.activity_level = profile.activity_level;
         if (profile.age !== undefined) updates.age = profile.age;
+        if (profile.age !== undefined) updates.age = profile.age;
         if (profile.starting_weight !== undefined) updates.starting_weight = profile.starting_weight;
+        if (profile.mindset_reminder_enabled !== undefined) updates.mindset_reminder_enabled = profile.mindset_reminder_enabled;
+        if (profile.mindset_reminder_time !== undefined) updates.mindset_reminder_time = profile.mindset_reminder_time;
 
         const { error } = await supabase.from('profiles').upsert({
             id: user.id,
