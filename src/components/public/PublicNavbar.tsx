@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/features/data/DataContext";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/AuthContext";
 import { siteContent } from "@/config/siteContent";
@@ -9,11 +9,18 @@ import { getAppUrl } from "@/lib/domain";
 
 export function PublicNavbar() {
     const { appLogo } = useData();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+    const handleLogout = async () => {
+        await logout();
+        // Since we are likely on the landing page, we just want to refresh the UI state
+        // The auth context change will trigger a re-render
+        navigate("/");
+    };
 
     const scrollToSection = (id: string) => {
         setIsMenuOpen(false);
@@ -61,9 +68,15 @@ export function PublicNavbar() {
 
                     <div className="hidden md:flex items-center gap-6">
                         {user ? (
-                            <a href={getAppUrl('/dashboard')}>
-                                <Button className="rounded-full px-6">{navbar.cta.dashboard}</Button>
-                            </a>
+                            <div className="flex items-center gap-4">
+                                <a href={getAppUrl('/dashboard')}>
+                                    <Button className="rounded-full px-6">{navbar.cta.dashboard}</Button>
+                                </a>
+                                <Button variant="ghost" size="sm" onClick={handleLogout} className="text-muted-foreground hover:text-foreground group">
+                                    <LogOut className="h-4 w-4 mr-2 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    Log out
+                                </Button>
+                            </div>
                         ) : (
                             <>
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium backdrop-blur-md">
@@ -126,10 +139,17 @@ export function PublicNavbar() {
 
                         <div className="mt-4 pt-4 border-t border-border">
                             {user ? (
-                                <a href={getAppUrl('/dashboard')} onClick={() => setIsMenuOpen(false)}>
-                                    <Button className="w-full rounded-full h-12 text-lg">{navbar.cta.dashboard}</Button>
-                                </a>
+                                <div className="space-y-3">
+                                    <a href={getAppUrl('/dashboard')} onClick={() => setIsMenuOpen(false)}>
+                                        <Button className="w-full rounded-full h-12 text-lg">{navbar.cta.dashboard}</Button>
+                                    </a>
+                                    <Button variant="ghost" onClick={handleLogout} className="w-full text-red-500 hover:text-red-600 hover:bg-red-500/10 h-10">
+                                        <LogOut className="h-4 w-4 mr-2" />
+                                        Log out
+                                    </Button>
+                                </div>
                             ) : (
+
                                 <div className="grid grid-cols-2 gap-3">
                                     <Button onClick={() => window.location.href = getAppUrl('/login')} variant="outline" className="w-full rounded-full h-11 text-base border-input bg-white text-black hover:bg-gray-100 hover:text-black px-0">
                                         <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
