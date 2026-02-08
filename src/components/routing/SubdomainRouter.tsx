@@ -11,8 +11,11 @@ export function SubdomainRouter({ appRoutes, publicRoutes }: SubdomainRouterProp
 
     useEffect(() => {
         const checkDomain = () => {
+            const isAppCheck = isAppDomain();
+            console.log("SubdomainRouter Check:", { hostname: window.location.hostname, isApp: isAppCheck });
+
             // Check if we are on the app domain
-            if (isAppDomain()) {
+            if (isAppCheck) {
                 setIsApp(true);
             } else {
                 // We are on landing domain (or localhost)

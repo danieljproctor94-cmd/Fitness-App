@@ -3,16 +3,12 @@ export const LANDING_DOMAIN = 'progresssyncer.com';
 
 export function isAppDomain(): boolean {
     const hostname = window.location.hostname;
-    // Keep localhost as "app" context if we are not at root path, OR distinct it.
-    // Actually, for simplicity in dev:
-    // localhost -> Landing
-    // app.localhost -> App (requires hosts file edit)
-    // BUT user might not want to edit hosts.
-    // Let's stick to the plan: localhost = Landing.
-    // Special dev bypass: if query param ?forceApp=true exists, or we can just rely on manual navigation for now?
-    // No, cleaner: localhost is LANDING.
+    const cleanHostname = hostname.replace(/^www\./, '');
 
-    return hostname === APP_DOMAIN || hostname === 'app.localhost' || hostname.startsWith('app.');
+    // Check for explicit app domain or app subdomain prefix
+    return cleanHostname === APP_DOMAIN ||
+        cleanHostname === 'app.localhost' ||
+        cleanHostname.startsWith('app.');
 }
 
 export function getAppUrl(path: string = '/dashboard'): string {
