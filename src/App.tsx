@@ -23,6 +23,7 @@ import ToDos from "@/pages/ToDos";
 import TaskAnalytics from "@/pages/TaskAnalytics";
 import Collaboration from "@/pages/Collaboration";
 import { ReloadPrompt } from "@/components/ReloadPrompt";
+import { FaviconUpdater } from "@/components/FaviconUpdater";
 
 // Public Pages
 import { PublicLayout } from "@/components/public/PublicLayout";
@@ -67,6 +68,7 @@ function App() {
                 <AuthProvider>
                     <DataProvider>
                         <NotificationProvider>
+                            <FaviconUpdater />
                             <BrowserRouter>
                                 <SubdomainRouter
                                     publicRoutes={
