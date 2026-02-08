@@ -69,7 +69,7 @@ export default function Features() {
                         Start your free trial today and experience the difference.
                     </p>
                     <Link to="/register">
-                        <Button size="lg" className="rounded-full px-10 text-lg">Join FitTrack</Button>
+                        <Button size="lg" className="rounded-full px-10 text-lg">Join Progress Syncer</Button>
                     </Link>
                 </div>
             </div>

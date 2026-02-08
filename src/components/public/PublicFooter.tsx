@@ -8,7 +8,7 @@ export function PublicFooter() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                     <div className="col-span-1 md:col-span-1">
                         <Link to="/" className="flex items-center gap-2 mb-4">
-                            <span className="font-bold text-xl tracking-tight">FitTrack</span>
+                            <span className="font-bold text-xl tracking-tight">Progress Syncer</span>
                         </Link>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                             The ultimate fitness companion for organizing your life, workouts, and mindset. Join thousands of users achieving their goals today.
@@ -45,7 +45,7 @@ export function PublicFooter() {
                 </div>
 
                 <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-                    <p>&copy; {new Date().getFullYear()} FitTrack. All rights reserved.</p>
+                    <p>&copy; {new Date().getFullYear()} Progress Syncer. All rights reserved.</p>
                     <div className="flex gap-6">
                         <Link to="#" className="hover:text-foreground">Privacy</Link>
                         <Link to="#" className="hover:text-foreground">Terms</Link>

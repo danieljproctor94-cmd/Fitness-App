@@ -3,17 +3,14 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, Dumbbell, Flame, Weight } from "lucide-react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
-import { format, subMonths, isAfter, parseISO, startOfWeek } from "date-fns";
+import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
-    const { workouts, measurements, userProfile, isLoading } = useData();
+    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions } = useData();
     const [currentDate, setCurrentDate] = useState(new Date());
-
-    // Chart Timeframe State
-    const [timeframe, setTimeframe] = useState("ALL");
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentDate(new Date()), 60000);
@@ -49,21 +46,6 @@ export default function Dashboard() {
     const currentWeight = sortedMeasurementsDescending.length > 0 ? sortedMeasurementsDescending[0].weight : 0;
     const activeMinutes = weeklyWorkouts.reduce((acc, curr) => acc + (parseInt(curr.duration) || 0), 0);
 
-    // 2. Filter Chart Data based on Timeframe
-    const getFilteredChartData = () => {
-        const now = new Date();
-        let startDate = new Date(0); // Beginning of time
-
-        if (timeframe === "1M") startDate = subMonths(now, 1);
-        else if (timeframe === "3M") startDate = subMonths(now, 3);
-        else if (timeframe === "6M") startDate = subMonths(now, 6);
-
-        return measurements
-            .filter(m => isAfter(parseISO(m.date), startDate))
-            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    };
-
-    const weightChartData = getFilteredChartData();
 
     // 3. Streak
     // 3. Streak (Weekly Based)
@@ -238,8 +220,17 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Hi {userProfile.displayName?.split(' ')[0] || "User"}, welcome back!</h1>
-                    <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
+                    {isLoading ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-9 w-64" />
+                            <Skeleton className="h-5 w-48" />
+                        </div>
+                    ) : (
+                        <>
+                            <h1 className="text-3xl font-bold tracking-tight">Hi {userProfile.displayName?.split(' ')[0] || "User"}, welcome back!</h1>
+                            <p className="text-muted-foreground">{format(currentDate, "EEEE, MMMM do, yyyy")}</p>
+                        </>
+                    )}
                 </div>
 
             </div>
@@ -424,82 +415,137 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
 
-                {/* Weight Chart with Time Toggles */}
-                <Card className="col-span-full md:col-span-4">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                {/* Tasks for Today */}
+                <Card className="col-span-full md:col-span-4 h-full flex flex-col">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 shrink-0">
                         <div className="space-y-1">
-                            <CardTitle>Weight</CardTitle>
+                            <CardTitle>Tasks for Today</CardTitle>
                             <CardDescription>
-                                {timeframe === "ALL" ? "All time history" : `Last ${timeframe}`}
+                                {format(currentDate, "EEEE, MMM do")}
                             </CardDescription>
                         </div>
-                        <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
-                            {(["1M", "3M", "6M", "ALL"]).map(tf => (
-                                <button
-                                    key={tf}
-                                    onClick={() => setTimeframe(tf)}
-                                    className={`
-                                        text-xs font-medium px-3 py-1 rounded-md transition-colors
-                                        ${timeframe === tf ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}
-                                    `}
-                                >
-                                    {tf}
-                                </button>
-                            ))}
-                        </div>
+                        <Link to="/todos">
+                            <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
+                        </Link>
                     </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[250px] w-full">
-                            {isLoading ? (
-                                <Skeleton className="h-full w-full" />
-                            ) : (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={weightChartData}>
-                                        <defs>
-                                            <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <XAxis
-                                            dataKey="date"
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickFormatter={(str) => {
-                                                const d = new Date(str);
-                                                return isNaN(d.getTime()) ? str : format(d, "MMM d");
-                                            }}
-                                        />
-                                        <YAxis
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            domain={["dataMin - 1", "dataMax + 1"]}
-                                            tickFormatter={(value) => `${value}kg`}
-                                        />
-                                        <Tooltip
-                                            labelFormatter={(label) => {
-                                                const d = new Date(label);
-                                                return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
-                                            }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="weight"
-                                            stroke="hsl(var(--primary))"
-                                            strokeWidth={2}
-                                            fillOpacity={1}
-                                            fill="url(#colorWeight)"
-                                            dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
-                                            activeDot={{ r: 6 }}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            )}
-                        </div>
+                    <CardContent className="flex-1 overflow-y-auto pr-2 scrollbar-thin min-h-[250px] max-h-[350px]">
+                        {isLoading ? (
+                            <div className="space-y-3">
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-12 w-full" />
+                                <Skeleton className="h-12 w-full" />
+                            </div>
+                        ) : (() => {
+                            // Filter tasks for today
+                            const today = new Date();
+                            const todaysTasks = todos.filter(t => {
+                                // 1. Check completion (Archived/Done)
+                                if (t.completed) return false;
+
+                                // 2. Check Due Date validity
+                                if (!t.due_date) return false;
+                                const dueDate = parseISO(t.due_date);
+
+                                // 3. Check Recurrence
+                                if (t.recurrence === 'none') {
+                                    return isSameDay(dueDate, today);
+                                }
+
+                                // Recurring Logic
+                                // Must be after or same as due date
+                                if (isBefore(today, dueDate) && !isSameDay(today, dueDate)) return false;
+
+                                let isMatch = false;
+                                if (t.recurrence === 'daily') isMatch = true;
+                                else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(today);
+                                else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(today);
+
+                                if (isMatch) {
+                                    const dateStr = format(today, 'yyyy-MM-dd');
+
+                                    // Check Exceptions
+                                    const isExcluded = todoExceptions.some(ex => ex.todo_id === t.id && ex.exception_date === dateStr);
+                                    if (isExcluded) return false;
+
+                                    // Check if completed TODAY
+                                    const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === t.id && tc.completed_date === dateStr);
+                                    if (isCompletedForDate) return false;
+
+                                    return true;
+                                }
+                                return false;
+                            }).sort((a, b) => {
+                                // Sort by urgency then time
+                                const urgencyOrder = { critical: 0, high: 1, normal: 2, low: 3, medium: 2 };
+                                const uA = urgencyOrder[a.urgency as keyof typeof urgencyOrder] ?? 2;
+                                const uB = urgencyOrder[b.urgency as keyof typeof urgencyOrder] ?? 2;
+                                if (uA !== uB) return uA - uB;
+
+                                if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
+                                return 0;
+                            });
+
+                            if (todaysTasks.length === 0) {
+                                return (
+                                    <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground space-y-3 py-8">
+                                        <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                            <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-foreground">All caught up!</p>
+                                            <p className="text-xs">No pending tasks for today.</p>
+                                        </div>
+                                        <Button variant="outline" size="sm" asChild>
+                                            <Link to="/todos">Plan Ahead</Link>
+                                        </Button>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="space-y-2">
+                                    {todaysTasks.map(task => (
+                                        <div key={task.id} className={cn(
+                                            "flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors group",
+                                            task.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
+                                                task.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
+                                                    'border-l-4 border-l-transparent'
+                                        )}>
+                                            <div className="flex-1 min-w-0 pr-3">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-medium text-sm truncate">{task.title}</span>
+                                                    {task.urgency === 'critical' && <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">CRITICAL</span>}
+                                                </div>
+                                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                                    {task.due_time && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Clock className="h-3 w-3" />
+                                                            {(() => {
+                                                                const [h, m] = task.due_time.split(':');
+                                                                const hour = parseInt(h);
+                                                                const ampm = hour >= 12 ? 'PM' : 'AM';
+                                                                const displayHour = hour % 12 || 12;
+                                                                return `${displayHour}:${m} ${ampm}`;
+                                                            })()}
+                                                        </span>
+                                                    )}
+                                                    {task.recurrence !== 'none' && (
+                                                        <span className="flex items-center gap-1 capitalize">
+                                                            <Activity className="h-3 w-3" /> {task.recurrence}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <Link to="/todos">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-emerald-500" />
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
                     </CardContent>
                 </Card>
             </div>

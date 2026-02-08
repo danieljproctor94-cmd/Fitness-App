@@ -11,14 +11,14 @@ import {
 
 export const siteContent = {
     seo: {
-        title: "FitTrack - Grow Your Potential on Auto-Pilot",
-        description: "Get recommended workouts, track nutrition, and compete with friends. All powered by AI to keep you consistent.",
-        keywords: "fitness app, workout tracker, ai fitness, nutrition tracking, social fitness",
+        title: "Progress Syncer - Grow Your Potential on Auto-Pilot",
+        description: "Track your workouts, habits, and body measurements with Progress Syncer. Your all-in-one fitness companion.",
+        keywords: "fitness app, workout tracker, ai fitness, nutrition tracking, social fitness, progress syncer",
         ogImage: "/og-image.jpg", // You needs to create this image in public/
-        twitterHandle: "@fittrack"
+        twitterHandle: "@progresssyncer"
     },
     navbar: {
-        brand: "FitTrack",
+        brand: "Progress Syncer",
         links: [
             { label: "Features", href: "#features" },
             { label: "How it Works", href: "#how-it-works" },
@@ -122,13 +122,13 @@ export const siteContent = {
         ]
     },
     footer: {
-        brand: "FitTrack",
+        brand: "Progress Syncer",
         description: "Empowering you to reach your fitness goals with AI-driven insights and community support.",
-        copyright: "© 2026 FitTrack. All rights reserved.",
+        copyright: "© 2026 Progress Syncer. All rights reserved.",
         links: [
             { label: "Privacy Policy", href: "/privacy" }, // You might need to create these pages
             { label: "Terms of Service", href: "/terms" },
-            { label: "Contact", href: "mailto:support@fittrack.com" }
+            { label: "Contact", href: "mailto:support@progresssyncer.com" }
         ]
     }
 };

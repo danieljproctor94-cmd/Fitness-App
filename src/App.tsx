@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SubdomainRouter } from "@/components/routing/SubdomainRouter";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { DataProvider } from "@/features/data/DataContext";
 import { ProtectedLayout } from "@/features/auth/ProtectedLayout";
@@ -67,35 +68,44 @@ function App() {
                     <DataProvider>
                         <NotificationProvider>
                             <BrowserRouter>
-                                <Routes>
-                                    {/* Public Routes */}
-                                    <Route element={<PublicLayout />}>
-                                        <Route path="/" element={<Landing />} />
-                                    </Route>
+                                <SubdomainRouter
+                                    publicRoutes={
+                                        <Routes>
+                                            <Route element={<PublicLayout />}>
+                                                <Route path="/" element={<Landing />} />
+                                                <Route path="/features" element={<Landing />} /> {/* For anchor links mostly, but nice to have route */}
+                                                <Route path="*" element={<Landing />} /> {/* Check all others to Landing for now */}
+                                            </Route>
+                                        </Routes>
+                                    }
+                                    appRoutes={
+                                        <Routes>
+                                            {/* Auth Routes */}
+                                            <Route path="/login" element={<Login />} />
+                                            <Route path="/register" element={<Register />} />
 
-                                    {/* Auth Routes */}
-                                    <Route path="/login" element={<Login />} />
-                                    <Route path="/register" element={<Register />} />
-
-                                    {/* Protected Routes */}
-                                    <Route element={<ProtectedLayout />}>
-                                        <Route element={<AppShell />}>
-                                            <Route path="/dashboard" element={<Dashboard />} />
-                                            <Route path="/workouts" element={<Workouts />} />
-                                            <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                            <Route path="/planner" element={<ToDos />} />
-                                            <Route path="/planner/analytics" element={<TaskAnalytics />} />
-                                            <Route path="/measurements" element={<Measurements />} />
-                                            <Route path="/leaderboard" element={<Leaderboard />} />
-                                            <Route path="/account" element={<Account />} />
-                                            <Route path="/settings" element={<Settings />} />
-                                            <Route path="/support" element={<Support />} />
-                                            <Route path="/mindset" element={<Mindset />} />
-                                            <Route path="/collaboration" element={<Collaboration />} />
-                                            <Route path="/admin/users" element={<ManageUsers />} />
-                                        </Route>
-                                    </Route>
-                                </Routes>
+                                            {/* Protected Routes */}
+                                            <Route element={<ProtectedLayout />}>
+                                                <Route element={<AppShell />}>
+                                                    <Route path="/" element={<Dashboard />} /> {/* App Root is Dashboard */}
+                                                    <Route path="/dashboard" element={<Dashboard />} />
+                                                    <Route path="/workouts" element={<Workouts />} />
+                                                    <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
+                                                    <Route path="/planner" element={<ToDos />} />
+                                                    <Route path="/planner/analytics" element={<TaskAnalytics />} />
+                                                    <Route path="/measurements" element={<Measurements />} />
+                                                    <Route path="/leaderboard" element={<Leaderboard />} />
+                                                    <Route path="/account" element={<Account />} />
+                                                    <Route path="/settings" element={<Settings />} />
+                                                    <Route path="/support" element={<Support />} />
+                                                    <Route path="/mindset" element={<Mindset />} />
+                                                    <Route path="/collaboration" element={<Collaboration />} />
+                                                    <Route path="/admin/users" element={<ManageUsers />} />
+                                                </Route>
+                                            </Route>
+                                        </Routes>
+                                    }
+                                />
                             </BrowserRouter>
                         </NotificationProvider>
                     </DataProvider>

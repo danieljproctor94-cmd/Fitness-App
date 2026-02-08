@@ -8,6 +8,7 @@ import { isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useData } from "@/features/data/DataContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from "@/components/ui/dropdown-menu";
 import { useTheme } from "@/components/theme-provider";
@@ -22,7 +23,7 @@ export function AppShell() {
     // Force Re-render match
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { userProfile, mindsetLogs, collaborations } = useData();
+    const { userProfile, mindsetLogs, collaborations, isLoading } = useData();
     const { logout, user } = useAuth();
     const { setTheme } = useTheme();
     const [installModalOpen, setInstallModalOpen] = useState(false);
@@ -420,11 +421,20 @@ export function AppShell() {
                                     </Avatar>
                                     {!isCollapsed && (
                                         <div className="flex flex-col items-start overflow-hidden text-left transition-all duration-300">
-                                            <span className="text-sm font-medium truncate max-w-[100px]">{userProfile.displayName || "User"}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {userProfile.subscription_tier === "admin" ? "Admin" :
-                                                    userProfile.subscription_tier === "pro" ? "Pro Plan" : "Free Plan"}
-                                            </span>
+                                            {isLoading ? (
+                                                <div className="space-y-1">
+                                                    <Skeleton className="h-3 w-20" />
+                                                    <Skeleton className="h-2 w-12" />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <span className="text-sm font-medium truncate max-w-[100px]">{userProfile.displayName || "User"}</span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {userProfile.subscription_tier === "admin" ? "Admin" :
+                                                            userProfile.subscription_tier === "pro" ? "Pro Plan" : "Free Plan"}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
                                     )}
                                 </div>

@@ -26,7 +26,20 @@ import { VoiceTaskModal } from "@/components/VoiceTaskModal";
 
 
 export default function ToDos() {
-    const { todos, addToDo, updateToDo, deleteToDo, isLoading, collaborations, shareToDo, userProfile } = useData();
+    const {
+        todos,
+        addToDo,
+        updateToDo,
+        deleteToDo,
+        isLoading,
+        collaborations,
+        shareToDo,
+        userProfile,
+        todoCompletions,
+        toggleRecurringCompletion,
+        todoExceptions,
+        excludeRecurringTask
+    } = useData();
     const calendarView = "month";
 
     // Navigation State
@@ -51,6 +64,8 @@ export default function ToDos() {
     const [editingId, setEditingId] = useState<string | null>(null);
     // Delete Confirmation State
     const [todoToDelete, setTodoToDelete] = useState<string | null>(null);
+    const [isRecurringDeleteOpen, setIsRecurringDeleteOpen] = useState(false);
+    const [recurringTodoToDelete, setRecurringTodoToDelete] = useState<any | null>(null);
 
     // Load More State for Undated Tasks
     const [visibleUndatedCount, setVisibleUndatedCount] = useState(20);
@@ -156,22 +171,48 @@ export default function ToDos() {
     };
 
     const toggleComplete = async (todo: ToDo) => {
-        const newCompleted = !todo.completed;
-        await updateToDo(todo.id, { completed: newCompleted });
+        const isRecurring = todo.recurrence !== 'none';
 
-        if (newCompleted) {
-            confetti({
-                particleCount: 50,
-                spread: 50,
-                origin: { y: 0.7 },
-                colors: ['#10B981', '#34D399']
-            });
-            toast.success("Task completed", {
-                action: {
-                    label: "Undo",
-                    onClick: () => toggleComplete(todo)
-                }
-            });
+        if (isRecurring) {
+            // Check if currently completed for this selected date
+            const dateStr = format(selectedDate, 'yyyy-MM-dd');
+            const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === todo.id && tc.completed_date === dateStr);
+
+            await toggleRecurringCompletion(todo.id, dateStr, !isCompletedForDate);
+
+            if (!isCompletedForDate) {
+                confetti({
+                    particleCount: 50,
+                    spread: 50,
+                    origin: { y: 0.7 },
+                    colors: ['#10B981', '#34D399']
+                });
+                toast.success("Task completed for today", {
+                    action: {
+                        label: "Undo",
+                        onClick: () => toggleRecurringCompletion(todo.id, dateStr, false)
+                    }
+                });
+            }
+        } else {
+            // Standard behavior for non-recurring
+            const newCompleted = !todo.completed;
+            await updateToDo(todo.id, { completed: newCompleted });
+
+            if (newCompleted) {
+                confetti({
+                    particleCount: 50,
+                    spread: 50,
+                    origin: { y: 0.7 },
+                    colors: ['#10B981', '#34D399']
+                });
+                toast.success("Task completed", {
+                    action: {
+                        label: "Undo",
+                        onClick: () => toggleComplete(todo)
+                    }
+                });
+            }
         }
     };
 
@@ -189,34 +230,90 @@ export default function ToDos() {
         );
     };
 
-    const todosOnSelectedDate = todos.filter(t => {
-        if (!t.due_date || t.completed) return false;
-        const dueDate = parseISO(t.due_date);
-
-        // If it's a one-time task
-        if (t.recurrence === 'none') {
-            return isSameDay(dueDate, selectedDate);
+    const confirmDelete = (todo: any) => {
+        if (todo.recurrence !== 'none') {
+            setRecurringTodoToDelete(todo);
+            setIsRecurringDeleteOpen(true);
+        } else {
+            setTodoToDelete(todo.id);
         }
+    };
 
-        // If it's recurring, check if selectedDate is after or same as due date
-        if (isBefore(selectedDate, dueDate) && !isSameDay(selectedDate, dueDate)) {
+    const handleDeleteRecurring = async (mode: 'instance' | 'series') => {
+        if (!recurringTodoToDelete) return;
+
+        if (mode === 'instance') {
+            const dateStr = format(selectedDate, 'yyyy-MM-dd');
+            await excludeRecurringTask(recurringTodoToDelete.id, dateStr);
+            toast.success("This occurrence deleted");
+        } else {
+            await deleteToDo(recurringTodoToDelete.id);
+            toast.success("Recurring series deleted");
+        }
+        setIsRecurringDeleteOpen(false);
+        setRecurringTodoToDelete(null);
+    };
+
+
+
+    const todosOnSelectedDate = useMemo(() => {
+        const filtered = todos.filter(t => {
+            // If master task is completed, it shouldn't show up anywhere (archived)
+            if (t.completed) return false;
+
+            if (!t.due_date) return false;
+            const dueDate = parseISO(t.due_date);
+
+            // If it's a one-time task
+            if (t.recurrence === 'none') {
+                return isSameDay(dueDate, selectedDate);
+            }
+
+            // If it's recurring, check if selectedDate is after or same as due date
+            if (isBefore(selectedDate, dueDate) && !isSameDay(selectedDate, dueDate)) {
+                return false;
+            }
+
+            let isMatch = false;
+            if (t.recurrence === 'daily') isMatch = true;
+            else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(selectedDate);
+            else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(selectedDate);
+
+            if (isMatch) {
+                const dateStr = format(selectedDate, 'yyyy-MM-dd');
+
+                // Check for exclusion (deletion of specific instance)
+                const isExcluded = todoExceptions.some(ex => ex.todo_id === t.id && ex.exception_date === dateStr);
+                if (isExcluded) return false;
+
+                // If matched, check if it's completed for this specific date
+                const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === t.id && tc.completed_date === dateStr);
+
+                // If it is completed for this date, hide it from the "To Do" list
+                if (isCompletedForDate) return false;
+
+                return true;
+            }
+
             return false;
-        }
+        });
 
-        // Check recurrence rules
-        if (t.recurrence === 'daily') return true;
-        if (t.recurrence === 'weekly') return getDay(dueDate) === getDay(selectedDate);
-        if (t.recurrence === 'monthly') return getDate(dueDate) === getDate(selectedDate);
-
-        return false;
-    });
-
-    todosOnSelectedDate.sort((a, b) => {
-        if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
-        if (a.due_time) return -1;
-        if (b.due_time) return 1;
-        return 0;
-    });
+        return filtered.map(t => {
+            // No need to map completion status here anymore since we filtered them out, 
+            // but we keep the structure just in case logic changes or for consistency if we add a "Show Completed" toggle later.
+            if (t.recurrence !== 'none') {
+                // It will be false because we filtered true ones, but let's keep it safe
+                return { ...t, completed: false };
+            }
+            return t;
+        }).sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
+            if (a.due_time) return -1;
+            if (b.due_time) return 1;
+            return 0;
+        });
+    }, [todos, selectedDate, todoCompletions]);
 
     // List Filter State
     const [listFilter, setListFilter] = useState<'anytime' | 'recurring' | 'overdue' | 'completed'>('anytime');
@@ -257,7 +354,7 @@ export default function ToDos() {
 
         todos.forEach(t => {
             if (!t.due_date) return;
-            // Filter out completed tasks from calendar
+            // Filter out completed tasks from calendar (master completion)
             if (t.completed) return;
 
             const dueDate = parseISO(t.due_date);
@@ -276,12 +373,6 @@ export default function ToDos() {
                 items.push({ ...baseItem, date: t.due_date });
             } else {
                 // Generate instances for the current view
-
-                // If recurrence started before view, fast forward loosely (optimization)
-                // For simplicity, we just iterate day by day or use math. 
-                // Since views are small (1 month), we can just check relevant dates.
-
-                // Better approach: Iterate days in view and check if match
                 const daysInView = eachDayOfInterval({ start: viewStart, end: viewEnd });
 
                 daysInView.forEach(day => {
@@ -294,11 +385,18 @@ export default function ToDos() {
                     else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(day);
 
                     if (isMatch) {
+                        // Check if completed for this specific date
+                        const dateStr = format(day, 'yyyy-MM-dd');
+                        const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === t.id && tc.completed_date === dateStr);
+
+                        // If completed, don't show in calendar (or show as completed if desired, but user said "delete")
+                        if (isCompletedForDate) return;
+
                         items.push({
                             ...baseItem,
-                            id: `${t.id}_${format(day, 'yyyy-MM-dd')}`, // Unique ID for key
+                            id: `${t.id}_${dateStr}`, // Unique ID for key
                             originalId: t.id,
-                            date: format(day, 'yyyy-MM-dd')
+                            date: dateStr
                         });
                     }
                 });
@@ -334,17 +432,38 @@ export default function ToDos() {
         });
 
         return combinedItems;
-    }, [todos, currentDate, googleEvents]);
+    }, [todos, currentDate, googleEvents, todoCompletions]);
 
     // Stats Logic
     const todayCount = useMemo(() => {
         const today = new Date();
-        return todos.filter(t =>
-            !t.completed &&
-            t.due_date &&
-            isSameDay(parseISO(t.due_date), today)
-        ).length;
-    }, [todos]);
+        const dateStr = format(today, 'yyyy-MM-dd');
+
+        return todos.filter(t => {
+            if (t.completed) return false;
+            if (!t.due_date) return false;
+
+            const dueDate = parseISO(t.due_date);
+
+            if (t.recurrence === 'none') {
+                return isSameDay(dueDate, today);
+            } else {
+                // Check recurrence match
+                if (isBefore(today, dueDate) && !isSameDay(today, dueDate)) return false;
+
+                let isMatch = false;
+                if (t.recurrence === 'daily') isMatch = true;
+                else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(today);
+                else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(today);
+
+                if (!isMatch) return false;
+
+                // Check if completed for today
+                const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === t.id && tc.completed_date === dateStr);
+                return !isCompletedForDate;
+            }
+        }).length;
+    }, [todos, todoCompletions]);
 
     const acceptedFriends = collaborations.filter(c => c.status === 'accepted');
 
@@ -452,7 +571,7 @@ export default function ToDos() {
                         </div>
 
                         {/* Compact Grid for Settings */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="grid gap-1.5">
                                 <div className="flex items-center justify-between">
                                     <Label className="text-xs text-muted-foreground">Date <span className="font-normal opacity-70">(Optional)</span></Label>
@@ -462,7 +581,7 @@ export default function ToDos() {
                                         </button>
                                     )}
                                 </div>
-                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9 text-xs" />
+                                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10 text-sm" />
                             </div>
                             <div className="grid gap-1.5">
                                 <div className="flex items-center justify-between">
@@ -477,13 +596,13 @@ export default function ToDos() {
                                     type="time"
                                     value={time === "none" ? "" : time}
                                     onChange={(e) => setTime(e.target.value)}
-                                    className="h-9 text-xs"
+                                    className="h-10 text-sm"
                                 />
                             </div>
                             <div className="grid gap-1.5">
                                 <Label className="text-xs text-muted-foreground">Urgency</Label>
                                 <Select value={urgency} onValueChange={(val: any) => setUrgency(val)}>
-                                    <SelectTrigger className="h-9 text-xs">
+                                    <SelectTrigger className="h-10 text-sm">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -517,7 +636,7 @@ export default function ToDos() {
                             <div className="grid gap-1.5">
                                 <Label className="text-xs text-muted-foreground">Recurrence</Label>
                                 <Select value={recurrence} onValueChange={(val: any) => setRecurrence(val)}>
-                                    <SelectTrigger className="h-9 text-xs">
+                                    <SelectTrigger className="h-10 text-sm">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -860,7 +979,10 @@ export default function ToDos() {
                                                             <Pencil className="h-3.5 w-3.5" />
                                                         </button>
                                                         <button
-                                                            onClick={() => setTodoToDelete(todo.id)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                confirmDelete(todo);
+                                                            }}
                                                             className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-xs text-muted-foreground hover:text-white transition-colors"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
@@ -1046,7 +1168,7 @@ export default function ToDos() {
                                                         <Pencil className="h-3.5 w-3.5" />
                                                     </button>
                                                     <button
-                                                        onClick={() => setTodoToDelete(todo.id)}
+                                                        onClick={() => confirmDelete(todo)}
                                                         className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-xs text-muted-foreground hover:text-white transition-colors"
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />
@@ -1101,6 +1223,27 @@ export default function ToDos() {
                     />
                 </div>
             </div>
+            {/* Recurring Delete Dialog */}
+            <Dialog open={isRecurringDeleteOpen} onOpenChange={setIsRecurringDeleteOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Delete Recurring Task</DialogTitle>
+                        <DialogDescription>
+                            Do you want to delete only this occurrence or the entire series?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsRecurringDeleteOpen(false)}>Cancel</Button>
+                        <Button variant="outline" onClick={() => handleDeleteRecurring('instance')}>
+                            Delete This Occurrence
+                        </Button>
+                        <Button variant="destructive" onClick={() => handleDeleteRecurring('series')}>
+                            Delete Entire Series
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <VoiceTaskModal
                 isOpen={voiceModalOpen}
                 onClose={() => setVoiceModalOpen(false)}

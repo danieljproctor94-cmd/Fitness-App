@@ -15,9 +15,9 @@ export function SEO({
     image,
     url
 }: SEOProps) {
-    const siteTitle = "FitTrack";
+    const siteTitle = "Progress Syncer";
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
-    const defaultDescription = "Get recommended workouts, track nutrition, and compete with friends. All powered by AI.";
+    const defaultDescription = "Track your workouts, habits, and body measurements with Progress Syncer. Your all-in-one fitness companion.";
     const metaDescription = description || defaultDescription;
     const metaImage = image || "/og-image.jpg";
     const metaUrl = url || window.location.href;

@@ -78,6 +78,30 @@ export interface ToDo {
     shared_with?: string[];
 }
 
+export interface ToDoCompletion {
+    id: string;
+    todo_id: string;
+    user_id: string;
+    completed_date: string;
+    created_at?: string;
+}
+
+export interface ToDoException {
+    id: string;
+    todo_id: string;
+    user_id: string;
+    exception_date: string;
+    created_at?: string;
+}
+
+export interface ToDoException {
+    id: string;
+    todo_id: string;
+    user_id: string;
+    exception_date: string;
+    created_at?: string;
+}
+
 export interface Collaboration {
     id: string;
     requester_id: string;
@@ -91,6 +115,8 @@ interface DataContextType {
     measurements: Measurement[];
     mindsetLogs: MindsetLog[];
     todos: ToDo[];
+    todoCompletions: ToDoCompletion[];
+    todoExceptions: ToDoException[];
     userProfile: UserProfile;
     collaborations: Collaboration[];
     addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
@@ -101,6 +127,8 @@ interface DataContextType {
     addToDo: (todo: Omit<ToDo, 'id'>) => Promise<ToDo | null>;
     updateToDo: (id: string, updates: Partial<ToDo>) => Promise<void>;
     deleteToDo: (id: string) => Promise<void>;
+    toggleRecurringCompletion: (todoId: string, date: string, isCompleted: boolean) => Promise<void>;
+    excludeRecurringTask: (todoId: string, date: string) => Promise<void>;
     shareToDo: (todoId: string, userId: string) => Promise<void>;
     updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
     fetchAllUsers: () => Promise<UserProfile[]>;
@@ -147,8 +175,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const [mindsetLogs, setMindsetLogs] = useState<MindsetLog[]>([]);
     const [todos, setTodos] = useState<ToDo[]>([]);
+    const [todoCompletions, setTodoCompletions] = useState<ToDoCompletion[]>([]);
+    const [todoExceptions, setTodoExceptions] = useState<ToDoException[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '/logo.png'); // Default from cache or fallback
+    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || ''); // Default from cache or empty
     const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '/favicon.ico');
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
     const [isLoading, setIsLoading] = useState(true);
@@ -195,6 +225,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setMeasurements([]);
             setMindsetLogs([]);
             setTodos([]);
+            setTodoCompletions([]);
             setUserProfile(initialUserProfile);
             setCollaborations([]);
             setIsLoading(false);
@@ -229,6 +260,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 }));
                 setTodos(processedTodos);
             }
+
+            // 4b. ToDo Completions (for recurring tasks)
+            const { data: tcData } = await supabase.from('todo_completions').select('*');
+            if (tcData) setTodoCompletions(tcData);
 
             // 5. Profile
             const { data: pData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
@@ -431,6 +466,95 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         setTodos(prev => prev.filter(t => t.id !== id));
         toast.success("Task deleted!");
+    };
+
+    const toggleRecurringCompletion = async (todoId: string, date: string, isCompleted: boolean) => {
+        if (!user) return;
+
+        // Optimistic Update
+        const optimisticCompletion: ToDoCompletion = {
+            id: 'optimistic_' + Date.now(),
+            todo_id: todoId,
+            user_id: user.id,
+            completed_date: date,
+            created_at: new Date().toISOString()
+        };
+
+        if (isCompleted) {
+            setTodoCompletions(prev => [...prev, optimisticCompletion]);
+
+            // Add completion to DB
+            const { data, error } = await supabase.from('todo_completions').insert({
+                todo_id: todoId,
+                user_id: user.id,
+                completed_date: date
+            }).select();
+
+            if (error) {
+                console.error("Error marking recurring task as completed:", error);
+                toast.error("Failed to update task.");
+                // Revert optimistic update
+                setTodoCompletions(prev => prev.filter(tc => tc.id !== optimisticCompletion.id));
+                return;
+            }
+
+            // Replace optimistic with real data
+            if (data) {
+                setTodoCompletions(prev => prev.map(tc => tc.id === optimisticCompletion.id ? data[0] : tc));
+            }
+        } else {
+            // Remove completion optimistically
+            setTodoCompletions(prev => prev.filter(tc => !(tc.todo_id === todoId && tc.completed_date === date)));
+
+            // Remove completion from DB
+            const { error } = await supabase
+                .from('todo_completions')
+                .delete()
+                .eq('todo_id', todoId)
+                .eq('completed_date', date);
+
+            if (error) {
+                console.error("Error un-completing recurring task:", error);
+                toast.error("Failed to update task.");
+                // Revert: Add it back (we'd strictly need to know the ID, but since we just fetch all, invalidating query is better. 
+                // For now, let's just refetch or warn).
+                // A fetch would be safest.
+                const { data } = await supabase.from('todo_completions').select('*');
+                if (data) setTodoCompletions(data);
+                return;
+            }
+        }
+    };
+
+    const excludeRecurringTask = async (todoId: string, date: string) => {
+        if (!user) return;
+
+        // Optimistic Update
+        const optimisticException: ToDoException = {
+            id: 'optimistic_ex_' + Date.now(),
+            todo_id: todoId,
+            user_id: user.id,
+            exception_date: date,
+            created_at: new Date().toISOString()
+        };
+        setTodoExceptions(prev => [...prev, optimisticException]);
+
+        const { data, error } = await supabase.from('todo_exceptions').insert({
+            todo_id: todoId,
+            user_id: user.id,
+            exception_date: date
+        }).select();
+
+        if (error) {
+            console.error("Error deleting recurring instance:", error);
+            toast.error("Failed to delete task instance.");
+            setTodoExceptions(prev => prev.filter(ex => ex.id !== optimisticException.id));
+            return;
+        }
+
+        if (data) {
+            setTodoExceptions(prev => prev.map(ex => ex.id === optimisticException.id ? data[0] : ex));
+        }
     };
 
     const shareToDo = async (todoId: string, userId: string) => {
@@ -724,6 +848,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         measurements,
         mindsetLogs,
         todos,
+        todoCompletions,
+        todoExceptions,
         userProfile,
         collaborations,
         addWorkout,
@@ -734,6 +860,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToDo,
         updateToDo,
         deleteToDo,
+        toggleRecurringCompletion,
+        excludeRecurringTask,
         shareToDo,
         updateUserProfile,
         fetchAllUsers,
@@ -754,6 +882,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         measurements,
         mindsetLogs,
         todos,
+        todoCompletions,
+        todoExceptions,
         userProfile,
         collaborations,
         appLogo,
