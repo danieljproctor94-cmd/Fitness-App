@@ -24,13 +24,13 @@ export default function Settings() {
 
     // Admin Settings
     const { updateAppLogo, appLogo, updateSocialUrl, socialUrl, updateAppFavicon, appFavicon } = useData();
-    const [adminLogoUrl, setAdminLogoUrl] = useState(appLogo || '/logo.png');
+    const [adminLogoUrl, setAdminLogoUrl] = useState(appLogo || '');
     const [adminFaviconUrl, setAdminFaviconUrl] = useState(appFavicon || '/favicon.ico');
     const [adminSocialUrl, setAdminSocialUrl] = useState(socialUrl || '');
 
     // Sync local state with context when context loads
     useEffect(() => {
-        if (appLogo && appLogo !== '/logo.png') {
+        if (appLogo) {
             setAdminLogoUrl(appLogo);
         }
         if (socialUrl) {
@@ -84,7 +84,7 @@ export default function Settings() {
                                 <Input
                                     value={adminLogoUrl}
                                     onChange={(e) => setAdminLogoUrl(e.target.value)}
-                                    placeholder="/logo.png"
+                                    placeholder="https://example.com/logo.png"
                                 />
                                 <Button onClick={handleSaveLogo}>Save</Button>
                             </div>

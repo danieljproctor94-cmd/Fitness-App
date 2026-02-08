@@ -26,9 +26,9 @@ export const siteContent = {
         ],
         cta: {
             dashboard: "Dashboard",
-            login: "Log in",
+            login: "Join with Google",
             google: "Join with Google",
-            start: "Start for Free"
+            start: "Get Started for Free"
         },
         badge: "v2.0 is now live"
     },
@@ -41,7 +41,7 @@ export const siteContent = {
         description: "Get recommended workouts, track nutrition, and compete with friends. All powered by AI to keep you consistent while you sleep.",
         buttons: {
             google: "Join with Google",
-            start: "Start for Free"
+            start: "Get Started for Free"
         },
         stats: [
             { icon: Check, label: "Daily Goal", value: "Completed", color: "emerald" },
