@@ -22,6 +22,18 @@ export function useGoogleCalendar() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
+        // Load stored events immediately for UI responsiveness
+        const storedEvents = localStorage.getItem('google_calendar_events');
+        if (storedEvents) {
+            try {
+                setEvents(JSON.parse(storedEvents));
+            } catch (e) {
+                console.error("Failed to parse stored events", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
         // Load Scripts
         const loadGapi = () => {
             const script = document.createElement("script");
@@ -35,9 +47,20 @@ export function useGoogleCalendar() {
                         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
                     });
                     setGapiInited(true);
-
-                    // Check if we have a valid token (rudimentary check, mostly rely on re-auth)
-                    // Gapi client might have token if session persisted? Not reliably without user interaction or silent refresh.
+                    
+                    // Attempt to restore token
+                    const storedTokenStr = localStorage.getItem('google_access_token');
+                    if (storedTokenStr) {
+                         try {
+                             const storedToken = JSON.parse(storedTokenStr);
+                             (window as any).gapi.client.setToken(storedToken);
+                             setIsConnected(true);
+                         } catch (e) {
+                             console.error("Error restoring token", e);
+                             localStorage.removeItem('google_access_token');
+                             setIsConnected(false);
+                         }
+                    }
                 });
             };
             document.body.appendChild(script);
@@ -58,6 +81,14 @@ export function useGoogleCalendar() {
                             toast.error("Google Sign-In failed.");
                             throw resp;
                         }
+                        
+                        // Save token
+                        const tokenToStore = {
+                            ...resp,
+                            created_at: Date.now()
+                        };
+                        localStorage.setItem('google_access_token', JSON.stringify(tokenToStore)); 
+                        
                         setIsConnected(true);
                         await fetchUpcomingEvents();
                     },
@@ -73,6 +104,13 @@ export function useGoogleCalendar() {
             loadGis();
         }
     }, []);
+    
+    // Auto-refresh events when GAPI is ready and we are 'connected' (from restored token)
+    useEffect(() => {
+        if (gapiInited && isConnected) {
+             fetchUpcomingEvents(true);
+        }
+    }, [gapiInited, isConnected]);
 
     const connect = () => {
         if (!CLIENT_ID) {
@@ -92,7 +130,10 @@ export function useGoogleCalendar() {
         }
     };
 
-    const fetchUpcomingEvents = async () => {
+    const fetchUpcomingEvents = async (silent = false) => {
+        // Ensure client is ready and token logic is handled
+        if (!(window as any).gapi?.client?.getToken()) return;
+
         setIsLoading(true);
         try {
             const response = await (window as any).gapi.client.calendar.events.list({
@@ -105,11 +146,21 @@ export function useGoogleCalendar() {
             });
             const result = response.result.items;
             setEvents(result);
-            toast.success(`Synced ${result.length} calendar events!`);
+            
+            // Persist events
+            localStorage.setItem('google_calendar_events', JSON.stringify(result));
+            
+            if (!silent) toast.success(`Synced ${result.length} calendar events!`);
         } catch (err: any) {
-            console.error("Error fetching events", err);
-            toast.error("Failed to fetch Google Calendar events. Please reconnect.");
-            setIsConnected(false); // Assume token invalid
+            // console.error("Error fetching events", err);
+            // If error is 401, token might be expired
+            if (err?.result?.error?.code === 401) {
+                 if (!silent) toast.error("Google session expired. Please reconnect.");
+                 setIsConnected(false);
+                 localStorage.removeItem('google_access_token');
+            } else {
+                 if (!silent) toast.error("Failed to fetch Google Calendar events.");
+            }
         } finally {
             setIsLoading(false);
         }
