@@ -1,18 +1,70 @@
 ﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { WorkTimer } from "@/components/dashboard/WorkTimer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight, Plus, RefreshCw, CheckSquare as CheckSquareIcon, ArrowDown, ArrowUp, AlertTriangle, Circle } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
 import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar";
+import googleIcon from "@/assets/google.png";
+
 
 export default function Dashboard() {
-    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions } = useData();
+    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo } = useData();
+    const { events: googleEvents } = useGoogleCalendar();
     const [currentDate, setCurrentDate] = useState(new Date());
+
+    // Quick Add State
+    const [isAddOpen, setIsAddOpen] = useState(false);
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
+    const [time, setTime] = useState("none");
+    const [recurrence, setRecurrence] = useState("none");
+    const [urgency, setUrgency] = useState("normal");
+    const [notify, setNotify] = useState(false);
+    const [notifyBefore] = useState("10_min");
+
+    const handleSaveTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!title) return;
+
+        const newTodo = {
+            title,
+            description,
+            completed: false,
+            user_id: userProfile?.id,
+            created_at: new Date().toISOString(),
+            due_date: date,
+            due_time: time === "none" ? undefined : time,
+            recurrence: recurrence as any,
+            urgency: urgency as any,
+            notify,
+            notify_before: notifyBefore as any,
+            shared_with: []
+        };
+
+        await addToDo(newTodo);
+        setIsAddOpen(false);
+        toast.success("Task added!");
+        
+        // Reset
+        setTitle("");
+        setDescription("");
+        setDate(format(new Date(), "yyyy-MM-dd"));
+        setTime("none");
+        setRecurrence("none");
+        setUrgency("normal");
+        setNotify(false);
+    };
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentDate(new Date()), 60000);
@@ -445,10 +497,11 @@ export default function Dashboard() {
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
-                            <WorkTimer compact />
-                            <Link to="/planner">
-                                <Button variant="ghost" size="sm" className="h-8 text-xs">View All</Button>
-                            </Link>
+                                                    <Button size="sm" className="h-8 text-xs gap-1" onClick={() => setIsAddOpen(true)}>
+                            <Plus className="h-3.5 w-3.5" /> Quick Add
+                        </Button>
+                        
+                            
                         </div>
                     </CardHeader>
 
@@ -462,21 +515,19 @@ export default function Dashboard() {
                         ) : (() => {
                             // Filter tasks for today
                             const today = new Date();
-                            const todaysTasks = todos.filter(t => {
-                                // 1. Check completion (Archived/Done)
-                                if (t.completed) return false;
+                            
 
-                                // 2. Check Due Date validity
+                            const todaysTasks = todos.filter(t => {
+                                if (t.completed) return false;
                                 if (!t.due_date) return false;
                                 const dueDate = parseISO(t.due_date);
 
-                                // 3. Check Recurrence
+                                // Check Recurrence
                                 if (t.recurrence === 'none') {
                                     return isSameDay(dueDate, today);
                                 }
 
                                 // Recurring Logic
-                                // Must be after or same as due date
                                 if (isBefore(today, dueDate) && !isSameDay(today, dueDate)) return false;
 
                                 let isMatch = false;
@@ -486,30 +537,46 @@ export default function Dashboard() {
 
                                 if (isMatch) {
                                     const dateStr = format(today, 'yyyy-MM-dd');
-
-                                    // Check Exceptions
                                     const isExcluded = todoExceptions.some(ex => ex.todo_id === t.id && ex.exception_date === dateStr);
                                     if (isExcluded) return false;
-
-                                    // Check if completed TODAY
                                     const isCompletedForDate = todoCompletions.some(tc => tc.todo_id === t.id && tc.completed_date === dateStr);
                                     if (isCompletedForDate) return false;
-
                                     return true;
                                 }
                                 return false;
-                            }).sort((a, b) => {
-                                // Sort by urgency then time
-                                const urgencyOrder = { critical: 0, high: 1, normal: 2, low: 3, medium: 2 };
-                                const uA = urgencyOrder[a.urgency as keyof typeof urgencyOrder] ?? 2;
-                                const uB = urgencyOrder[b.urgency as keyof typeof urgencyOrder] ?? 2;
-                                if (uA !== uB) return uA - uB;
+                            });
 
+                             // Mix in Google Events
+                             const formattedGoogleEvents = (googleEvents || []).reduce((acc: any[], event) => {
+                                 const startStr = event.start.dateTime || event.start.date;
+                                 if (!startStr) return acc;
+                                 
+                                 const eventDate = parseISO(startStr);
+                                 if (isSameDay(eventDate, today)) {
+                                     acc.push({
+                                         id: `g_${event.id}`,
+                                         title: event.summary || "No Title",
+                                         description: event.description || "",
+                                         due_date: format(eventDate, 'yyyy-MM-dd'),
+                                         due_time: event.start.dateTime ? format(eventDate, 'HH:mm') : undefined,
+                                         recurrence: 'none',
+                                         urgency: 'normal',
+                                         completed: false,
+                                         isGoogleEvent: true,
+                                         shared_with: []
+                                     });
+                                 }
+                                 return acc;
+                            }, []);
+                            
+                            const combined = [...todaysTasks, ...formattedGoogleEvents].sort((a, b) => {
                                 if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
+                                if (a.due_time) return -1;
+                                if (b.due_time) return 1;
                                 return 0;
                             });
 
-                            if (todaysTasks.length === 0) {
+                            if (combined.length === 0) {
                                 return (
                                     <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground space-y-3 py-8">
                                         <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center">
@@ -528,55 +595,186 @@ export default function Dashboard() {
 
                             return (
                                 <div className="space-y-2">
-                                    {todaysTasks.map(task => (
-                                        <div key={task.id} className={cn(
-                                            "flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors group",
-                                            task.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
-                                                task.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
-                                                    'border-l-4 border-l-transparent'
+                                    {combined.map((todo: any) => (
+                                        <Card key={todo.id} className={cn(
+                                            "shadow-none border transition-all group relative overflow-hidden",
+                                            todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40 border-border/60 hover:bg-card hover:border-emerald-500/30",
+                                            !todo.completed && todo.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
+                                                !todo.completed && todo.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
+                                                    !todo.completed && (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? 'border-l-4 border-l-primary' :
+                                                        !todo.completed && todo.urgency === 'low' ? 'border-l-4 border-l-slate-400' : ''
                                         )}>
-                                            <div className="flex-1 min-w-0 pr-3">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="font-medium text-sm truncate">{task.title}</span>
-                                                    {task.urgency === 'critical' && <span className="text-[10px] font-bold text-red-500 bg-red-500/10 px-1.5 py-0.5 rounded">CRITICAL</span>}
-                                                </div>
-                                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                                    {task.due_time && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" />
-                                                            {(() => {
-                                                                const [h, m] = task.due_time.split(':');
-                                                                const hour = parseInt(h);
-                                                                const ampm = hour >= 12 ? 'PM' : 'AM';
-                                                                const displayHour = hour % 12 || 12;
-                                                                return `${displayHour}:${m} ${ampm}`;
-                                                            })()}
-                                                        </span>
+                                            <CardContent className="p-3">
+                                                <div className="flex items-start gap-3">
+                                                    {todo.isGoogleEvent ? (
+                                                        <div className="mt-1 h-5 w-5 flex items-center justify-center shrink-0">
+                                                            <img src={googleIcon} alt="G" className="h-4 w-4 opacity-80" />
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleToggleComplete(todo)}
+                                                            className={cn(
+                                                                "mt-1 h-5 w-5 rounded border flex items-center justify-center shrink-0 transition-colors",
+                                                                todo.completed ? "bg-emerald-500 border-emerald-500 text-white" : "border-muted-foreground/30 hover:border-emerald-500"
+                                                            )}
+                                                        >
+                                                            {todo.completed && <CheckSquareIcon className="h-3.5 w-3.5" />}
+                                                        </button>
                                                     )}
-                                                    {task.recurrence !== 'none' && (
-                                                        <span className="flex items-center gap-1 capitalize">
-                                                            <Activity className="h-3 w-3" /> {task.recurrence}
-                                                        </span>
-                                                    )}
+                                                    <div className="flex-1 min-w-0 space-y-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
+                                                                {todo.title}
+                                                            </p>
+                                                            {todo.urgency && !todo.completed && !todo.isGoogleEvent && (
+                                                                <span className={cn(
+                                                                    "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 shrink-0",
+                                                                    todo.urgency === 'critical' ? "bg-red-500/15 text-red-600" :
+                                                                        todo.urgency === 'high' ? "bg-orange-500/15 text-orange-600" :
+                                                                            (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? "bg-primary/15 text-primary" :
+                                                                                "bg-slate-500/15 text-slate-600"
+                                                                )}>
+                                                                    {(todo.urgency as any) === 'medium' ? 'NORMAL' : todo.urgency}
+                                                                </span>
+                                                            )}
+
+                                                        </div>
+                                                        {todo.description && (
+                                                            <p className="text-xs text-muted-foreground line-clamp-2">{todo.description}</p>
+                                                        )}
+
+                                                        <div className="flex items-center gap-2 pt-1 text-[10px] text-muted-foreground">
+                                                            {todo.due_time && (
+                                                                <span className="flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded">
+                                                                    <Clock className="h-3 w-3" /> {
+                                                                        (() => {
+                                                                            const [h, m] = todo.due_time.split(':');
+                                                                            const hour = parseInt(h);
+                                                                            const ampm = hour >= 12 ? 'PM' : 'AM';
+                                                                            const displayHour = hour % 12 || 12;
+                                                                            return `${displayHour}:${m} ${ampm}`;
+                                                                        })()
+                                                                    }
+                                                                </span>
+                                                            )}
+                                                            {todo.recurrence !== 'none' && (
+                                                                <span className="flex items-center gap-1 bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded capitalize">
+                                                                    <RefreshCw className="h-3 w-3" /> {todo.recurrence}
+                                                                </span>
+                                                            )}
+                                                            {todo.isGoogleEvent && (
+                                                                <span className="flex items-center gap-1 bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded">
+                                                                     G-Cal
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={() => handleToggleComplete(task)}
-                                                title="Mark as completed"
-                                            >
-                                                <CheckCircle2 className="h-4 w-4 text-muted-foreground hover:text-emerald-500" />
-                                            </Button>
-                                        </div>
+                                            </CardContent>
+                                        </Card>
                                     ))}
                                 </div>
                             );
                         })()}
-                    </CardContent>
+                        </CardContent>
                 </Card>
             </div>
+
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>Quick Add Task</DialogTitle>
+                        <DialogDescription>
+                            Add a new task to your schedule.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSaveTask}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="title">Task Title</Label>
+                                <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Morning Workout" autoFocus required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-1.5">
+                                    <Label className="text-xs text-muted-foreground">Date</Label>
+                                    <Input
+                                        type="date"
+                                        value={date}
+                                        onChange={(e) => setDate(e.target.value)}
+                                        className="h-10 text-base md:text-sm w-full"
+                                        style={{ colorScheme: "dark" }}
+                                    />
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label className="text-xs text-muted-foreground">Time</Label>
+                                    <Input
+                                        type="time"
+                                        value={time === "none" ? "" : time}
+                                        onChange={(e) => setTime(e.target.value)}
+                                        className="h-10 text-base md:text-sm w-full appearance-none"
+                                        style={{ colorScheme: "dark" }}
+                                    />
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label className="text-xs text-muted-foreground">Urgency</Label>
+                                    <Select value={urgency} onValueChange={(val) => setUrgency(val)}>
+                                        <SelectTrigger className="h-10 text-base md:text-sm">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="low">
+                                                <div className="flex items-center gap-2">
+                                                    <ArrowDown className="h-3.5 w-3.5 text-slate-500" />
+                                                    <span className="text-slate-600">Low</span>
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="normal">
+                                                <div className="flex items-center gap-2">
+                                                    <Circle className="h-3.5 w-3.5 text-primary fill-primary/20" />
+                                                    <span className="text-primary">Normal</span>
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="high">
+                                                <div className="flex items-center gap-2">
+                                                    <ArrowUp className="h-3.5 w-3.5 text-orange-500" />
+                                                    <span className="text-orange-600">High</span>
+                                                </div>
+                                            </SelectItem>
+                                            <SelectItem value="critical">
+                                                <div className="flex items-center gap-2">
+                                                    <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+                                                    <span className="text-red-600">Critical</span>
+                                                </div>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-1.5">
+                                    <Label className="text-xs text-muted-foreground">Recurrence</Label>
+                                    <Select value={recurrence} onValueChange={(val) => setRecurrence(val)}>
+                                        <SelectTrigger className="h-10 text-base md:text-sm">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
+                                            <SelectItem value="daily">Daily</SelectItem>
+                                            <SelectItem value="weekly">Weekly</SelectItem>
+                                            <SelectItem value="monthly">Monthly</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Description <span className="text-muted-foreground font-normal">(Optional)</span></Label>
+                                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." className="resize-none h-20 text-sm" />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit">Save Task</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div >
     );
 }
