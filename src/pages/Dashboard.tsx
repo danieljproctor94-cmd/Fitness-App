@@ -18,7 +18,7 @@ import googleIcon from "@/assets/google.png";
 
 
 export default function Dashboard() {
-    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo } = useData();
+    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo, updateToDo, toggleRecurringCompletion } = useData();
     const { events: googleEvents } = useGoogleCalendar();
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -275,9 +275,9 @@ export default function Dashboard() {
         const dateStr = format(new Date(), 'yyyy-MM-dd');
 
         if (isRecurring) {
-            await useData().toggleRecurringCompletion(todo.id, dateStr, true);
+            await toggleRecurringCompletion(todo.id, dateStr, true);
         } else {
-            await useData().updateToDo(todo.id, { completed: true });
+            await updateToDo(todo.id, { completed: true });
         }
 
         toast.success("Task completed!");
