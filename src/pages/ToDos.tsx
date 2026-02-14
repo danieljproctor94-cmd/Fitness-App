@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle, Sparkles } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle, Mic } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useData } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
@@ -895,7 +895,7 @@ export default function ToDos() {
                                 className="relative overflow-hidden h-8 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 shadow-md transition-all hover:scale-105 px-4"
                             >
                                 <div className="flex items-center gap-1.5">
-                                    <Sparkles className="h-3.5 w-3.5 text-indigo-200" />
+                                    <Mic className="h-3.5 w-3.5 text-indigo-200" />
                                     <span className="text-xs font-semibold">Voice AI</span>
                                 </div>
                                 <span className="absolute top-0 right-0 bg-white/20 text-[6px] font-extrabold px-1.5 py-[2px] rounded-bl-md text-indigo-100 leading-none tracking-wider">BETA</span>
@@ -1344,4 +1344,5 @@ export default function ToDos() {
         </div >
     );
 }
+
 
