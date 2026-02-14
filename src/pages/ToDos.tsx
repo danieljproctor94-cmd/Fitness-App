@@ -274,8 +274,8 @@ export default function ToDos() {
 
 
 
-    const todosOnSelectedDate = useMemo(() => {
-        const filtered = todos.filter(t => {
+        const todosOnSelectedDate = useMemo(() => {
+        const filteredTodos = todos.filter(t => {
             // If master task is completed, it shouldn't show up anywhere (archived)
             if (t.completed) return false;
 
@@ -314,24 +314,44 @@ export default function ToDos() {
             }
 
             return false;
-        });
-
-        return filtered.map(t => {
-            // No need to map completion status here anymore since we filtered them out, 
-            // but we keep the structure just in case logic changes or for consistency if we add a "Show Completed" toggle later.
+        }).map(t => {
             if (t.recurrence !== 'none') {
-                // It will be false because we filtered true ones, but let's keep it safe
-                return { ...t, completed: false };
+                 return { ...t, completed: false };
             }
             return t;
-        }).sort((a, b) => {
+        });
+
+        // Mix in Google Events
+        const formattedGoogleEvents = (googleEvents || []).reduce((acc: any[], event) => {
+             const startStr = event.start.dateTime || event.start.date;
+             if (!startStr) return acc;
+             
+             const eventDate = parseISO(startStr);
+             if (isSameDay(eventDate, selectedDate)) {
+                 acc.push({
+                     id: `g_${event.id}`,
+                     title: event.summary || "No Title",
+                     description: event.description || "",
+                     due_date: format(eventDate, 'yyyy-MM-dd'),
+                     due_time: event.start.dateTime ? format(eventDate, 'HH:mm') : undefined,
+                     recurrence: 'none',
+                     urgency: 'normal',
+                     completed: false,
+                     isGoogleEvent: true,
+                     shared_with: []
+                 });
+             }
+             return acc;
+        }, []);
+
+        return [...filteredTodos, ...formattedGoogleEvents].sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
             if (a.due_time) return -1;
             if (b.due_time) return 1;
             return 0;
         });
-    }, [todos, selectedDate, todoCompletions]);
+    }, [todos, selectedDate, todoCompletions, googleEvents]);
 
     // List Filter State
     const [listFilter, setListFilter] = useState<'anytime' | 'recurring' | 'overdue' | 'completed'>('anytime');
@@ -912,7 +932,7 @@ export default function ToDos() {
                                         </div>
                                     </div>
 
-                                    {todosOnSelectedDate.map(todo => (
+                                    {todosOnSelectedDate.map((todo: any) => (
                                         <Card key={todo.id} className={cn(
                                             "shadow-none border transition-all group relative overflow-hidden",
                                             todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40 border-border/60 hover:bg-card hover:border-emerald-500/30",
@@ -934,10 +954,10 @@ export default function ToDos() {
                                                     </button>
                                                     <div className="flex-1 min-w-0 space-y-1">
                                                         <div className="flex items-center justify-between">
-                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground")}>
+                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
                                                                 {todo.title}
                                                             </p>
-                                                            {todo.urgency && !todo.completed && (
+                                                            {todo.urgency && !todo.completed && !todo.isGoogleEvent && (
                                                                 <span className={cn(
                                                                     "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 shrink-0",
                                                                     todo.urgency === 'critical' ? "bg-red-500/15 text-red-600" :
@@ -964,7 +984,7 @@ export default function ToDos() {
                                                                         <AvatarFallback className="text-[9px]">{userProfile?.displayName?.[0] || 'U'}</AvatarFallback>
                                                                     </Avatar>
                                                                     {/* Collaborator Avatars */}
-                                                                    {todo.shared_with.map((userId) => {
+                                                                    {todo.shared_with.map((userId: string) => {
                                                                         const collaborator = acceptedFriends.find(c => (c.profile?.id === userId || c.receiver_id === userId || c.requester_id === userId));
                                                                         const profile = collaborator?.profile || (collaborations.find(c => c.receiver_id === userId || c.requester_id === userId)?.profile);
 
@@ -979,7 +999,7 @@ export default function ToDos() {
                                                                         );
                                                                     })}
                                                                 </div>
-                                                            ) : (
+                                                            ) : !todo.isGoogleEvent ? (
                                                                 <div className="flex items-center -space-x-1.5">
                                                                     <Avatar className="h-6 w-6 rounded-full border-2 border-background ring-1 ring-border/10">
                                                                         <AvatarImage src={userProfile?.photoURL} className="object-cover" />
@@ -997,7 +1017,7 @@ export default function ToDos() {
                                                                         <Plus className="h-3 w-3 text-muted-foreground" />
                                                                     </button>
                                                                 </div>
-                                                            )}
+                                                            ) : null} 
                                                         </div>
                                                         <div className="flex items-center gap-2 pt-1 text-[10px] text-muted-foreground">
                                                             {todo.due_time && (
@@ -1021,9 +1041,15 @@ export default function ToDos() {
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-col gap-1 transition-opacity">
-                                                        <button
-                                                            onClick={() => {
-                                                                setEditingId(todo.id);
+                                                        {todo.isGoogleEvent ? (
+                                                             <div className="bg-muted/30 p-1.5 rounded-md text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
+                                                                 G-Cal
+                                                             </div>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setEditingId(todo.id);
                                                                 setTitle(todo.title);
                                                                 setDescription(todo.description || "");
                                                                 setDate(todo.due_date || "");
@@ -1048,7 +1074,9 @@ export default function ToDos() {
                                                             className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-xs text-muted-foreground hover:text-white transition-colors"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
-                                                        </button>
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </CardContent>
@@ -1089,7 +1117,7 @@ export default function ToDos() {
                                         <Skeleton className="h-24 w-full" />
                                         <Skeleton className="h-24 w-full" />
                                     </div>
-                                ) : visibleSideList.map(todo => (
+                                ) : visibleSideList.map((todo: any) => (
                                     <Card key={todo.id} className={cn(
                                         "shadow-none border transition-all group relative overflow-hidden",
                                         todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40 border-border/60 hover:bg-card hover:border-emerald-500/30",
@@ -1112,10 +1140,10 @@ export default function ToDos() {
                                                 </button>
                                                 <div className="flex-1 min-w-0 space-y-1">
                                                     <div className="flex items-center justify-between">
-                                                        <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground")}>
+                                                        <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
                                                             {todo.title}
                                                         </p>
-                                                        {todo.urgency && !todo.completed && (
+                                                        {todo.urgency && !todo.completed && !todo.isGoogleEvent && (
                                                             <span className={cn(
                                                                 "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 shrink-0",
                                                                 todo.urgency === 'critical' ? "bg-red-500/15 text-red-600" :
@@ -1173,9 +1201,9 @@ export default function ToDos() {
                                                                 >
                                                                     <Plus className="h-3 w-3 text-muted-foreground" />
                                                                 </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                                </div>
+                                                            )} 
+                                                        </div>
                                                     <div className="flex items-center gap-2 pt-1 text-[10px] text-muted-foreground">
                                                         {todo.due_time && (
                                                             <span className="flex items-center gap-1 bg-muted px-1.5 py-0.5 rounded">
@@ -1236,8 +1264,8 @@ export default function ToDos() {
                                                         className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-xs text-muted-foreground hover:text-white transition-colors"
                                                     >
                                                         <Trash2 className="h-3.5 w-3.5" />
-                                                    </button>
-                                                </div>
+                                                                </button>
+</div>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -1316,3 +1344,4 @@ export default function ToDos() {
         </div >
     );
 }
+
