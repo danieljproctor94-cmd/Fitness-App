@@ -492,9 +492,7 @@ export default function Dashboard() {
                     <CardHeader className="flex flex-row items-center justify-between pb-2 shrink-0">
                         <div className="space-y-1">
                             <CardTitle>Tasks for Today</CardTitle>
-                            <CardDescription>
-                                {format(currentDate, "EEEE, MMM do")}
-                            </CardDescription>
+                            
                         </div>
                         <div className="flex items-center gap-2">
                                                     <Button size="sm" className="h-8 text-xs gap-1" onClick={() => setIsAddOpen(true)}>
