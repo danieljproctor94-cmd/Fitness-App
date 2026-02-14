@@ -489,21 +489,16 @@ export default function Dashboard() {
 
                 {/* Tasks for Today */}
                 <Card className="col-span-full md:col-span-4 h-full flex flex-col">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 shrink-0">
-                        <div className="space-y-1">
-                            <CardTitle>Tasks for Today</CardTitle>
-                            
-                        </div>
+                                        <CardHeader className="flex flex-row items-center justify-between pb-6 shrink-0">
+                        <CardTitle>Tasks for Today</CardTitle>
                         <div className="flex items-center gap-2">
-                                                    <Button size="sm" className="h-8 text-xs gap-1" onClick={() => setIsAddOpen(true)}>
-                            <Plus className="h-3.5 w-3.5" /> Quick Add
-                        </Button>
-                        
-                            
+                            <Button size="sm" className="h-8 text-xs gap-1" onClick={() => setIsAddOpen(true)}>
+                                <Plus className="h-3.5 w-3.5" /> Quick Add
+                            </Button>
                         </div>
                     </CardHeader>
 
-                    <CardContent className="flex-1 overflow-y-auto pr-2 scrollbar-thin min-h-[250px] max-h-[350px]">
+                    <CardContent className="flex-1 overflow-y-auto px-6 scrollbar-thin min-h-[250px] max-h-[350px]">
                         {isLoading ? (
                             <div className="space-y-3">
                                 <Skeleton className="h-12 w-full" />
