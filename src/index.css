@@ -35,62 +35,65 @@
 
 @layer base {
   :root {
-    /* Defaulting to the Dark Cyber Look even in "root" to ensure instant impact */
-    --background: 234 30% 6%;
-    /* #0b0c15 - Deepest Navy */
+    /* Light Theme (White) */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 258 90% 66%; /* Electric Violet */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 258 90% 66%; /* Purple for active menu */
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 258 90% 66%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark Theme (Current "Dark Cyber Look") */
+    --background: 234 30% 6%; /* #0b0c15 */
     --foreground: 210 40% 98%;
 
     --card: 231 29% 9%;
-    /* #11131f - Dark Navy Card */
     --card-foreground: 210 40% 98%;
 
     --popover: 231 29% 9%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 258 90% 66%;
-    /* #8b5cf6 - Electric Violet */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 235 30% 15%;
-    /* Darker secondary for contrast */
     --secondary-foreground: 210 40% 98%;
 
     --muted: 235 30% 15%;
     --muted-foreground: 215 20% 65%;
 
+    /* Updated Accent to Purple for "purple menu active status" */
     --accent: 258 90% 66%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 236 30% 17%;
-    /* #1f213a - Subtle Indigo Border */
-    --input: 236 30% 17%;
-    --ring: 258 90% 66%;
-
-    --radius: 0.5rem;
-  }
-
-  /* Retain specific dark overrides if needed, but root is now dark by default */
-  .dark {
-    --background: 234 30% 6%;
-    --foreground: 210 40% 98%;
-    --card: 231 29% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 231 29% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 258 90% 66%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 235 30% 15%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 235 30% 15%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 235 30% 15%;
-    /* Accent on hover often needs to be subtle, not full primary */
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
     --border: 236 30% 17%;
     --input: 236 30% 17%;
     --ring: 258 90% 66%;
