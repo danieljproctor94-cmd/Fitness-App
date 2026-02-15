@@ -58,7 +58,7 @@ export default function ToDos() {
     const [time, setTime] = useState("");
     const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('none');
     const [urgency, setUrgency] = useState<'low' | 'normal' | 'high' | 'critical'>('normal');
-    const [notify, setNotify] = useState(false);
+    const [notify, setNotify] = useState(true);
     const [notifyBefore, setNotifyBefore] = useState<'10_min' | '1_hour' | '1_day'>('10_min');
 
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -165,7 +165,7 @@ export default function ToDos() {
         setTime("");
         setRecurrence('none');
         setUrgency('normal');
-        setNotify(false);
+        setNotify(true);
         setNotifyBefore('10_min');
         setSelectedCollaborators([]);
     };

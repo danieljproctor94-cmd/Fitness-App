@@ -7,6 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/features/notifications/NotificationContext";
+import { ReminderManager } from "@/features/reminders/ReminderManager";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
@@ -98,6 +99,7 @@ function App() {
                     <DataProvider>
                         <NotificationProvider>
                             <FaviconUpdater />
+                            <ReminderManager />
                             <BrowserRouter>
                                 <SubdomainRouter
                                     publicRoutes={
