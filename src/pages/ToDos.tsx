@@ -122,7 +122,7 @@ export default function ToDos() {
             description: description || null,
             due_date: date || null,
             due_time: time || null,
-            recurrence,
+            recurrence: (recurrence as string).toLowerCase() as any,
             urgency,
             notify,
             notify_before: notify ? notifyBefore : null,

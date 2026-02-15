@@ -1,4 +1,4 @@
-import { ProgressGallery } from "@/components/measurements/ProgressGallery";
+﻿import { ProgressGallery } from "@/components/measurements/ProgressGallery";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,9 +64,6 @@ export default function Measurements() {
         }
     };
 
-    // Dialog logic removed
-
-
     const sortedForChart = [...measurements].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const sortedForHistory = [...measurements].sort((a, b) => {
         const timeA = new Date(a.date).getTime();
@@ -84,7 +81,8 @@ export default function Measurements() {
         : null;
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-w-7xl mx-auto">
+            {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
@@ -100,7 +98,7 @@ export default function Measurements() {
                     <p className="text-muted-foreground">Track your body metrics and composition.</p>
                 </div>
 
-                {/* Stats Summary - Replaces Log Weight Button */}
+                {/* Stats Summary */}
                 {!isLoading && currentWeight && (
                     <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 -mx-6 px-6 md:mx-0 md:px-0 hide-scrollbar scroll-smooth">
                         <div className="flex flex-col items-center justify-center bg-card border border-border/50 shadow-sm rounded-xl px-4 py-2 min-w-[100px] shrink-0">
@@ -125,261 +123,260 @@ export default function Measurements() {
                 )}
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Chart */}
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle>Weight</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[300px] w-full">
-                            {isLoading ? (
-                                <Skeleton className="h-full w-full" />
-                            ) : (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={sortedForChart}>
-                                        <defs>
-                                            <linearGradient id="colorWeightMeasurements" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <XAxis
-                                            dataKey="date"
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickFormatter={(str) => {
-                                                const d = new Date(str);
-                                                return isNaN(d.getTime()) ? str : format(d, "MMM d");
-                                            }}
-                                        />
-                                        <YAxis
-                                            stroke="#888888"
-                                            fontSize={12}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            domain={['dataMin - 1', 'dataMax + 1']}
-                                            tickFormatter={(value) => `${value}kg`}
-                                        />
-                                        <Tooltip
-                                            labelFormatter={(label) => {
-                                                const d = new Date(label);
-                                                return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
-                                            }}
-                                        />
-                                        <Area
-                                            type="monotone"
-                                            dataKey="weight"
-                                            stroke="hsl(var(--primary))"
-                                            strokeWidth={2}
-                                            fillOpacity={1}
-                                            fill="url(#colorWeightMeasurements)"
-                                            dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
-                                            activeDot={{ r: 6 }}
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Body Stats Calculator Form */}
-                <Card className="col-span-1">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Calculator className="h-5 w-5" />
-                            Body Stats Calculator
-                        </CardTitle>
-                        <CardDescription>Update your stats to recalculate BMI & Body Fat.</CardDescription>
-                    </CardHeader>
-                    {isLoading ? (
-                        <CardContent className="space-y-4">
-                            <Skeleton className="h-10 w-full" />
-                            <div className="grid grid-cols-2 gap-4">
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
-                                <Skeleton className="h-10 w-full" />
+            <div className="grid gap-6 lg:grid-cols-12 items-start">
+                {/* Main Content Column */}
+                <div className="lg:col-span-8 space-y-6">
+                    {/* Weight Chart */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Weight Trend</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pl-2">
+                            <div className="h-[300px] w-full">
+                                {isLoading ? (
+                                    <Skeleton className="h-full w-full" />
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={sortedForChart}>
+                                            <defs>
+                                                <linearGradient id="colorWeightMeasurements" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <XAxis
+                                                dataKey="date"
+                                                stroke="#888888"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickFormatter={(str) => {
+                                                    const d = new Date(str);
+                                                    return isNaN(d.getTime()) ? str : format(d, "MMM d");
+                                                }}
+                                            />
+                                                                                                                                    <YAxis
+                                                stroke="#888888"
+                                                fontSize={12}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                domain={['dataMin - 1', 'dataMax + 1']}
+                                                tickFormatter={(value) => `${value}kg`}
+                                            />
+                                            <Tooltip
+                                                labelFormatter={(label) => {
+                                                    const d = new Date(label);
+                                                    return isNaN(d.getTime()) ? label : format(d, "MMMM d, yyyy");
+                                                }}
+                                            />
+                                            <Area
+                                                type="monotone"
+                                                dataKey="weight"
+                                                stroke="hsl(var(--primary))"
+                                                strokeWidth={2}
+                                                fillOpacity={1}
+                                                fill="url(#colorWeightMeasurements)"
+                                                dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
+                                                activeDot={{ r: 6 }}
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                )}
                             </div>
                         </CardContent>
-                    ) : (
-                        <CardContent className="space-y-4">
-                            <div className="flex gap-2 mb-2">
-                                <Button
-                                    variant={localProfile.gender === 'male' ? 'default' : 'outline'}
-                                    onClick={() => handleProfileChange('gender', 'male')}
-                                    size="sm"
-                                    className="flex-1"
-                                >
-                                    Male
-                                </Button>
-                                <Button
-                                    variant={localProfile.gender === 'female' ? 'default' : 'outline'}
-                                    onClick={() => handleProfileChange('gender', 'female')}
-                                    size="sm"
-                                    className="flex-1"
-                                >
-                                    Female
-                                </Button>
-                            </div>
+                    </Card>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Height (cm)</label>
-                                    <Input type="number" placeholder="175" value={localProfile.height} onChange={(e) => handleProfileChange('height', e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Age</label>
-                                    <Input type="number" placeholder="0" value={localProfile.age || ''} onChange={(e) => handleProfileChange('age', e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Starting Weight (kg)</label>
-                                    <Input
-                                        type="number"
-                                        placeholder="e.g. 90"
-                                        value={localProfile.starting_weight || ''}
-                                        onChange={(e) => handleProfileChange('starting_weight', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Current Weight (kg)</label>
-                                    <Input type="number" placeholder="75" value={calculatorWeight} onChange={(e) => setCalculatorWeight(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Waist (cm)</label>
-                                    <Input type="number" placeholder="80" value={localProfile.waist} onChange={(e) => handleProfileChange('waist', e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Neck (cm)</label>
-                                    <Input type="number" placeholder="38" value={localProfile.neck} onChange={(e) => handleProfileChange('neck', e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Chest (cm)</label>
-                                    <Input type="number" placeholder="optional" value={localProfile.chest} onChange={(e) => handleProfileChange('chest', e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Arms (cm)</label>
-                                    <Input type="number" placeholder="optional" value={localProfile.arms} onChange={(e) => handleProfileChange('arms', e.target.value)} />
-                                </div>
-                                <div className="space-y-2 col-span-2">
-                                    <label className="text-xs font-medium text-muted-foreground uppercase">Activity Level</label>
-                                    <Select
-                                        value={localProfile.activity_level || 'sedentary'}
-                                        onValueChange={(val) => handleProfileChange('activity_level', val)}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select activity level" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="sedentary">Sedentary (Office job, little exercise)</SelectItem>
-                                            <SelectItem value="light">Lightly Active (1-3 days/week)</SelectItem>
-                                            <SelectItem value="moderate">Moderately Active (3-5 days/week)</SelectItem>
-                                            <SelectItem value="active">Active (6-7 days/week)</SelectItem>
-                                            <SelectItem value="very_active">Very Active (Physical job + training)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
+                    {/* AI Overview */}
+                    <AiMetricsOverview />
 
-                            <Button onClick={saveStats} className="w-full mt-4" variant="secondary">
-                                <Save className="h-4 w-4 mr-2" />
-                                Save & Recalculate
-                            </Button>
+                    {/* Progress Photos */}
+                    <ProgressGallery />
+                </div>
 
-                            {localProfile.starting_weight && calculatorWeight && (
-                                <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center text-sm">
-                                    <span className="text-muted-foreground">Total Progress:</span>
-                                    <span className={cn(
-                                        "font-bold",
-                                        (parseFloat(calculatorWeight) - Number(localProfile.starting_weight)) <= 0 ? "text-green-500" : "text-amber-500"
-                                    )}>
-                                        {(parseFloat(calculatorWeight) - Number(localProfile.starting_weight)).toFixed(1)} kg
-                                        {(parseFloat(calculatorWeight) - Number(localProfile.starting_weight)) <= 0 ? " Lost" : " Gained"}
-                                    </span>
+                {/* Sidebar Column */}
+                <div className="lg:col-span-4 space-y-6 sticky top-6">
+                    {/* Body Stats Calculator */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Calculator className="h-5 w-5" />
+                                Calculator
+                            </CardTitle>
+                            <CardDescription>Update stats to recalculate BMI.</CardDescription>
+                        </CardHeader>
+                        {isLoading ? (
+                            <CardContent className="space-y-4">
+                                <Skeleton className="h-10 w-full" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
                                 </div>
-                            )}
-                        </CardContent>
-                    )}
-                </Card>
-            </div>
-
-            {/* AI Overview Section */}
-            <div className="mt-6">
-                <AiMetricsOverview />
-            </div>
-
-            <ProgressGallery />
-            <div className="h-6" />
-            {/* History Log */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>History Log</CardTitle>
-                        <CardDescription>Recent body composition entries</CardDescription>
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsNewestFirst(!isNewestFirst)}
-                        className="text-muted-foreground text-xs"
-                    >
-                        {isNewestFirst ? "Order: Newest First" : "Order: Oldest First"}
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? (
-                        <div className="space-y-4">
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
-                        </div>
-                    ) : sortedForHistory.length > 0 ? (
-                        <div className="space-y-4">
-                            {sortedForHistory.map((item) => (
-                                <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between border-b last:border-0 pb-4 last:pb-0 gap-4">
-                                    <div className="flex items-start gap-4">
-                                        <div className="bg-muted p-2 rounded-full mt-1">
-                                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">
-                                                {format(parseISO(item.date), "MMMM do, yyyy")}
-                                                {item.created_at && (
-                                                    <span className="text-muted-foreground text-sm font-normal ml-2">
-                                                        at {format(parseISO(item.created_at), "h:mm a")}
-                                                    </span>
-                                                )}
-                                            </p>
-                                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                                                <span className="text-sm font-semibold">{item.weight} kg</span>
-                                                {item.waist && <span className="text-xs text-muted-foreground">Waist: {item.waist}cm</span>}
-                                                {item.neck && <span className="text-xs text-muted-foreground">Neck: {item.neck}cm</span>}
-                                                {item.chest && <span className="text-xs text-muted-foreground">Chest: {item.chest}cm</span>}
-                                                {item.arms && <span className="text-xs text-muted-foreground">Arms: {item.arms}cm</span>}
-                                            </div>
-                                        </div>
-                                    </div>
+                            </CardContent>
+                        ) : (
+                            <CardContent className="space-y-4">
+                                <div className="flex gap-2 mb-2">
                                     <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="text-muted-foreground hover:text-destructive self-end sm:self-center"
-                                        onClick={() => deleteMeasurement(item.id)}
+                                        variant={localProfile.gender === 'male' ? 'default' : 'outline'}
+                                        onClick={() => handleProfileChange('gender', 'male')}
+                                        size="sm"
+                                        className="flex-1"
                                     >
-                                        <Trash2 className="h-4 w-4" />
+                                        Male
+                                    </Button>
+                                    <Button
+                                        variant={localProfile.gender === 'female' ? 'default' : 'outline'}
+                                        onClick={() => handleProfileChange('gender', 'female')}
+                                        size="sm"
+                                        className="flex-1"
+                                    >
+                                        Female
                                     </Button>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center text-muted-foreground py-6">
-                            No history available. Log your body stats!
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Height (cm)</label>
+                                        <Input type="number" placeholder="175" value={localProfile.height} onChange={(e) => handleProfileChange('height', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Age</label>
+                                        <Input type="number" placeholder="0" value={localProfile.age || ''} onChange={(e) => handleProfileChange('age', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Start Wgt (kg)</label>
+                                        <Input
+                                            type="number"
+                                            placeholder="e.g. 90"
+                                            value={localProfile.starting_weight || ''}
+                                            onChange={(e) => handleProfileChange('starting_weight', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Current (kg)</label>
+                                        <Input type="number" placeholder="75" value={calculatorWeight} onChange={(e) => setCalculatorWeight(e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Waist (cm)</label>
+                                        <Input type="number" placeholder="80" value={localProfile.waist} onChange={(e) => handleProfileChange('waist', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Neck (cm)</label>
+                                        <Input type="number" placeholder="38" value={localProfile.neck} onChange={(e) => handleProfileChange('neck', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Chest (cm)</label>
+                                        <Input type="number" placeholder="opt" value={localProfile.chest} onChange={(e) => handleProfileChange('chest', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Arms (cm)</label>
+                                        <Input type="number" placeholder="opt" value={localProfile.arms} onChange={(e) => handleProfileChange('arms', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2 col-span-2">
+                                        <label className="text-xs font-medium text-muted-foreground uppercase">Activity Level</label>
+                                        <Select
+                                            value={localProfile.activity_level || 'sedentary'}
+                                            onValueChange={(val) => handleProfileChange('activity_level', val)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="sedentary">Sedentary</SelectItem>
+                                                <SelectItem value="light">Lightly Active</SelectItem>
+                                                <SelectItem value="moderate">Moderately Active</SelectItem>
+                                                <SelectItem value="active">Active</SelectItem>
+                                                <SelectItem value="very_active">Very Active</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+
+                                <Button onClick={saveStats} className="w-full mt-4" variant="secondary">
+                                    <Save className="h-4 w-4 mr-2" />
+                                    Save & Recalculate
+                                </Button>
+
+                                {localProfile.starting_weight && calculatorWeight && (
+                                    <div className="mt-4 p-3 bg-muted/50 rounded-lg flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Total Change:</span>
+                                        <span className={cn(
+                                            "font-bold",
+                                            (parseFloat(calculatorWeight) - Number(localProfile.starting_weight)) <= 0 ? "text-green-500" : "text-amber-500"
+                                        )}>
+                                            {(parseFloat(calculatorWeight) - Number(localProfile.starting_weight)).toFixed(1)} kg
+                                            {(parseFloat(calculatorWeight) - Number(localProfile.starting_weight)) <= 0 ? " Lost" : " Gained"}
+                                        </span>
+                                    </div>
+                                )}
+                            </CardContent>
+                        )}
+                    </Card>
+
+                    {/* History Log */}
+                    <Card className="max-h-[500px] flex flex-col">
+                        <CardHeader className="flex flex-row items-center justify-between py-4">
+                            <div>
+                                <CardTitle className="text-base">History</CardTitle>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsNewestFirst(!isNewestFirst)}
+                                className="text-muted-foreground text-xs h-8"
+                            >
+                                {isNewestFirst ? "Newest" : "Oldest"}
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="overflow-y-auto pr-2 custom-scrollbar flex-1">
+                            {isLoading ? (
+                                <div className="space-y-4">
+                                    <Skeleton className="h-12 w-full" />
+                                    <Skeleton className="h-12 w-full" />
+                                </div>
+                            ) : sortedForHistory.length > 0 ? (
+                                <div className="space-y-3">
+                                    {sortedForHistory.map((item) => (
+                                        <div key={item.id} className="flex flex-col border-b last:border-0 pb-3 last:pb-0 gap-2">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="bg-muted p-1.5 rounded-md">
+                                                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium">
+                                                            {format(parseISO(item.date), "MMM d, yyyy")}
+                                                        </p>
+                                                        <p className="text-sm font-bold">{item.weight} kg</p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                                    onClick={() => deleteMeasurement(item.id)}
+                                                >
+                                                    <Trash2 className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                            {(item.waist || item.neck || item.arms) && (
+                                                <div className="flex flex-wrap gap-x-3 gap-y-1 pl-11">
+                                                    {item.waist && <span className="text-[10px] bg-secondary/50 px-1.5 py-0.5 rounded text-secondary-foreground">Waist: {item.waist}</span>}
+                                                    {item.neck && <span className="text-[10px] bg-secondary/50 px-1.5 py-0.5 rounded text-secondary-foreground">Neck: {item.neck}</span>}
+                                                    {item.arms && <span className="text-[10px] bg-secondary/50 px-1.5 py-0.5 rounded text-secondary-foreground">Arms: {item.arms}</span>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center text-muted-foreground py-6 text-sm">
+                                    No history available.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
 }

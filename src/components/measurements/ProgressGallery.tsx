@@ -1,24 +1,22 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Camera, Upload, Trash2, Maximize2, AlertCircle } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
 import { format, parseISO, isAfter } from "date-fns";
 import { uploadProgressPhoto } from "@/lib/storage-utils";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-
 export function ProgressGallery() {
     const { measurements, addMeasurement, updateMeasurement, deleteMeasurement, userProfile } = useData();
     const [isUploadOpen, setIsUploadOpen] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploadDate, setUploadDate] = useState(format(new Date(), "yyyy-MM-dd"));
     const [isUploading, setIsUploading] = useState(false);
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [viewPhoto, setViewPhoto] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [viewPhoto, setViewPhoto] = useState<string | null>(null);
 
     const photos = useMemo(() => {
         return measurements
@@ -34,7 +32,7 @@ export function ProgressGallery() {
         return isAfter(twoMonthsAgo, lastPhotoDate);
     }, [photos]);
 
-    const handleFileSelect = (e) => {
+    const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setSelectedFile(file);
@@ -53,7 +51,7 @@ export function ProgressGallery() {
                 if (updateMeasurement) {
                    await updateMeasurement(existing.id, { photo_url: url });
                 } else {
-                   toast.error("Update feature pending.");
+                    toast.error("Update feature pending.");
                 }
             } else {
                 await addMeasurement({ date: uploadDate, weight: 0, photo_url: url });
@@ -86,7 +84,7 @@ export function ProgressGallery() {
                             <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
                             <div className="space-y-1">
                                 <h4 className="text-sm font-semibold text-blue-500">Update your progress!</h4>
-                                <p className="text-sm text-muted-foreground">It\'s been over 2 months since your last photo.</p>
+                                <p className="text-sm text-muted-foreground">It's been over 2 months since your last photo.</p>
                             </div>
                         </div>
                     )}
@@ -99,7 +97,7 @@ export function ProgressGallery() {
                                         <p className="text-xs font-medium text-white">{format(parseISO(item.date), "MMM d, yyyy")}</p>
                                     </div>
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={() => setViewPhoto(item.photo_url)}><Maximize2 className="h-4 w-4" /></Button>
+                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={() => setViewPhoto(item.photo_url || null)}><Maximize2 className="h-4 w-4" /></Button>
                                         <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full" onClick={() => deleteMeasurement(item.id)}><Trash2 className="h-4 w-4" /></Button>
                                     </div>
                                 </div>
@@ -125,7 +123,7 @@ export function ProgressGallery() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={!!viewPhoto} onOpenChange={() => setViewPhoto(null)}>
+            <Dialog open={!!viewPhoto} onOpenChange={(open) => !open && setViewPhoto(null)}>
                  <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/90 border-0">
                     {viewPhoto && <div className="relative w-full h-full flex items-center justify-center"><img src={viewPhoto} className="max-h-[85vh] w-auto object-contain" /></div>}
                  </DialogContent>

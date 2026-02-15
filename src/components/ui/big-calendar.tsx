@@ -10,7 +10,7 @@ import {
     isToday,
     isSameDay
 } from 'date-fns';
-import { Dumbbell, Plus } from 'lucide-react';
+import { Dumbbell, Plus, Repeat } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Workout } from '@/features/data/DataContext';
 
@@ -150,7 +150,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                                             title={item.name}
                                         >
                                             {showIcon && <Icon className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />}
-                                            <span className="truncate font-medium">{item.name}</span>
+                                            <span className="truncate font-medium flex-1">{item.name}</span>{item.recurrence && item.recurrence !== "none" && (<div className="flex items-center gap-0.5 opacity-90 shrink-0 ml-1 bg-foreground/5 px-1 py-0.5 rounded-[2px] text-[8px] uppercase tracking-wider leading-none border border-border/20" title={"Repeats " + item.recurrence}><Repeat className="h-2 w-2" /></div>)}
                                         </div>
                                     );
                                 })}
