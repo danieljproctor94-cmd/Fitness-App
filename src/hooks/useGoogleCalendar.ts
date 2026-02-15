@@ -38,9 +38,15 @@ export function useGoogleCalendar() {
         const loadGapi = () => {
             const initGapi = () => {
                 (window as any).gapi.load("client", async () => {
-                    await (window as any).gapi.client.init({
-                        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
-                    });
+                    try {
+                        await (window as any).gapi.client.init({
+                            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+                        });
+                    } catch (err) {
+                        // Ignore initialization errors if already initialized
+                        // console.warn("GAPI init warning:", err);
+                    }
+                    
                     setGapiInited(true);
                     
                     // Attempt to restore token
