@@ -72,7 +72,7 @@ export interface ToDo {
     due_date?: string | null;
     due_time?: string | null;
     completed: boolean;
-    recurrence: 'none' | 'daily' | 'weekly' | 'monthly';
+    recurrence: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     notify: boolean;
     notify_before?: '10_min' | '1_hour' | '1_day' | null;
     urgency?: 'low' | 'normal' | 'high' | 'critical';

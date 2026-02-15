@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Plus, Trash2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Bell, RefreshCw, CheckSquare as CheckSquareIcon, Users, Pencil, BarChart3, Activity, ArrowDown, ArrowUp, AlertTriangle, Circle, Mic } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useData } from "@/features/data/DataContext";
-import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay } from "date-fns";
+import { format, isSameDay, parseISO, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isBefore, getDay, getDate, startOfDay, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -56,7 +56,7 @@ export default function ToDos() {
     const [description, setDescription] = useState("");
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
     const [time, setTime] = useState("");
-    const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly'>('none');
+    const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'>('none');
     const [urgency, setUrgency] = useState<'low' | 'normal' | 'high' | 'critical'>('normal');
     const [notify, setNotify] = useState(false);
     const [notifyBefore, setNotifyBefore] = useState<'10_min' | '1_hour' | '1_day'>('10_min');
@@ -296,6 +296,7 @@ export default function ToDos() {
             if (t.recurrence === 'daily') isMatch = true;
             else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(selectedDate);
             else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(selectedDate);
+            else if (t.recurrence === 'yearly') isMatch = getDate(dueDate) === getDate(selectedDate) && getMonth(dueDate) === getMonth(selectedDate);
 
             if (isMatch) {
                 const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -458,6 +459,7 @@ export default function ToDos() {
                     if (t.recurrence === 'daily') isMatch = true;
                     else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(day);
                     else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(day);
+                    else if (t.recurrence === 'yearly') isMatch = getDate(dueDate) === getDate(day) && getMonth(dueDate) === getMonth(day);
 
                     if (isMatch) {
                         // Check if completed for this specific date
@@ -530,6 +532,7 @@ export default function ToDos() {
                 if (t.recurrence === 'daily') isMatch = true;
                 else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(today);
                 else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(today);
+                else if (t.recurrence === 'yearly') isMatch = getDate(dueDate) === getDate(today) && getMonth(dueDate) === getMonth(today);
 
                 if (!isMatch) return false;
 
@@ -726,6 +729,7 @@ export default function ToDos() {
                                         <SelectItem value="daily">Daily</SelectItem>
                                         <SelectItem value="weekly">Weekly</SelectItem>
                                         <SelectItem value="monthly">Monthly</SelectItem>
+                                        <SelectItem value="yearly">Yearly</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight, Plus, RefreshCw, CheckSquare as CheckSquareIcon, ArrowDown, ArrowUp, AlertTriangle, Circle } from "lucide-react";
 import { useData } from "@/features/data/DataContext";
-import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate } from "date-fns";
+import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -527,6 +527,7 @@ export default function Dashboard() {
                                 if (t.recurrence === 'daily') isMatch = true;
                                 else if (t.recurrence === 'weekly') isMatch = getDay(dueDate) === getDay(today);
                                 else if (t.recurrence === 'monthly') isMatch = getDate(dueDate) === getDate(today);
+                                else if (t.recurrence === 'yearly') isMatch = getDate(dueDate) === getDate(today) && getMonth(dueDate) === getMonth(today);
 
                                 if (isMatch) {
                                     const dateStr = format(today, 'yyyy-MM-dd');
@@ -742,6 +743,7 @@ export default function Dashboard() {
                                             <SelectItem value="daily">Daily</SelectItem>
                                             <SelectItem value="weekly">Weekly</SelectItem>
                                             <SelectItem value="monthly">Monthly</SelectItem>
+                                            <SelectItem value="yearly">Yearly</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
