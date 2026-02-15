@@ -33,6 +33,7 @@ export interface Measurement {
     neck?: number;
     chest?: number;
     arms?: number;
+    photo_url?: string;
     created_at?: string;
 }
 
@@ -124,6 +125,7 @@ interface DataContextType {
     addWorkout: (workout: Omit<Workout, 'id'>) => Promise<void>;
     deleteWorkout: (id: string) => Promise<void>;
     addMeasurement: (measurement: Omit<Measurement, 'id'>) => Promise<void>;
+    updateMeasurement: (id: string, updates: Partial<Measurement>) => Promise<void>;
     deleteMeasurement: (id: string) => Promise<void>;
     addMindsetLog: (log: Omit<MindsetLog, 'id'>) => Promise<void>;
     addToDo: (todo: Omit<ToDo, 'id'>) => Promise<ToDo | null>;
@@ -401,6 +403,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setMeasurements(prev => prev.filter(m => m.id !== id));
         toast.success("Measurement deleted!");
     };
+    const updateMeasurement = async (id: string, updates: Partial<Measurement>) => {
+        if (!user) return;
+        const { error } = await supabase.from('measurements').update(updates).eq('id', id);
+        if (error) {
+            console.error("Update error:", error);
+            toast.error("Failed to update: " + error.message);
+            return;
+        }
+        setMeasurements(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+        toast.success("Measurement updated!");
+    };
+
 
     const addMindsetLog = async (log: Omit<MindsetLog, 'id'>) => {
         if (!user) return;
@@ -863,6 +877,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addWorkout,
         deleteWorkout,
         addMeasurement,
+        updateMeasurement,
         deleteMeasurement,
         addMindsetLog,
         addToDo,

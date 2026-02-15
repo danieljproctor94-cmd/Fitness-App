@@ -36,3 +36,19 @@ export const uploadAvatar = async (file: File, userId: string): Promise<{ url: s
         return { url: null, error };
     }
 };
+
+/** Uploads a progress photo to the 'progress-photos' bucket. */
+export const uploadProgressPhoto = async (file: File, userId: string): Promise<{ url: string | null, error: any | null }> => {
+    try {
+        const fileExt = file.name.split('.').pop();
+        const dateStr = new Date().toISOString().split('T')[0];
+        const fileName = userId + '/' + dateStr + '_' + Math.random().toString(36).substring(7) + '.' + fileExt;
+        const { error } = await supabase.storage.from('progress-photos').upload(fileName, file, { cacheControl: '3600', upsert: false });
+        if (error) { console.error('Error uploading:', error); return { url: null, error }; }
+        const { data } = supabase.storage.from('progress-photos').getPublicUrl(fileName);
+        return { url: data.publicUrl, error: null };
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return { url: null, error };
+    }
+};

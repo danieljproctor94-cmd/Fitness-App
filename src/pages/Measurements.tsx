@@ -1,3 +1,4 @@
+import { ProgressGallery } from "@/components/measurements/ProgressGallery";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -310,6 +311,8 @@ export default function Measurements() {
                 <AiMetricsOverview />
             </div>
 
+            <ProgressGallery />
+            <div className="h-6" />
             {/* History Log */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
