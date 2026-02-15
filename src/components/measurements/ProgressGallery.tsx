@@ -1,1 +1,135 @@
-import { useState, useMemo } from "react";\nimport { Button } from "@/components/ui/button";\nimport { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";\nimport { Input } from "@/components/ui/input";\nimport { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";\nimport { Label } from "@/components/ui/label";\nimport { Camera, Upload, Trash2, Maximize2, AlertCircle } from "lucide-react";\nimport { useData } from "@/features/data/DataContext";\nimport { format, parseISO, isAfter } from "date-fns";\nimport { uploadProgressPhoto } from "@/lib/storage-utils";\nimport { toast } from "sonner";\nimport { cn } from "@/lib/utils";\n\nexport function ProgressGallery() {\n    const { measurements, addMeasurement, updateMeasurement, deleteMeasurement, userProfile } = useData();\n    const [isUploadOpen, setIsUploadOpen] = useState(false);\n    const [selectedFile, setSelectedFile] = useState(null);\n    const [uploadDate, setUploadDate] = useState(format(new Date(), "yyyy-MM-dd"));\n    const [isUploading, setIsUploading] = useState(false);\n    const [previewUrl, setPreviewUrl] = useState(null);\n    const [viewPhoto, setViewPhoto] = useState(null);\n\n    const photos = useMemo(() => {\n        return measurements\n            .filter(m => m.photo_url)\n            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());\n    }, [measurements]);\n\n    const showPrompt = useMemo(() => {\n        if (photos.length === 0) return true;\n        const lastPhotoDate = parseISO(photos[0].date);\n        const twoMonthsAgo = new Date();\n        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);\n        return isAfter(twoMonthsAgo, lastPhotoDate);\n    }, [photos]);\n\n    const handleFileSelect = (e) => {\n        if (e.target.files && e.target.files[0]) {\n            const file = e.target.files[0];\n            setSelectedFile(file);\n            setPreviewUrl(URL.createObjectURL(file));\n        }\n    };\n\n    const handleUpload = async () => {\n        if (!selectedFile || !userProfile?.id) return;\n        setIsUploading(true);\n        try {\n            const { url, error } = await uploadProgressPhoto(selectedFile, userProfile.id);\n            if (error || !url) throw error || new Error("Upload failed");\n            const existing = measurements.find(m => m.date === uploadDate);\n            if (existing) {\n                if (updateMeasurement) {\n                   await updateMeasurement(existing.id, { photo_url: url });\n                } else {\n                   toast.error("Update feature pending.");\n                }\n            } else {\n                await addMeasurement({ date: uploadDate, weight: 0, photo_url: url });\n            }\n            setIsUploadOpen(false);\n            setSelectedFile(null);\n            setPreviewUrl(null);\n            toast.success("Photo added!");\n        } catch (err) {\n            console.error(err);\n            toast.error("Upload failed");\n        } finally {\n            setIsUploading(false);\n        }\n    };\n\n    return (\n        <div className="space-y-6">\n            <Card>\n                <CardHeader className="flex flex-row items-center justify-between">\n                    <div>\n                        <CardTitle className="flex items-center gap-2"><Camera className="h-5 w-5" /> Progress Photos</CardTitle>\n                        <CardDescription>Visual timeline of your journey.</CardDescription>\n                    </div>\n                    <Button onClick={() => setIsUploadOpen(true)} size="sm" className="gap-2"><Upload className="h-4 w-4" /> Add Photo</Button>\n                </CardHeader>\n                <CardContent>\n                    {showPrompt && (\n                        <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-start gap-3">\n                            <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />\n                            <div className="space-y-1">\n                                <h4 className="text-sm font-semibold text-blue-500">Update your progress!</h4>\n                                <p className="text-sm text-muted-foreground">It\'s been over 2 months since your last photo.</p>\n                            </div>\n                        </div>\n                    )}\n                    {photos.length > 0 ? (\n                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">\n                            {photos.map((item) => (\n                                <div key={item.id} className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-muted border">\n                                    <img src={item.photo_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />\n                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">\n                                        <p className="text-xs font-medium text-white">{format(parseISO(item.date), "MMM d, yyyy")}</p>\n                                    </div>\n                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">\n                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={() => setViewPhoto(item.photo_url)}><Maximize2 className="h-4 w-4" /></Button>\n                                        <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full" onClick={() => deleteMeasurement(item.id)}><Trash2 className="h-4 w-4" /></Button>\n                                    </div>\n                                </div>\n                            ))}\n                        </div>\n                    ) : (\n                        <div className="text-center py-12 border-2 border-dashed rounded-xl">\n                            <Button onClick={() => setIsUploadOpen(true)} variant="outline">Upload First Photo</Button>\n                        </div>\n                    )}\n                </CardContent>\n            </Card>\n\n            <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>\n                <DialogContent>\n                    <DialogHeader><DialogTitle>Upload Progress Photo</DialogTitle></DialogHeader>\n                    <div className="grid gap-4 py-4">\n                        <div className="grid gap-2"><Label>Date</Label><Input type="date" value={uploadDate} onChange={(e) => setUploadDate(e.target.value)} /></div>\n                        <div className="grid gap-2"><Label>Photo</Label><Input type="file" accept="image/*" onChange={handleFileSelect} /></div>\n                        {previewUrl && <div className="relative aspect-square w-32 rounded-lg overflow-hidden border mx-auto"><img src={previewUrl} className="w-full h-full object-cover" /></div>}\n                    </div>\n                    <DialogFooter><Button onClick={handleUpload} disabled={isUploading || !selectedFile}>{isUploading ? "Uploading..." : "Save Photo"}</Button></DialogFooter>\n                </DialogContent>\n            </Dialog>\n\n            <Dialog open={!!viewPhoto} onOpenChange={() => setViewPhoto(null)}>\n                 <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/90 border-0">\n                    {viewPhoto && <div className="relative w-full h-full flex items-center justify-center"><img src={viewPhoto} className="max-h-[85vh] w-auto object-contain" /></div>}\n                 </DialogContent>\n            </Dialog>\n        </div>\n    );\n}
+import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Camera, Upload, Trash2, Maximize2, AlertCircle } from "lucide-react";
+import { useData } from "@/features/data/DataContext";
+import { format, parseISO, isAfter } from "date-fns";
+import { uploadProgressPhoto } from "@/lib/storage-utils";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+export function ProgressGallery() {
+    const { measurements, addMeasurement, updateMeasurement, deleteMeasurement, userProfile } = useData();
+    const [isUploadOpen, setIsUploadOpen] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [uploadDate, setUploadDate] = useState(format(new Date(), "yyyy-MM-dd"));
+    const [isUploading, setIsUploading] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [viewPhoto, setViewPhoto] = useState(null);
+
+    const photos = useMemo(() => {
+        return measurements
+            .filter(m => m.photo_url)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [measurements]);
+
+    const showPrompt = useMemo(() => {
+        if (photos.length === 0) return true;
+        const lastPhotoDate = parseISO(photos[0].date);
+        const twoMonthsAgo = new Date();
+        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+        return isAfter(twoMonthsAgo, lastPhotoDate);
+    }, [photos]);
+
+    const handleFileSelect = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const handleUpload = async () => {
+        if (!selectedFile || !userProfile?.id) return;
+        setIsUploading(true);
+        try {
+            const { url, error } = await uploadProgressPhoto(selectedFile, userProfile.id);
+            if (error || !url) throw error || new Error("Upload failed");
+            const existing = measurements.find(m => m.date === uploadDate);
+            if (existing) {
+                if (updateMeasurement) {
+                   await updateMeasurement(existing.id, { photo_url: url });
+                } else {
+                   toast.error("Update feature pending.");
+                }
+            } else {
+                await addMeasurement({ date: uploadDate, weight: 0, photo_url: url });
+            }
+            setIsUploadOpen(false);
+            setSelectedFile(null);
+            setPreviewUrl(null);
+            toast.success("Photo added!");
+        } catch (err) {
+            console.error(err);
+            toast.error("Upload failed");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle className="flex items-center gap-2"><Camera className="h-5 w-5" /> Progress Photos</CardTitle>
+                        <CardDescription>Visual timeline of your journey.</CardDescription>
+                    </div>
+                    <Button onClick={() => setIsUploadOpen(true)} size="sm" className="gap-2"><Upload className="h-4 w-4" /> Add Photo</Button>
+                </CardHeader>
+                <CardContent>
+                    {showPrompt && (
+                        <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-semibold text-blue-500">Update your progress!</h4>
+                                <p className="text-sm text-muted-foreground">It\'s been over 2 months since your last photo.</p>
+                            </div>
+                        </div>
+                    )}
+                    {photos.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {photos.map((item) => (
+                                <div key={item.id} className="group relative aspect-[3/4] rounded-lg overflow-hidden bg-muted border">
+                                    <img src={item.photo_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-8">
+                                        <p className="text-xs font-medium text-white">{format(parseISO(item.date), "MMM d, yyyy")}</p>
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full" onClick={() => setViewPhoto(item.photo_url)}><Maximize2 className="h-4 w-4" /></Button>
+                                        <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full" onClick={() => deleteMeasurement(item.id)}><Trash2 className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-12 border-2 border-dashed rounded-xl">
+                            <Button onClick={() => setIsUploadOpen(true)} variant="outline">Upload First Photo</Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+                <DialogContent>
+                    <DialogHeader><DialogTitle>Upload Progress Photo</DialogTitle></DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2"><Label>Date</Label><Input type="date" value={uploadDate} onChange={(e) => setUploadDate(e.target.value)} /></div>
+                        <div className="grid gap-2"><Label>Photo</Label><Input type="file" accept="image/*" onChange={handleFileSelect} /></div>
+                        {previewUrl && <div className="relative aspect-square w-32 rounded-lg overflow-hidden border mx-auto"><img src={previewUrl} className="w-full h-full object-cover" /></div>}
+                    </div>
+                    <DialogFooter><Button onClick={handleUpload} disabled={isUploading || !selectedFile}>{isUploading ? "Uploading..." : "Save Photo"}</Button></DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={!!viewPhoto} onOpenChange={() => setViewPhoto(null)}>
+                 <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/90 border-0">
+                    {viewPhoto && <div className="relative w-full h-full flex items-center justify-center"><img src={viewPhoto} className="max-h-[85vh] w-auto object-contain" /></div>}
+                 </DialogContent>
+            </Dialog>
+        </div>
+    );
+}
