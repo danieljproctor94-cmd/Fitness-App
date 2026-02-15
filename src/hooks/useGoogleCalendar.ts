@@ -36,20 +36,15 @@ export function useGoogleCalendar() {
     useEffect(() => {
         // Load Scripts
         const loadGapi = () => {
-            const script = document.createElement("script");
-            script.src = "https://apis.google.com/js/api.js";
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
+            const initGapi = () => {
                 (window as any).gapi.load("client", async () => {
                     await (window as any).gapi.client.init({
-                        // apiKey: API_KEY, // Not strictly needed for user-data access if using OAuth token, but good practice.
                         discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
                     });
                     setGapiInited(true);
                     
                     // Attempt to restore token
-                    const storedTokenStr = localStorage.getItem('google_access_token');
+                    const storedTokenStr = localStorage.getItem("google_access_token");
                     if (storedTokenStr) {
                          try {
                              const storedToken = JSON.parse(storedTokenStr);
@@ -57,21 +52,28 @@ export function useGoogleCalendar() {
                              setIsConnected(true);
                          } catch (e) {
                              console.error("Error restoring token", e);
-                             localStorage.removeItem('google_access_token');
+                             localStorage.removeItem("google_access_token");
                              setIsConnected(false);
                          }
                     }
                 });
             };
+
+            if ((window as any).gapi) {
+                initGapi();
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = "https://apis.google.com/js/api.js";
+            script.async = true;
+            script.defer = true;
+            script.onload = initGapi;
             document.body.appendChild(script);
         };
 
         const loadGis = () => {
-            const script = document.createElement("script");
-            script.src = "https://accounts.google.com/gsi/client";
-            script.async = true;
-            script.defer = true;
-            script.onload = () => {
+            const initGis = () => {
                 const client = (window as any).google.accounts.oauth2.initTokenClient({
                     client_id: CLIENT_ID,
                     scope: SCOPES,
@@ -87,7 +89,7 @@ export function useGoogleCalendar() {
                             ...resp,
                             created_at: Date.now()
                         };
-                        localStorage.setItem('google_access_token', JSON.stringify(tokenToStore)); 
+                        localStorage.setItem("google_access_token", JSON.stringify(tokenToStore)); 
                         
                         setIsConnected(true);
                         await fetchUpcomingEvents();
@@ -96,6 +98,17 @@ export function useGoogleCalendar() {
                 setTokenClient(client);
                 setGisInited(true);
             };
+
+            if ((window as any).google?.accounts?.oauth2) {
+                 initGis();
+                 return;
+            }
+
+            const script = document.createElement("script");
+            script.src = "https://accounts.google.com/gsi/client";
+            script.async = true;
+            script.defer = true;
+            script.onload = initGis;
             document.body.appendChild(script);
         }
 

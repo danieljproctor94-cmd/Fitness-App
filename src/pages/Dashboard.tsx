@@ -619,17 +619,6 @@ export default function Dashboard() {
                                                             <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
                                                                 {todo.title}
                                                             </p>
-                                                            {todo.urgency && !todo.completed && !todo.isGoogleEvent && (
-                                                                <span className={cn(
-                                                                    "text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ml-2 shrink-0",
-                                                                    todo.urgency === 'critical' ? "bg-red-500/15 text-red-600" :
-                                                                        todo.urgency === 'high' ? "bg-orange-500/15 text-orange-600" :
-                                                                            (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? "bg-primary/15 text-primary" :
-                                                                                "bg-slate-500/15 text-slate-600"
-                                                                )}>
-                                                                    {(todo.urgency as any) === 'medium' ? 'NORMAL' : todo.urgency}
-                                                                </span>
-                                                            )}
 
                                                         </div>
                                                         {todo.description && (
