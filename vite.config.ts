@@ -13,15 +13,7 @@ export default defineConfig({
       filename: 'sw.ts',
 
       registerType: 'autoUpdate',
-      manifest: {
-        name: 'Progress Syncer',
-        short_name: 'Progress Syncer',
-        description: 'Track your workouts, habits, and body measurements with Progress Syncer.',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/'
-      }
+      manifest: false
     })
   ],
   resolve: {
