@@ -1,1 +1,209 @@
-import { useState, useEffect, useCallback } from 'react';\nimport { toast } from 'sonner';\n\nconst CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";\nconst SCOPES = "https://www.googleapis.com/auth/calendar.readonly";\n\nexport interface GoogleEvent {\n    id: string;\n    summary: string;\n    description?: string;\n    start: { dateTime?: string; date?: string };\n    end: { dateTime?: string; date?: string };\n    htmlLink: string;\n}\n\nexport function useGoogleCalendar() {\n    const [events, setEvents] = useState<GoogleEvent[]>([]);\n    const [isConnected, setIsConnected] = useState(false);\n    const [tokenClient, setTokenClient] = useState<any>(null);\n    const [gapiInited, setGapiInited] = useState(false);\n    const [gisInited, setGisInited] = useState(false);\n    const [isLoading, setIsLoading] = useState(false);\n\n    useEffect(() => {\n        const storedEvents = localStorage.getItem('google_calendar_events');\n        if (storedEvents) {\n            try {\n                setEvents(JSON.parse(storedEvents));\n            } catch (e) {\n                console.error("Failed to parse stored events", e);\n            }\n        }\n    }, []);\n\n    const fetchUpcomingEvents = useCallback(async (token?: any, silent = false) => {\n        const gapi = (window as any).gapi;\n        if (token) {\n            gapi.client.setToken(token);\n        } else if (!gapi?.client?.getToken()) {\n            return;\n        }\n\n        setIsLoading(true);\n        try {\n            const response = await gapi.client.calendar.events.list({\n                'calendarId': 'primary',\n                'timeMin': (new Date()).toISOString(),\n                'showDeleted': false,\n                'singleEvents': true,\n                'maxResults': 50,\n                'orderBy': 'startTime'\n            });\n            const result = response.result.items;\n            setEvents(result);\n            localStorage.setItem('google_calendar_events', JSON.stringify(result));\n            if (!silent) toast.success(\Synced  google events\);\n        } catch (err: any) {\n            if (err?.result?.error?.code === 401) {\n                if (!silent) toast.error("Google session expired. Please reconnect.");\n                setIsConnected(false);\n                localStorage.removeItem('google_access_token');\n            } else {\n                if (!silent) toast.error("Failed to sync calendar.");\n            }\n        } finally {\n            setIsLoading(false);\n        }\n    }, []);\n\n    useEffect(() => {\n        const loadGapi = () => {\n             const initGapi = () => {\n                const gapi = (window as any).gapi;\n                gapi.load("client", async () => {\n                    try {\n                        await gapi.client.init({\n                            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],\n                        });\n                        setGapiInited(true);\n                    } catch (err) {\n                        console.warn("GAPI init error:", err);\n                    }\n                });\n            };\n\n            if ((window as any).gapi) {\n                initGapi();\n            } else {\n                const script = document.createElement("script");\n                script.src = "https://apis.google.com/js/api.js";\n                script.async = true;\n                script.defer = true;\n                script.onload = initGapi;\n                document.body.appendChild(script);\n            }\n        };\n        if (CLIENT_ID) loadGapi();\n    }, []);\n\n    useEffect(() => {\n        const loadGis = () => {\n            const initGis = () => {\n                const google = (window as any).google;\n                if (!google?.accounts?.oauth2) return;\n\n                const client = google.accounts.oauth2.initTokenClient({\n                    client_id: CLIENT_ID,\n                    scope: SCOPES,\n                    callback: async (resp: any) => {\n                        if (resp.error) {\n                            if (resp.error !== 'popup_closed_by_user') {\n                                toast.error("Google Connect failed.");\n                            }\n                            return;\n                        }\n\n                        const token = {\n                            access_token: resp.access_token,\n                            expires_in: resp.expires_in,\n                            created_at: Date.now()\n                        };\n\n                        localStorage.setItem("google_access_token", JSON.stringify(token));\n                        setIsConnected(true);\n                        await fetchUpcomingEvents(token, false);\n                    },\n                });\n                setTokenClient(client);\n                setGisInited(true);\n            };\n\n            if ((window as any).google?.accounts?.oauth2) {\n                initGis();\n            } else {\n                const script = document.createElement("script");\n                script.src = "https://accounts.google.com/gsi/client";\n                script.async = true;\n                script.defer = true;\n                script.onload = initGis;\n                document.body.appendChild(script);\n            }\n        };\n        if (CLIENT_ID) loadGis();\n    }, [fetchUpcomingEvents]);\n\n    useEffect(() => {\n        if (gapiInited && gisInited && tokenClient) {\n             const storedTokenStr = localStorage.getItem("google_access_token");\n             if (storedTokenStr) {\n                 try {\n                     const token = JSON.parse(storedTokenStr);\n                     if (!token.access_token || !token.expires_in || !token.created_at) {\n                         localStorage.removeItem("google_access_token");\n                         return;\n                     }\n                     const now = Date.now();\n                     const expiryTime = token.created_at + (token.expires_in * 1000);\n                     if (now < expiryTime - 300000) {\n                         setIsConnected(true);\n                         fetchUpcomingEvents(token, true);\n                     } else {\n                         localStorage.removeItem("google_access_token");\n                         setIsConnected(false);\n                     }\n                 } catch (e) {\n                     localStorage.removeItem("google_access_token");\n                 }\n             }\n        }\n    }, [gapiInited, gisInited, tokenClient, fetchUpcomingEvents]);\n\n    const connect = () => {\n        if (!CLIENT_ID) {\n            toast.error("VITE_GOOGLE_CLIENT_ID not set");\n            return;\n        }\n        if (tokenClient) {\n            tokenClient.requestAccessToken({ prompt: '' });\n        } else {\n            toast.error("Google services initializing...");\n        }\n    };\n\n    return { events, connect, isConnected, isReady: gapiInited && gisInited, isLoading };\n}\n
+﻿import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
+
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
+
+export interface GoogleEvent {
+    id: string;
+    summary: string;
+    description?: string;
+    start: { dateTime?: string; date?: string };
+    end: { dateTime?: string; date?: string };
+    htmlLink: string;
+}
+
+export function useGoogleCalendar() {
+    const [events, setEvents] = useState<GoogleEvent[]>([]);
+    const [isConnected, setIsConnected] = useState(false);
+    const [tokenClient, setTokenClient] = useState<any>(null);
+    const [gapiInited, setGapiInited] = useState(false);
+    const [gisInited, setGisInited] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // 1. Load Stored Events immediately
+    useEffect(() => {
+        const storedEvents = localStorage.getItem('google_calendar_events');
+        if (storedEvents) {
+            try {
+                setEvents(JSON.parse(storedEvents));
+            } catch (e) {
+                console.error("Failed to parse stored events", e);
+            }
+        }
+    }, []);
+
+    // 2. Fetch Events function
+    const fetchUpcomingEvents = useCallback(async (token?: any, silent = false) => {
+        const gapi = (window as any).gapi;
+        
+        // Ensure token is set if passed
+        if (token) {
+            gapi.client.setToken(token);
+        } else if (!gapi?.client?.getToken()) {
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const response = await gapi.client.calendar.events.list({
+                'calendarId': 'primary',
+                'timeMin': (new Date()).toISOString(),
+                'showDeleted': false,
+                'singleEvents': true,
+                'maxResults': 50,
+                'orderBy': 'startTime'
+            });
+            const result = response.result.items;
+            setEvents(result);
+            localStorage.setItem('google_calendar_events', JSON.stringify(result));
+            if (!silent) toast.success(`Synced ${result.length} google events`);
+        } catch (err: any) {
+            if (err?.result?.error?.code === 401) {
+                if (!silent) toast.error("Google session expired. Please reconnect.");
+                setIsConnected(false);
+                localStorage.removeItem('google_access_token');
+            } else {
+                if (!silent) toast.error("Failed to sync calendar.");
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    // 3. Initialize GAPI
+    useEffect(() => {
+        const loadGapi = () => {
+             const initGapi = () => {
+                const gapi = (window as any).gapi;
+                gapi.load("client", async () => {
+                    try {
+                        await gapi.client.init({
+                            discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
+                        });
+                        setGapiInited(true);
+                    } catch (err) {
+                        console.warn("GAPI init error:", err);
+                    }
+                });
+            };
+
+            if ((window as any).gapi) {
+                initGapi();
+            } else {
+                const script = document.createElement("script");
+                script.src = "https://apis.google.com/js/api.js";
+                script.async = true;
+                script.defer = true;
+                script.onload = initGapi;
+                document.body.appendChild(script);
+            }
+        };
+        if (CLIENT_ID) loadGapi();
+    }, []);
+
+    // 4. Initialize GIS and Token Client
+    useEffect(() => {
+        const loadGis = () => {
+            const initGis = () => {
+                const google = (window as any).google;
+                if (!google?.accounts?.oauth2) return;
+
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: async (resp: any) => {
+                        if (resp.error) {
+                            if (resp.error !== 'popup_closed_by_user') {
+                                toast.error("Google Connect failed.");
+                            }
+                            return;
+                        }
+
+                        // Calculate absolute expiry
+                        // expires_in is in seconds
+                        const token = {
+                            access_token: resp.access_token,
+                            expires_in: resp.expires_in,
+                            created_at: Date.now()
+                        };
+
+                        // Store in localStorage
+                        localStorage.setItem("google_access_token", JSON.stringify(token));
+                        
+                        setIsConnected(true);
+                        await fetchUpcomingEvents(token, false);
+                    },
+                });
+                setTokenClient(client);
+                setGisInited(true);
+            };
+
+            if ((window as any).google?.accounts?.oauth2) {
+                initGis();
+            } else {
+                const script = document.createElement("script");
+                script.src = "https://accounts.google.com/gsi/client";
+                script.async = true;
+                script.defer = true;
+                script.onload = initGis;
+                document.body.appendChild(script);
+            }
+        };
+        if (CLIENT_ID) loadGis();
+    }, [fetchUpcomingEvents]);
+
+    // 5. Restore Session on Load
+    useEffect(() => {
+        if (gapiInited && gisInited && tokenClient) {
+             const storedTokenStr = localStorage.getItem("google_access_token");
+             if (storedTokenStr) {
+                 try {
+                     const token = JSON.parse(storedTokenStr);
+                     
+                     if (!token.access_token || !token.expires_in || !token.created_at) {
+                         localStorage.removeItem("google_access_token");
+                         return;
+                     }
+
+                     const now = Date.now();
+                     const expiryTime = token.created_at + (token.expires_in * 1000);
+                     
+                     // Check if expired (with 5 min buffer)
+                     if (now < expiryTime - 300000) {
+                         // Still valid!
+                         setIsConnected(true);
+                         fetchUpcomingEvents(token, true); // Silent fetch
+                     } else {
+                         // Expired
+                         localStorage.removeItem("google_access_token");
+                         setIsConnected(false);
+                     }
+                 } catch (e) {
+                     console.error("Token restore error", e);
+                     localStorage.removeItem("google_access_token");
+                 }
+             }
+        }
+    }, [gapiInited, gisInited, tokenClient, fetchUpcomingEvents]);
+
+    const connect = () => {
+        if (!CLIENT_ID) {
+            toast.error("VITE_GOOGLE_CLIENT_ID not set");
+            return;
+        }
+        if (tokenClient) {
+            tokenClient.requestAccessToken({ prompt: '' });
+        } else {
+            toast.error("Google services initializing...");
+        }
+    };
+
+    return { 
+        events, 
+        connect, 
+        isConnected, 
+        isReady: gapiInited && gisInited, 
+        isLoading
+    };
+}
