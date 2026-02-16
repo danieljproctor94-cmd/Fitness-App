@@ -253,20 +253,20 @@ export default function Workouts() {
                     {/* Timer & Main Actions */}
                     <div className="flex items-center gap-3 w-full sm:w-auto">
                         {isTimerRunning ? (
-                            <div className="flex items-center gap-3 w-full sm:w-auto animate-in fade-in zoom-in duration-300">
-                                <div className="h-10 px-4 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center min-w-[100px]">
-                                    <span className="text-lg font-mono font-bold text-primary tracking-wider">
+                            <div className="flex items-center gap-2 w-full sm:w-auto animate-in fade-in zoom-in duration-300">
+                                <div className="h-10 px-2 sm:px-4 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center min-w-[80px] sm:min-w-[100px] shrink-0">
+                                    <span className="text-base sm:text-lg font-mono font-bold text-primary tracking-wider">
                                         {formatElapsedTime(elapsedSeconds)}
                                     </span>
                                 </div>
                                 <Button 
                                     onClick={handleCompleteWorkout} 
                                     variant="destructive"
-                                    className="h-10 px-6 shadow-lg shadow-red-500/20 shrink-0 flex items-center gap-2 w-full sm:w-auto font-medium transition-all"
+                                    className="h-10 px-3 sm:px-6 shadow-lg shadow-red-500/20 shrink flex-1 sm:flex-initial flex items-center justify-center gap-2 min-w-0 font-medium transition-all"
                                 >
-                                    <Check className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Finish Workout</span>
-                                    <span className="sm:hidden">Finish</span>
+                                    <Check className="h-4 w-4 shrink-0" />
+                                    <span className="hidden sm:inline whitespace-nowrap">Finish Workout</span>
+                                    <span className="sm:hidden whitespace-nowrap">Finish</span>
                                 </Button>
                             </div>
                         ) : (
@@ -546,7 +546,7 @@ function WorkoutCard({ workout, onDelete, onEdit }: WorkoutCardProps) {
                         {workout.name}
                     </CardTitle>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                <div className="flex items-center gap-1">
                     <button onClick={() => onEdit(workout)} className="text-muted-foreground hover:text-primary transition-colors" title="Edit Workout">
                         <Pen className="h-3.5 w-3.5" />
                     </button>
@@ -611,6 +611,8 @@ const ExerciseAutocomplete = ({ value, onChange, existingExercises }: { value: s
         </Popover>
     );
 };
+
+
 
 
 
