@@ -47,7 +47,52 @@ export default function Workouts() {
 
     // Mobile & Pagination State
     const [mobileView, setMobileView] = useState<'list' | 'calendar'>('list');
-    const [visibleCount, setVisibleCount] = useState(20);
+        const [visibleCount, setVisibleCount] = useState(20);
+
+    // Timer State
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [timerStartTime, setTimerStartTime] = useState<Date | null>(null);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    // Timer Logic
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isTimerRunning) {
+            interval = setInterval(() => {
+                setElapsedSeconds(prev => prev + 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isTimerRunning]);
+
+    const formatElapsedTime = (seconds: number) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
+
+    const handleStartWorkout = () => {
+        setIsTimerRunning(true);
+        setTimerStartTime(new Date());
+        setElapsedSeconds(0);
+    };
+
+    const handleCompleteWorkout = () => {
+        setIsTimerRunning(false);
+        const durationMin = Math.ceil(elapsedSeconds / 60);
+        setEditingId(null);
+        setExercises([]);
+        setName("New Workout");
+        setDuration(durationMin.toString());
+        if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
+        else setDate(new Date().toISOString().split("T")[0]);
+        if (timerStartTime) setTime(format(timerStartTime, "HH:mm"));
+        else setTime(format(new Date(), "HH:mm"));
+        setOpen(true);
+        setTimerStartTime(null);
+        setElapsedSeconds(0);
+    };
 
     useEffect(() => {
         if (selectedDate && !editingId) {
@@ -203,7 +248,39 @@ export default function Workouts() {
 
                     </div>
 
-                    <div className="h-8 w-px bg-border/60 hidden xl:block" />
+                                        <div className="h-8 w-px bg-border/60 hidden xl:block" />
+
+                    {/* Timer & Main Actions */}
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        {isTimerRunning ? (
+                            <div className="flex items-center gap-3 w-full sm:w-auto animate-in fade-in zoom-in duration-300">
+                                <div className="h-10 px-4 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center min-w-[100px]">
+                                    <span className="text-lg font-mono font-bold text-primary tracking-wider">
+                                        {formatElapsedTime(elapsedSeconds)}
+                                    </span>
+                                </div>
+                                <Button 
+                                    onClick={handleCompleteWorkout} 
+                                    variant="destructive"
+                                    className="h-10 px-6 shadow-lg shadow-red-500/20 shrink-0 flex items-center gap-2 w-full sm:w-auto font-medium transition-all"
+                                >
+                                    <Check className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Finish Workout</span>
+                                    <span className="sm:hidden">Finish</span>
+                                </Button>
+                            </div>
+                        ) : (
+                            <Button 
+                                onClick={handleStartWorkout} 
+                                className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 shrink-0 flex items-center justify-center gap-2 w-full sm:w-auto font-medium transition-all"
+                            >
+                                <Activity className="h-4 w-4" />
+                                <span className="hidden sm:inline">Start Workout</span>
+                                <span className="sm:hidden">Start</span>
+                            </Button>
+                        )}
+                        
+                    </div>
 
                     <Dialog open={open} onOpenChange={setOpen}>
                         <DialogTrigger asChild>
@@ -215,10 +292,9 @@ export default function Workouts() {
                                 if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
                                 else setDate(new Date().toISOString().split("T")[0]);
                                 setTime(format(new Date(), "HH:mm"));
-                            }} className="h-10 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 shrink-0 flex items-center gap-2 w-full sm:w-auto font-medium transition-all">
+                            }} variant="outline" className="h-10 px-4 shrink-0 flex items-center justify-center gap-2 font-medium transition-all w-full sm:w-auto">
                                 <Plus className="h-4 w-4" />
-                                <span className="hidden sm:inline">Add Workout</span>
-                                <span className="sm:hidden">Add</span>
+                                <span>Log Manually</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
@@ -535,3 +611,6 @@ const ExerciseAutocomplete = ({ value, onChange, existingExercises }: { value: s
         </Popover>
     );
 };
+
+
+
