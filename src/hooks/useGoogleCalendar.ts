@@ -27,9 +27,6 @@ export function useGoogleCalendar() {
         };
     }, [userId]);
 
-    // 1. Optimistic Initialization (Lazy State)
-    // We cannot trust lazy state blindly if userId changes.
-    // So we initialize empty, and rely on an effect to load data when userId is ready.
     const [events, setEvents] = useState<GoogleEvent[]>([]);
     const [isConnected, setIsConnected] = useState(false);
 
@@ -38,10 +35,11 @@ export function useGoogleCalendar() {
     const [gisInited, setGisInited] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Load Stored Data when User is Ready
+    // 1. Initial Load & Optimistic Check
     useEffect(() => {
-        if (authLoading) return; // Wait for auth check
+        if (authLoading) return; // Wait until we know who the user is
 
+        // If no user, reset and abort
         if (!userId) {
             setEvents([]);
             setIsConnected(false);
@@ -51,7 +49,7 @@ export function useGoogleCalendar() {
         const { eventKey, tokenKey } = getStorageKeys();
         if (!eventKey || !tokenKey) return;
 
-        // Load Events
+        // A. Load Events
         try {
             const storedEvents = localStorage.getItem(eventKey);
             if (storedEvents) {
@@ -64,41 +62,45 @@ export function useGoogleCalendar() {
             setEvents([]);
         }
 
-        // Check Token for Optimistic 'Connected' State
+        // B. Load Token Status (Optimistic)
         try {
             const storedTokenStr = localStorage.getItem(tokenKey);
             if (storedTokenStr) {
                 const token = JSON.parse(storedTokenStr);
                 if (token.access_token && token.expires_in && token.created_at) {
                     const expiry = token.created_at + (token.expires_in * 1000);
-                     // 5 min buffer
+                    // 5 min buffer
                     if (Date.now() < expiry - 300000) {
                         setIsConnected(true);
                     } else {
+                        // Expired
                         setIsConnected(false);
+                        localStorage.removeItem(tokenKey);
                     }
                 } else {
                     setIsConnected(false);
+                    localStorage.removeItem(tokenKey);
                 }
             } else {
                 setIsConnected(false);
             }
         } catch (e) {
             setIsConnected(false);
+            if (tokenKey) localStorage.removeItem(tokenKey);
         }
 
     }, [userId, authLoading, getStorageKeys]);
 
-    // 2. Fetch Helper
+    // 2. Fetch Helper (Defined early to be used in deps)
     const fetchUpcomingEvents = useCallback(async (token?: any, silent = false) => {
         const { eventKey, tokenKey } = getStorageKeys();
-        // If no user, abort
-        if (!eventKey || !tokenKey) return;
+        if (!eventKey) return;
 
         const gapi = (window as any).gapi;
         
+        // If token provided directly (e.g. fresh login), use it
         if (token) {
-            gapi.client.setToken(token);
+            if (gapi?.client) gapi.client.setToken(token);
         } else if (!gapi?.client?.getToken()) {
             return;
         }
@@ -120,6 +122,7 @@ export function useGoogleCalendar() {
             
             if (!silent) toast.success(`Synced ${result.length} google events`);
         } catch (err: any) {
+            // console.error("Fetch Events Error", err);
             if (err?.result?.error?.code === 401) {
                 if (!silent) toast.error("Google session expired. Please reconnect.");
                 setIsConnected(false);
@@ -135,23 +138,23 @@ export function useGoogleCalendar() {
     // 3. Initialize GAPI
     useEffect(() => {
         const loadGapi = () => {
-                const initGapi = () => {
+             const initGapi = () => {
                 const gapi = (window as any).gapi;
-                // Avoid re-init if already done? 
-                // Gapi load is idempotent but init might complain if called twice?
-                // We trust the window check mostly.
+                // Double check if client is already loaded to avoid errors or redundant calls
+                if (gapi.client && gapi.client.calendar) {
+                    setGapiInited(true);
+                    return;
+                }
+
                 gapi.load("client", async () => {
                     try {
-                        // Check if already inited? no api for that.
-                        // But init calls are safe to retry usually.
                         await gapi.client.init({
                             discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"],
                         });
                         setGapiInited(true);
                     } catch (err) {
-                        // console.warn("GAPI init error (maybe already inited):", err);
-                         // If error is "gapi.client.init has already been called", we are good.
-                         setGapiInited(true);
+                       // console.warn("GAPI Init Warning", err);
+                       setGapiInited(true); // Treat as ready if it was a re-init error/warning
                     }
                 });
             };
@@ -170,7 +173,7 @@ export function useGoogleCalendar() {
         if (CLIENT_ID) loadGapi();
     }, []);
 
-    // 4. Initialize GIS and Token Client
+    // 4. Initialize GIS
     useEffect(() => {
         const loadGis = () => {
             const initGis = () => {
@@ -188,6 +191,7 @@ export function useGoogleCalendar() {
                             return;
                         }
 
+                        // expires_in is seconds
                         const token = {
                             access_token: resp.access_token,
                             expires_in: resp.expires_in,
@@ -221,48 +225,44 @@ export function useGoogleCalendar() {
         if (CLIENT_ID) loadGis();
     }, [fetchUpcomingEvents, getStorageKeys]);
 
-    // 5. Restore Session (Hydrate GAPI with token)
+    // 5. Restore Session (Hydrate GAPI with valid token)
     useEffect(() => {
-        const { tokenKey } = getStorageKeys();
-        if (gapiInited && gisInited && tokenClient && userId && tokenKey) {
-            const storedTokenStr = localStorage.getItem(tokenKey);
-            if (storedTokenStr) {
-                try {
-                    const token = JSON.parse(storedTokenStr);
-                    
-                    if (!token.access_token || !token.expires_in || !token.created_at) {
-                        localStorage.removeItem(tokenKey);
-                        setIsConnected(false); // Fix inconsistent state
-                        return;
-                    }
+        // Wait for EVERYTHING to be ready
+        if (!gapiInited || !gisInited || !tokenClient || !userId || authLoading) return;
 
-                    const now = Date.now();
-                    const expiryTime = token.created_at + (token.expires_in * 1000);
-                    
-                    // Check if expired (with 5 min buffer)
-                    if (now < expiryTime - 300000) {
-                        // Token Valid - Ensure GAPI has it
-                        // Set GAPI token
-                        const gapi = (window as any).gapi;
-                        if (gapi?.client) {
-                            gapi.client.setToken(token);
-                            setIsConnected(true); 
-                            fetchUpcomingEvents(undefined, true); // Use current token in GAPI
-                        }
-                    } else {
-                        // Expired
-                        localStorage.removeItem(tokenKey);
-                        setIsConnected(false);
-                    }
-                } catch (e) {
-                    localStorage.removeItem(tokenKey);
-                    setIsConnected(false);
+        const { tokenKey } = getStorageKeys();
+        if (!tokenKey) return;
+
+        const storedTokenStr = localStorage.getItem(tokenKey);
+        
+        if (storedTokenStr) {
+            try {
+                const token = JSON.parse(storedTokenStr);
+                const now = Date.now();
+                const expiryTime = token.created_at + (token.expires_in * 1000);
+
+                if (now < expiryTime - 300000) {
+                     // Token Valid -> Set GAPI token
+                     const gapi = (window as any).gapi;
+                     if (gapi?.client) {
+                         gapi.client.setToken(token);
+                         // Don't set isConnected here, it was done optimistically.
+                         
+                         // FETCH on load
+                         // We do this silently to refresh the event list in case it's stale
+                         fetchUpcomingEvents(undefined, true);
+                     }
+                } else {
+                     // Token expired
+                     localStorage.removeItem(tokenKey);
+                     setIsConnected(false);
                 }
-            } else {
+            } catch (e) {
+                localStorage.removeItem(tokenKey);
                 setIsConnected(false);
             }
         }
-    }, [gapiInited, gisInited, tokenClient, fetchUpcomingEvents, userId, getStorageKeys]);
+    }, [gapiInited, gisInited, tokenClient, userId, authLoading, getStorageKeys, fetchUpcomingEvents]);
 
     const connect = () => {
         if (!CLIENT_ID) {
@@ -271,9 +271,11 @@ export function useGoogleCalendar() {
         }
         if (!userId) {
             toast.error("You must be logged in to sync calendar");
+            // Optionally redirect to login?
             return;
         }
         if (tokenClient) {
+            // Use prompt: '' to try silent or 'consent' to force
             tokenClient.requestAccessToken({ prompt: '' });
         } else {
             toast.error("Google services initializing...");
@@ -281,11 +283,10 @@ export function useGoogleCalendar() {
     };
 
     return { 
-        events: userId ? events : [], // Security fallback 
+        events: userId ? events : [], 
         connect, 
         isConnected, 
         isReady: gapiInited && gisInited, 
         isLoading
     };
 }
-
