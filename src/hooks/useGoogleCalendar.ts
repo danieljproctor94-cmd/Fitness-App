@@ -14,30 +14,46 @@ export interface GoogleEvent {
 }
 
 export function useGoogleCalendar() {
-    const [events, setEvents] = useState<GoogleEvent[]>([]);
-    const [isConnected, setIsConnected] = useState(false);
+    // 1. Optimistic Initialization (Lazy State)
+    const [events, setEvents] = useState<GoogleEvent[]>(() => {
+        try {
+            const stored = localStorage.getItem('google_calendar_events');
+            return stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            console.error("Failed to parse stored events", e);
+            return [];
+        }
+    });
+
+    const [isConnected, setIsConnected] = useState(() => {
+        try {
+            const storedTokenStr = localStorage.getItem("google_access_token");
+            if (storedTokenStr) {
+                    const token = JSON.parse(storedTokenStr);
+                    // Check validity (must have structure and not be expired)
+                    if (token.access_token && token.expires_in && token.created_at) {
+                        const expiry = token.created_at + (token.expires_in * 1000);
+                        // 5 min buffer
+                        if (Date.now() < expiry - 300000) {
+                            return true;
+                        }
+                    }
+            }
+        } catch (e) {
+            // console.error("Error checking optimistic token", e);
+        }
+        return false;
+    });
+
     const [tokenClient, setTokenClient] = useState<any>(null);
     const [gapiInited, setGapiInited] = useState(false);
     const [gisInited, setGisInited] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    // 1. Load Stored Events immediately
-    useEffect(() => {
-        const storedEvents = localStorage.getItem('google_calendar_events');
-        if (storedEvents) {
-            try {
-                setEvents(JSON.parse(storedEvents));
-            } catch (e) {
-                console.error("Failed to parse stored events", e);
-            }
-        }
-    }, []);
-
-    // 2. Fetch Events function
+    // 2. Fetch Helper
     const fetchUpcomingEvents = useCallback(async (token?: any, silent = false) => {
         const gapi = (window as any).gapi;
         
-        // Ensure token is set if passed
         if (token) {
             gapi.client.setToken(token);
         } else if (!gapi?.client?.getToken()) {
@@ -74,7 +90,7 @@ export function useGoogleCalendar() {
     // 3. Initialize GAPI
     useEffect(() => {
         const loadGapi = () => {
-             const initGapi = () => {
+                const initGapi = () => {
                 const gapi = (window as any).gapi;
                 gapi.load("client", async () => {
                     try {
@@ -120,17 +136,13 @@ export function useGoogleCalendar() {
                             return;
                         }
 
-                        // Calculate absolute expiry
-                        // expires_in is in seconds
                         const token = {
                             access_token: resp.access_token,
                             expires_in: resp.expires_in,
                             created_at: Date.now()
                         };
 
-                        // Store in localStorage
                         localStorage.setItem("google_access_token", JSON.stringify(token));
-                        
                         setIsConnected(true);
                         await fetchUpcomingEvents(token, false);
                     },
@@ -153,37 +165,41 @@ export function useGoogleCalendar() {
         if (CLIENT_ID) loadGis();
     }, [fetchUpcomingEvents]);
 
-    // 5. Restore Session on Load
+    // 5. Restore Session (Hydrate GAPI with token)
     useEffect(() => {
         if (gapiInited && gisInited && tokenClient) {
-             const storedTokenStr = localStorage.getItem("google_access_token");
-             if (storedTokenStr) {
-                 try {
-                     const token = JSON.parse(storedTokenStr);
-                     
-                     if (!token.access_token || !token.expires_in || !token.created_at) {
-                         localStorage.removeItem("google_access_token");
-                         return;
-                     }
+                const storedTokenStr = localStorage.getItem("google_access_token");
+                if (storedTokenStr) {
+                    try {
+                        const token = JSON.parse(storedTokenStr);
+                        
+                        if (!token.access_token || !token.expires_in || !token.created_at) {
+                            localStorage.removeItem("google_access_token");
+                            setIsConnected(false); // Fix inconsistent state
+                            return;
+                        }
 
-                     const now = Date.now();
-                     const expiryTime = token.created_at + (token.expires_in * 1000);
-                     
-                     // Check if expired (with 5 min buffer)
-                     if (now < expiryTime - 300000) {
-                         // Still valid!
-                         setIsConnected(true);
-                         fetchUpcomingEvents(token, true); // Silent fetch
-                     } else {
-                         // Expired
-                         localStorage.removeItem("google_access_token");
-                         setIsConnected(false);
-                     }
-                 } catch (e) {
-                     console.error("Token restore error", e);
-                     localStorage.removeItem("google_access_token");
-                 }
-             }
+                        const now = Date.now();
+                        const expiryTime = token.created_at + (token.expires_in * 1000);
+                        
+                        // Check if expired (with 5 min buffer)
+                        if (now < expiryTime - 300000) {
+                            // Token Valid - Ensure GAPI has it
+                            setIsConnected(true); // Should already be true from lazy init, but reinforce
+                            fetchUpcomingEvents(token, true); // Silent fetch to refresh events
+                        } else {
+                            // Expired
+                            localStorage.removeItem("google_access_token");
+                            setIsConnected(false);
+                        }
+                    } catch (e) {
+                        localStorage.removeItem("google_access_token");
+                        setIsConnected(false);
+                    }
+                } else {
+                    // No token found (maybe user logged out in another tab?)
+                    setIsConnected(false);
+                }
         }
     }, [gapiInited, gisInited, tokenClient, fetchUpcomingEvents]);
 
