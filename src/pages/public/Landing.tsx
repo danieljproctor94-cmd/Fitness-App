@@ -1,10 +1,10 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Users } from "lucide-react";
-import { siteContent } from "@/config/siteContent";
+import { siteContent } from "@/config/siteContent";`nimport { useAuth } from "@/features/auth/AuthContext";
 import { getAppUrl } from "@/lib/domain";
 import { SEO } from "@/components/shared/SEO";
 
-export default function Landing() {
+export default function Landing() {`n    const { loginWithGoogle } = useAuth();
 
 
     const { hero, features, pricing } = siteContent;
@@ -37,7 +37,7 @@ export default function Landing() {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                         <Button
-                            onClick={() => window.location.href = getAppUrl('/login')}
+                            onClick={loginWithGoogle}
                             size="lg"
                             className="h-14 px-8 text-lg rounded-full shadow-xl shadow-primary/20 bg-white text-black hover:bg-gray-100 border border-transparent transition-all hover:scale-105"
                         >
@@ -205,6 +205,7 @@ export default function Landing() {
         </div>
     );
 }
+
 
 
 
