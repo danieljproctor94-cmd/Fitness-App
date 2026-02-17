@@ -29,7 +29,7 @@ interface FormExercise {
 }
 
 export default function Workouts() {
-    const { workouts, addWorkout, deleteWorkout, isLoading } = useData();
+    const { workouts, addWorkout, deleteWorkout, isLoading, isTimerRunning, timerStartTime, elapsedSeconds, startTimer, stopTimer } = useData();
     const calendarView = "month";
 
     // Navigation State
@@ -49,21 +49,6 @@ export default function Workouts() {
     const [mobileView, setMobileView] = useState<'list' | 'calendar'>('list');
         const [visibleCount, setVisibleCount] = useState(20);
 
-    // Timer State
-    const [isTimerRunning, setIsTimerRunning] = useState(false);
-    const [timerStartTime, setTimerStartTime] = useState<Date | null>(null);
-    const [elapsedSeconds, setElapsedSeconds] = useState(0);
-
-    // Timer Logic
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (isTimerRunning) {
-            interval = setInterval(() => {
-                setElapsedSeconds(prev => prev + 1);
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [isTimerRunning]);
 
     const formatElapsedTime = (seconds: number) => {
         const h = Math.floor(seconds / 3600);
@@ -73,25 +58,27 @@ export default function Workouts() {
     };
 
     const handleStartWorkout = () => {
-        setIsTimerRunning(true);
-        setTimerStartTime(new Date());
-        setElapsedSeconds(0);
+        startTimer();
     };
 
     const handleCompleteWorkout = () => {
-        setIsTimerRunning(false);
         const durationMin = Math.ceil(elapsedSeconds / 60);
+        const currentStartTime = timerStartTime;
+        
+        stopTimer();
+
         setEditingId(null);
         setExercises([]);
         setName("New Workout");
         setDuration(durationMin.toString());
+
         if (selectedDate) setDate(format(selectedDate, "yyyy-MM-dd"));
         else setDate(new Date().toISOString().split("T")[0]);
-        if (timerStartTime) setTime(format(timerStartTime, "HH:mm"));
+
+        if (currentStartTime) setTime(format(currentStartTime, "HH:mm"));
         else setTime(format(new Date(), "HH:mm"));
+
         setOpen(true);
-        setTimerStartTime(null);
-        setElapsedSeconds(0);
     };
 
     useEffect(() => {
@@ -611,6 +598,7 @@ const ExerciseAutocomplete = ({ value, onChange, existingExercises }: { value: s
         </Popover>
     );
 };
+
 
 
 

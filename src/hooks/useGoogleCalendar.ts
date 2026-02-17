@@ -73,12 +73,14 @@ export function useGoogleCalendar() {
                     if (Date.now() < expiry - 300000) {
                         setIsConnected(true);
                     } else {
-                        // Expired
+                        // Expired - but maybe we can refresh? Don't disconnect yet.
+                        // We'll let the GIS effect handle the refresh attempt.
+                        // Setting isConnected false here is safe for UI, but don't delete token yet.
                         setIsConnected(false);
-                        localStorage.removeItem(tokenKey);
                     }
                 } else {
                     setIsConnected(false);
+                    // Invalid structure, safe to delete
                     localStorage.removeItem(tokenKey);
                 }
             } else {
@@ -225,7 +227,7 @@ export function useGoogleCalendar() {
         if (CLIENT_ID) loadGis();
     }, [fetchUpcomingEvents, getStorageKeys]);
 
-    // 5. Restore Session (Hydrate GAPI with valid token)
+    // 5. Restore Session (Hydrate GAPI with valid token OR Refresh)
     useEffect(() => {
         // Wait for EVERYTHING to be ready
         if (!gapiInited || !gisInited || !tokenClient || !userId || authLoading) return;
@@ -253,11 +255,12 @@ export function useGoogleCalendar() {
                          fetchUpcomingEvents(undefined, true);
                      }
                 } else {
-                     // Token expired
-                     localStorage.removeItem(tokenKey);
-                     setIsConnected(false);
+                     // Token expired -> Attempt Silent Refresh
+                     console.log("Token expired, attempting refresh...");
+                     tokenClient.requestAccessToken({ prompt: '' });
                 }
             } catch (e) {
+                console.error("Token restore error", e);
                 localStorage.removeItem(tokenKey);
                 setIsConnected(false);
             }

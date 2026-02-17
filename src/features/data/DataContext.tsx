@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from "sonner";
@@ -148,6 +148,11 @@ interface DataContextType {
     removeFriend: (id: string) => Promise<void>;
     refreshCollaborations: () => Promise<void>;
     isLoading: boolean;
+    isTimerRunning: boolean;
+    timerStartTime: Date | null;
+    elapsedSeconds: number;
+    startTimer: () => void;
+    stopTimer: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -187,6 +192,52 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
     const [isLoading, setIsLoading] = useState(true);
     const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
+
+    const [isTimerRunning, setIsTimerRunning] = useState(() => {
+        return localStorage.getItem('workout_timer_running') === 'true';
+    });
+    const [timerStartTime, setTimerStartTime] = useState<Date | null>(() => {
+        const stored = localStorage.getItem('workout_timer_start');
+        return stored ? new Date(stored) : null;
+    });
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        if (isTimerRunning) {
+            if (timerStartTime) {
+                const now = new Date();
+                const diff = Math.floor((now.getTime() - timerStartTime.getTime()) / 1000);
+                setElapsedSeconds(diff > 0 ? diff : 0);
+            }
+
+            interval = setInterval(() => {
+                setElapsedSeconds(prev => prev + 1);
+            }, 1000);
+        } else {
+             setElapsedSeconds(0);
+        }
+
+        return () => clearInterval(interval);
+    }, [isTimerRunning, timerStartTime]);
+
+    const startTimer = () => {
+        const now = new Date();
+        setIsTimerRunning(true);
+        setTimerStartTime(now);
+        setElapsedSeconds(0);
+        localStorage.setItem('workout_timer_running', 'true');
+        localStorage.setItem('workout_timer_start', now.toISOString());
+    };
+
+    const stopTimer = () => {
+        setIsTimerRunning(false);
+        setTimerStartTime(null);
+        setElapsedSeconds(0);
+        localStorage.removeItem('workout_timer_running');
+        localStorage.removeItem('workout_timer_start');
+    };
 
     const fetchCollaborations = async () => {
         if (!user) return;
@@ -899,7 +950,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resendFriendRequest,
         removeFriend,
         refreshCollaborations: fetchCollaborations,
-        isLoading
+        isLoading,
+        isTimerRunning,
+        timerStartTime,
+        elapsedSeconds,
+        startTimer,
+        stopTimer
     }), [
         workouts,
         measurements,
@@ -910,7 +966,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userProfile,
         collaborations,
         appLogo,
-        isLoading
+        isLoading,
+        isTimerRunning,
+        elapsedSeconds,
+        timerStartTime
     ]);
 
     return (
@@ -919,3 +978,4 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         </DataContext.Provider>
     );
 };
+
