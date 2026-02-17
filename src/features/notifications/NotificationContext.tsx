@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+﻿import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -109,8 +109,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                                     // Check if we are focused? Maybe not needed, SW handles it.
                                     await registration.showNotification(formatted.title, {
                                         body: formatted.message,
-                                        icon: '/pwa-192x192.png',
-                                        badge: '/pwa-192x192.png'
+                                        icon: '/logo.png',
+                                        badge: '/logo.png'
                                     });
                                     return;
                                 }
@@ -123,7 +123,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                         try {
                             new Notification(formatted.title, {
                                 body: formatted.message,
-                                icon: '/pwa-192x192.png'
+                                icon: '/logo.png'
                             });
                         } catch (e) {
                             console.error("Window notification failed", e);
@@ -241,3 +241,4 @@ export function useNotifications() {
     }
     return context;
 }
+
