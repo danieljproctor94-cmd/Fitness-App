@@ -85,12 +85,12 @@ export default function Landing() {
 
                         {/* Main Image */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary to-indigo-600 rounded-3xl blur opacity-20"></div>
-                        <div className="relative rounded-3xl border border-white/10 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden aspect-[16/10] flex items-center justify-center group">
+                        <div className="relative rounded-3xl border border-white/10 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden aspect-video flex items-center justify-center group">
                             {/* Dashboard Screenshot Placeholder */}
                             <img
                                 src="/dashboard-preview.png"
-                                alt="Dashboard Preview"
-                                className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.01]"
+                                alt="Progress Sync Dashboard Preview"
+                                className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                                 onError={(e) => {
                                     // Fallback if image doesn't exist yet
                                     e.currentTarget.style.display = 'none';
@@ -205,6 +205,7 @@ export default function Landing() {
         </div>
     );
 }
+
 
 
 
