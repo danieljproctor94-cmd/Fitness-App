@@ -88,7 +88,7 @@ export function useGoogleCalendar() {
             if (!authLoading) { setEvents([]); setIsConnected(false); }
             return;
         }
-        const { eventKey } = getStorageKeys();
+        const { eventKey, tokenKey } = getStorageKeys();
         if (!eventKey || !tokenKey) return;
 
         try {
