@@ -17,8 +17,6 @@ export function PublicNavbar() {
 
     const handleLogout = async () => {
         await logout();
-        // Since we are likely on the landing page, we just want to refresh the UI state
-        // The auth context change will trigger a re-render
         navigate("/");
     };
 
@@ -46,10 +44,8 @@ export function PublicNavbar() {
                         {appLogo ? (
                             <img src={appLogo} alt="Logo" className="h-12 w-auto" />
                         ) : (
-                            // Placeholder/Spacer to prevent layout shift
                             <div className="h-12 w-12"></div>
                         )}
-                        {/* <span className="font-bold text-xl tracking-tight hidden sm:block">{navbar.brand}</span> */}
                     </Link>
 
                     <div className="hidden md:flex items-center gap-8 bg-muted/30 px-6 py-2 rounded-full border border-border/50 backdrop-blur-sm">
@@ -154,4 +150,3 @@ export function PublicNavbar() {
         </nav>
     );
 }
-

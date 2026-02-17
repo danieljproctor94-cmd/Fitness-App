@@ -1,12 +1,12 @@
 ﻿import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Users } from "lucide-react";
-import { siteContent } from "@/config/siteContent";`nimport { useAuth } from "@/features/auth/AuthContext";
+import { siteContent } from "@/config/siteContent";
+import { useAuth } from "@/features/auth/AuthContext";
 import { getAppUrl } from "@/lib/domain";
 import { SEO } from "@/components/shared/SEO";
 
-export default function Landing() {`n    const { loginWithGoogle } = useAuth();
-
-
+export default function Landing() {
+    const { loginWithGoogle } = useAuth();
     const { hero, features, pricing } = siteContent;
 
     return (
@@ -86,24 +86,26 @@ export default function Landing() {`n    const { loginWithGoogle } = useAuth();
                         {/* Main Image */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-primary to-indigo-600 rounded-3xl blur opacity-20"></div>
                         <div className="relative rounded-3xl border border-white/10 bg-background/50 backdrop-blur-xl shadow-2xl overflow-hidden aspect-video flex items-center justify-center group">
-                            {/* Dashboard Screenshot Placeholder */}
+                            {/* Dashboard Screenshot Preview */}
                             <img
                                 src="/dashboard-preview.png"
                                 alt="Progress Sync Dashboard Preview"
                                 className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                                 onError={(e) => {
                                     // Fallback if image doesn't exist yet
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.parentElement!.classList.add('bg-card');
-                                    e.currentTarget.parentElement!.innerHTML = `
-                                        <div class="text-center p-12">
-                                            <div class="h-24 w-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent) {
+                                        parent.classList.add('bg-card');
+                                        parent.innerHTML = `
+                                            <div class="text-center p-12">
+                                                <div class="h-24 w-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+                                                </div>
+                                                <p class="text-xl font-medium text-foreground">Interactive Dashboard</p>
+                                                <p class="text-muted-foreground mt-2">Please add 'dashboard-preview.png' to public folder</p>
                                             </div>
-                                            <p class="text-xl font-medium text-foreground">Interactive Dashboard</p>
-                                            <p class="text-muted-foreground mt-2">Please add 'dashboard-preview.png' to public folder</p>
-                                        </div>
-                                    `;
+                                        `;
+                                    }
                                 }}
                             />
                         </div>
@@ -205,8 +207,3 @@ export default function Landing() {`n    const { loginWithGoogle } = useAuth();
         </div>
     );
 }
-
-
-
-
-

@@ -5,14 +5,16 @@ import { supabase } from "@/lib/supabase";
 interface AuthContextType {
     user: User | null;
     loading: boolean;
-    login: (email: string, pass: string) => Promise<void>;`n    loginWithGoogle: () => Promise<void>;
+    login: (email: string, pass: string) => Promise<void>;
+    loginWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
-    login: async () => { },`n    loginWithGoogle: async () => { },
+    login: async () => { },
+    loginWithGoogle: async () => { },
     logout: async () => { }
 });
 
@@ -30,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error) throw error;
     }
 
-        const loginWithGoogle = async () => {
+    const loginWithGoogle = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -68,4 +70,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         </AuthContext.Provider>
     );
 };
-
