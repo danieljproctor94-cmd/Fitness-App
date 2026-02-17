@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubdomainRouter } from "@/components/routing/SubdomainRouter";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { DataProvider } from "@/features/data/DataContext";
@@ -156,3 +156,5 @@ function App() {
 }
 
 export default App
+
+
