@@ -1,4 +1,4 @@
-
+﻿
 import {
     BarChart3,
     Users,
@@ -28,7 +28,7 @@ export const siteContent = {
             dashboard: "Dashboard",
             login: "Join with Google",
             google: "Join with Google",
-            start: "Get Started for Free"
+            start: "Start for Free"
         },
         badge: "v2.0 is now live"
     },
@@ -41,7 +41,7 @@ export const siteContent = {
         description: "Get recommended workouts, track nutrition, and compete with friends. All powered by AI to keep you consistent while you sleep.",
         buttons: {
             google: "Join with Google",
-            start: "Get Started for Free"
+            start: "Start for Free"
         },
         stats: [
             { icon: Check, label: "Daily Goal", value: "Completed", color: "emerald" },

@@ -24,6 +24,7 @@ const Leaderboard = lazy(() => import("@/pages/Leaderboard"));
 const Support = lazy(() => import("@/pages/Support"));
 const Mindset = lazy(() => import("@/pages/Mindset"));
 const ManageUsers = lazy(() => import("@/pages/ManageUsers"));
+const Goals = lazy(() => import("@/pages/Goals"));
 const ToDos = lazy(() => import("@/pages/ToDos"));
 const TaskAnalytics = lazy(() => import("@/pages/TaskAnalytics"));
 const Collaboration = lazy(() => import("@/pages/Collaboration"));
@@ -127,7 +128,7 @@ function App() {
                                                         <Route path="/dashboard" element={<Dashboard />} />
                                                         <Route path="/workouts" element={<Workouts />} />
                                                         <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                                        <Route path="/planner" element={<ToDos />} />
+                                                        <Route path="/goals" element={<Goals />} />`n                                                        <Route path="/planner" element={<ToDos />} />
                                                         <Route path="/planner/analytics" element={<TaskAnalytics />} />
                                                         <Route path="/measurements" element={<Measurements />} />
                                                         <Route path="/measurements/analytics" element={<MeasurementAnalytics />} />
@@ -156,5 +157,6 @@ function App() {
 }
 
 export default App
+
 
 

@@ -1,4 +1,4 @@
-
+﻿
 import { useState, useEffect, useMemo } from "react";
 import { format, isSameDay, parseISO, subDays } from "date-fns";
 import { useData } from "@/features/data/DataContext";
@@ -14,7 +14,7 @@ import { MindsetLog } from "@/features/data/DataContext";
 
 // Simple "Mock AI" to generate a summary based on keywords
 // In a real app, this would call an OpenAI API endpoint
-const generateAISummary = (grateful: string, improve: string) => {
+const generateAISummary = (grateful: string = "", improve: string = "") => {
     const gratefulKeywords = ["family", "work", "health", "partner", "children", "food", "gym"];
     const foundGrateful = gratefulKeywords.filter(k => grateful.toLowerCase().includes(k));
 
@@ -84,7 +84,7 @@ export default function Mindset() {
             setTodayLog(existingLog);
             // Regenerate summary for display if strictly needed, or store it.
             // For now we re-generate on fly for the view state
-            setAiSummary(generateAISummary(existingLog.grateful_for, existingLog.improvements));
+            setAiSummary(generateAISummary(String(existingLog.grateful_for || ""), String(existingLog.improvements || "")));
         }
     }, [mindsetLogs]);
 
@@ -187,7 +187,7 @@ export default function Mindset() {
                                 <input
                                     type="time"
                                     className="bg-transparent border-none text-sm focus:outline-none w-24"
-                                    value={userProfile.mindset_reminder_time || "20:00"}
+                                    value={userProfile?.mindset_reminder_time || "20:00"}
                                     onChange={handleTimeChange}
                                 />
                             </div>
@@ -379,3 +379,5 @@ export default function Mindset() {
         </div>
     );
 }
+
+

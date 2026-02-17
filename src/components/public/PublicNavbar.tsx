@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/features/data/DataContext";
 import { Menu, X, ArrowRight, LogOut } from "lucide-react";
@@ -36,8 +36,6 @@ export function PublicNavbar() {
         }
     };
 
-
-
     const { navbar } = siteContent;
 
     return (
@@ -46,10 +44,10 @@ export function PublicNavbar() {
                 <div className="flex items-center justify-between h-20">
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-shrink-0 flex items-center gap-2">
                         {appLogo ? (
-                            <img src={appLogo} alt="Logo" className="h-8 w-auto" />
+                            <img src={appLogo} alt="Logo" className="h-12 w-auto" />
                         ) : (
                             // Placeholder/Spacer to prevent layout shift
-                            <div className="h-8 w-8"></div>
+                            <div className="h-12 w-12"></div>
                         )}
                         {/* <span className="font-bold text-xl tracking-tight hidden sm:block">{navbar.brand}</span> */}
                     </Link>
@@ -79,13 +77,6 @@ export function PublicNavbar() {
                             </div>
                         ) : (
                             <>
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium backdrop-blur-md">
-                                    <span className="relative flex h-2 w-2">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    <span className="text-muted-foreground">{navbar.badge}</span>
-                                </div>
                                 <div className="flex items-center gap-3">
                                     <Button onClick={() => window.location.href = getAppUrl('/login')} variant="outline" className="rounded-full px-4 border-input bg-white text-black hover:bg-gray-100 hover:text-black">
                                         <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
@@ -127,16 +118,6 @@ export function PublicNavbar() {
                             </button>
                         ))}
 
-                        <div className="pt-4 flex justify-center">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium backdrop-blur-md">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                </span>
-                                <span className="text-muted-foreground">{navbar.badge}</span>
-                            </div>
-                        </div>
-
                         <div className="mt-4 pt-4 border-t border-border">
                             {user ? (
                                 <div className="space-y-3">
@@ -149,7 +130,6 @@ export function PublicNavbar() {
                                     </Button>
                                 </div>
                             ) : (
-
                                 <div className="grid grid-cols-2 gap-3">
                                     <Button onClick={() => window.location.href = getAppUrl('/login')} variant="outline" className="w-full rounded-full h-11 text-base border-input bg-white text-black hover:bg-gray-100 hover:text-black px-0">
                                         <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">

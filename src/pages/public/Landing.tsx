@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Users } from "lucide-react";
 import { siteContent } from "@/config/siteContent";
 import { getAppUrl } from "@/lib/domain";
@@ -205,3 +205,6 @@ export default function Landing() {
         </div>
     );
 }
+
+
+

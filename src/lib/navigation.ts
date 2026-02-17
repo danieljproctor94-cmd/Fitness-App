@@ -1,4 +1,4 @@
-import { Home, Dumbbell, Calendar, Ruler, Trophy, Users, Brain } from "lucide-react";
+﻿import { Home, Dumbbell, Calendar, Ruler, Trophy, Users, Brain, Target } from "lucide-react";
 
 export interface NavItem {
     href: string;
@@ -16,7 +16,10 @@ export const navItems: NavItem[] = [
     },
     { href: "/measurements", label: "Measurements", icon: Ruler },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+        { href: "/goals", label: "Goals", icon: Target },
     { href: "/planner", label: "Planner", icon: Calendar },
     { href: "/mindset", label: "Mindset", icon: Brain },
     { href: "/collaboration", label: "Collaboration", icon: Users },
 ];
+
+

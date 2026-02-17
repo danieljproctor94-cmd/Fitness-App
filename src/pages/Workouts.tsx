@@ -197,8 +197,7 @@ export default function Workouts() {
     const startOfCurrentWeek = startOfWeek(today, { weekStartsOn: 1 }); // Monday start
     const endOfCurrentWeek = endOfWeek(today, { weekStartsOn: 1 });
 
-    const weeklyWorkouts = workouts.filter(w =>
-        isWithinInterval(parseISO(w.date), { start: startOfCurrentWeek, end: endOfCurrentWeek })
+    const weeklyWorkoutsCount = workouts.filter(w => isWithinInterval(parseISO(w.date), { start: startOfCurrentWeek, end: endOfCurrentWeek })
     ).length;
 
     // Derived list of unique exercises history
@@ -229,7 +228,7 @@ export default function Workouts() {
                             {isLoading ? (
                                 <Skeleton className="h-3 w-32" />
                             ) : (
-                                <span>{weeklyWorkouts} Workouts This Week</span>
+                                <span>{weeklyWorkoutsCount} Workouts This Week</span>
                             )}
                         </div>
 
@@ -598,6 +597,7 @@ const ExerciseAutocomplete = ({ value, onChange, existingExercises }: { value: s
         </Popover>
     );
 };
+
 
 
 

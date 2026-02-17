@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight, Plus, RefreshCw, CheckSquare as CheckSquareIcon, ArrowDown, ArrowUp, AlertTriangle, Circle } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight, Plus, RefreshCw, CheckSquare as CheckSquareIcon, ArrowDown, ArrowUp, AlertTriangle, Circle, Target } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { useData } from "@/features/data/DataContext";
 import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate, getMonth } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,8 @@ import googleIcon from "@/assets/google.png";
 
 
 export default function Dashboard() {
-    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo, updateToDo, toggleRecurringCompletion } = useData();
+    const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo, updateToDo, toggleRecurringCompletion, goals } = useData();
+    const safeGoals = Array.isArray(goals) ? goals : [];
     const { events: googleEvents } = useGoogleCalendar();
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -49,7 +51,6 @@ export default function Dashboard() {
             urgency: urgency as any,
             notify,
             notify_before: notifyBefore as any,
-            shared_with: []
         };
 
         await addToDo(newTodo);
@@ -410,9 +411,7 @@ export default function Dashboard() {
                         <p className="text-xs text-muted-foreground mt-1">This week</p>
                     </CardContent>
                 </Card>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-7">
+            </div><div className="grid grid-cols-1 gap-6 md:grid-cols-7">
                 {/* Health Overview (Linear Gauge) */}
                 <Card className="col-span-full md:col-span-3">
                     <CardHeader>
@@ -557,7 +556,6 @@ export default function Dashboard() {
                                          urgency: 'normal',
                                          completed: false,
                                          isGoogleEvent: true,
-                                         shared_with: []
                                      });
                                  }
                                  return acc;
@@ -663,7 +661,54 @@ export default function Dashboard() {
                 </Card>
             </div>
 
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            
+            {/* Goals Summary (Bottom) */}
+            <div className="pt-6">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                       <div className="space-y-1">
+                           <CardTitle>Current Year Goals</CardTitle>
+                           <CardDescription>Your Focus</CardDescription>
+                       </div>
+                       <Button variant="outline" size="sm" asChild>
+                           <Link to="/goals" className="flex items-center gap-1">View Board <Target className="h-4 w-4" /></Link>
+                       </Button>
+                    </CardHeader>
+                    <CardContent>
+                         {safeGoals.length === 0 ? (
+                             <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg bg-muted/5">
+                                <Target className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                                <p>No goals set yet.</p>
+                                <Button variant="link" asChild><Link to="/goals">Set a Goal</Link></Button>
+                             </div>
+                         ) : (
+                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                 {safeGoals.slice(0, 4).map(goal => (
+                                     <div key={goal.id} className="flex flex-col space-y-3 p-4 border rounded-xl bg-card hover:border-primary/50 transition-colors">
+                                         <div className="flex items-start justify-between">
+                                             <span className="font-semibold truncate pr-2">{goal.title}</span>
+                                             <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 uppercase tracking-wide", 
+                                                goal.category === "Money" ? "bg-emerald-500/10 text-emerald-500" :
+                                                goal.category === "Fitness" ? "bg-orange-500/10 text-orange-500" :
+                                                "bg-primary/10 text-primary"
+                                             )}>{goal.category}</span>
+                                         </div>
+                                         <div className="space-y-1.5">
+                                             <div className="flex justify-between text-xs text-muted-foreground">
+                                                 <span>Progress</span>
+                                                 <span>{goal.progress}%</span>
+                                             </div>
+                                             <Progress value={goal.progress} className="h-1.5" />
+                                         </div>
+                                     </div>
+                                 ))}
+                             </div>
+                         )}
+                    </CardContent>
+                </Card>
+            </div>
+
+<Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
                         <DialogTitle>Quick Add Task</DialogTitle>
@@ -762,3 +807,11 @@ export default function Dashboard() {
         </div >
     );
 }
+
+
+
+
+
+
+
+

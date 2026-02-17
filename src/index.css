@@ -35,6 +35,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     /* Light Theme (White) */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -68,6 +69,7 @@
   }
 
   .dark {
+    color-scheme: dark;
     /* Dark Theme (Current "Dark Cyber Look") */
     --background: 234 30% 6%; /* #0b0c15 */
     --foreground: 210 40% 98%;
@@ -130,3 +132,4 @@
     /* Firefox */
   }
 }
+
