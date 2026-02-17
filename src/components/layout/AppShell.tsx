@@ -44,7 +44,7 @@ export function AppShell() {
     const displayFriends = acceptedFriends.slice(0, 3);
     const remainingFriends = acceptedFriends.length - displayFriends.length;
 
-    const toggleExpand = (href, e) => {
+    const toggleExpand = (href: string, e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         setExpandedItems(prev =>
@@ -56,7 +56,7 @@ export function AppShell() {
         await logout();
     };
 
-    const getInitials = (name) => {
+    const getInitials = (name?: string | null) => {
         if (!name) return 'U';
         const parts = name.split(' ');
         if (parts.length > 1) return parts[0][0] + parts[1][0];
@@ -576,4 +576,5 @@ export function AppShell() {
         </div>
     );
 }
+
 
