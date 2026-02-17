@@ -255,7 +255,7 @@ export default function Goals() {
                     <TabsTrigger value="All" className="px-4">All Goals</TabsTrigger>
                     {CATEGORIES.map(cat => (
                         <TabsTrigger key={cat.id} value={cat.id} className="gap-2">
-                             <Target className="h-3.5 w-3.5" />
+                             <cat.icon className="h-3.5 w-3.5" />
                             {cat.label}
                         </TabsTrigger>
                     ))}
@@ -375,6 +375,7 @@ export default function Goals() {
         </div>
     );
 }
+
 
 
 
