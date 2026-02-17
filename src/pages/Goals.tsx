@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Target, Trash2, Edit2, TrendingUp, DollarSign, Plane, Heart, Briefcase, Sparkles, CheckCircle2, Users } from "lucide-react";
+import { Plus, Target, Trash2, Edit2, TrendingUp, DollarSign, Plane, Heart, Briefcase, Sparkles, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -288,7 +288,7 @@ export default function Goals() {
                                 <CardHeader className="pb-3">
                                     <div className="flex justify-between items-start">
                                         <div className={cn("p-2 rounded-lg w-fit", categoryStyle)}>
-                                            <Target className="h-5 w-5" />
+                                            <CategoryIcon className="h-5 w-5" />
                                         </div>
                                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
 
@@ -375,6 +375,7 @@ export default function Goals() {
         </div>
     );
 }
+
 
 
 

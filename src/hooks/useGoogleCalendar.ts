@@ -39,7 +39,7 @@ export function useGoogleCalendar() {
 
     // PRE-DEFINE fetch so it can be used below
     const fetchUpcomingEvents = useCallback(async (token?: any, silent = false) => {
-        const { eventKey, tokenKey } = getStorageKeys();
+        const { eventKey } = getStorageKeys();
         if (!eventKey) return;
 
         const gapi = (window as any).gapi;
@@ -88,7 +88,7 @@ export function useGoogleCalendar() {
             if (!authLoading) { setEvents([]); setIsConnected(false); }
             return;
         }
-        const { eventKey, tokenKey } = getStorageKeys();
+        const { eventKey } = getStorageKeys();
         if (!eventKey || !tokenKey) return;
 
         try {
@@ -238,3 +238,4 @@ export function useGoogleCalendar() {
         isLoading
     };
 }
+

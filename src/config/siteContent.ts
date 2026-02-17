@@ -11,10 +11,10 @@ import {
 
 export const siteContent = {
     seo: {
-        title: "Progress Syncer - Grow Your Potential on Auto-Pilot",
-        description: "Track your workouts, habits, and body measurements with Progress Syncer. Your all-in-one fitness companion.",
-        keywords: "fitness app, workout tracker, ai fitness, nutrition tracking, social fitness, progress syncer",
-        ogImage: "/og-image.jpg", // You needs to create this image in public/
+        title: "Progress Syncer",
+        description: "Track your workouts, habits, and body measurements.",
+        keywords: "fitness, tracker",
+        ogImage: "/og-image.jpg",
         twitterHandle: "@progresssyncer"
     },
     navbar: {
@@ -38,7 +38,7 @@ export const siteContent = {
             first: "Grow Your Potential",
             highlight: "on Auto-Pilot"
         },
-        description: "Get recommended workouts, track nutrition, and compete with friends. All powered by AI to keep you consistent while you sleep.",
+        description: "Get recommended workouts and track nutrition.",
         buttons: {
             google: "Join with Google",
             start: "Start for Free"
@@ -50,57 +50,28 @@ export const siteContent = {
     },
     features: {
         id: "features",
-        title: "Everything you need to succeed",
-        subtitle: "Powerful features to help you reach your fitness goals faster.",
+        title: "Features",
+        subtitle: "Everything you need.",
         items: [
-            {
-                icon: Zap,
-                title: "AI Workout Generation",
-                description: "Get personalized workout plans based on your goals and available equipment."
-            },
-            {
-                icon: BarChart3,
-                title: "Advanced Analytics",
-                description: "Track your progress with detailed charts and insights into your performance."
-            },
-            {
-                icon: Users,
-                title: "Social Competition",
-                description: "Compete with friends on leaderboards and share your achievements."
-            },
-            {
-                icon: Brain,
-                title: "Smart Recommendations",
-                description: "Receive daily tips and adjustments to your plan based on your activity."
-            },
-            {
-                icon: Calendar,
-                title: "Smart Scheduling",
-                description: "Automatically schedule your workouts around your busy life."
-            },
-            {
-                icon: Shield,
-                title: "Privacy First",
-                description: "Your data is encrypted and secure. We never sell your personal information."
-            }
+            { icon: Zap, title: "AI Workouts", description: "Personalized plans." },
+            { icon: BarChart3, title: "Analytics", description: "Track progress." },
+            { icon: Users, title: "Social", description: "Compete with friends." },
+            { icon: Brain, title: "Recommendations", description: "Daily tips." },
+            { icon: Calendar, title: "Scheduling", description: "Auto-schedule." },
+            { icon: Shield, title: "Privacy", description: "Secure data." }
         ]
     },
     pricing: {
         id: "pricing",
-        title: "Simple, transparent pricing",
-        subtitle: "Start for free, upgrade when you need more power.",
+        title: "Pricing",
+        subtitle: "Simple plans.",
         plans: [
             {
                 name: "Free",
                 price: "$0",
                 period: "/month",
-                description: "Perfect for getting started",
-                features: [
-                    "Basic workout tracking",
-                    "Limited AI recommendations",
-                    "Community access",
-                    "Mobile app access"
-                ],
+                description: "Basic access",
+                features: ["Tracking", "Community"],
                 buttonText: "Get Started Free",
                 popular: false
             },
@@ -108,14 +79,8 @@ export const siteContent = {
                 name: "Pro",
                 price: "$12",
                 period: "/month",
-                description: "For serious fitness enthusiasts",
-                features: [
-                    "Advanced AI coaching",
-                    "Unlimited workout history",
-                    "Detailed analytics",
-                    "Priority support",
-                    "Custom meal plans"
-                ],
+                description: "Full access",
+                features: ["AI Coaching", "Analytics"],
                 buttonText: "Start Pro Trial",
                 popular: true
             }
@@ -123,10 +88,10 @@ export const siteContent = {
     },
     footer: {
         brand: "Progress Syncer",
-        description: "Empowering you to reach your fitness goals with AI-driven insights and community support.",
-        copyright: "© 2026 Progress Syncer. All rights reserved.",
+        description: "Reach your fitness goals.",
+        copyright: "(c) 2026 Progress Syncer. All rights reserved.",
         links: [
-            { label: "Privacy Policy", href: "/privacy" }, // You might need to create these pages
+            { label: "Privacy Policy", href: "/privacy" },
             { label: "Terms of Service", href: "/terms" },
             { label: "Contact", href: "mailto:support@progresssyncer.com" }
         ]
