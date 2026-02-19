@@ -157,7 +157,7 @@ export default function Leaderboard() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode("weight")}
-                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "weight" ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "weight" ? "bg-primary text-white hover:bg-primary/90 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <Weight className="h-4 w-4" /> Weight Loss
                         </Button>
@@ -165,7 +165,7 @@ export default function Leaderboard() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode("activity")}
-                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "activity" ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "activity" ? "bg-primary text-white hover:bg-primary/90 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <Activity className="h-4 w-4" /> Activity
                         </Button>
@@ -296,4 +296,5 @@ export default function Leaderboard() {
         </div>
     );
 }
+
 
