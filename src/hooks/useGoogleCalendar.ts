@@ -38,12 +38,14 @@ export function useGoogleCalendar() {
         try {
             const { data, error } = await supabase.functions.invoke('sync-google-calendar');
             if (error) throw error;
-            if (data?.imported > 0) {
-                toast.success(`Synced ${data.imported} events from Google Calendar!`);
-                // Trigger a refresh event so the data context re-fetches
+            
+            if (data?.found > 0) {
+                toast.success(`Found ${data.found} events! (${data.imported} saved)`);
                 window.dispatchEvent(new Event('refresh-data'));
             } else if (data?.success) {
-                toast.info("Calendar is already up to date.");
+                toast.info("No events found in your calendar for the next 30 days.");
+            } else if (data?.error) {
+                toast.error(`Sync Error: ${data.error}`);
             }
         } catch (err: any) {
             console.error("Manual Sync Error:", err);
@@ -82,8 +84,11 @@ export function useGoogleCalendar() {
                         }
 
                         setIsConnected(true);
-                        toast.success("Calendar sync enabled successfully!");
-                        // Initial sync is already performed by the backend, but we refresh the UI
+                        toast.success("Calendar sync enabled!");
+                        if (data?.found > 0) {
+                            toast.success(`Synced ${data.found} events!`);
+                        }
+                        
                         window.dispatchEvent(new Event('refresh-data'));
                     } catch (err: any) {
                         console.error("Sync Error Details:", err);
