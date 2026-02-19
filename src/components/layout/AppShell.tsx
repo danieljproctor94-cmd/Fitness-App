@@ -219,7 +219,7 @@ export function AppShell() {
                 isMobileMenuOpen ? 'translate-x-0 w-56' : '-translate-x-full md:translate-x-0',
                 isCollapsed ? 'md:w-20' : 'md:w-56'
             )}>
-                <div className={cn('flex h-20 pt-2 items-center border-b px-4 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
+                <div className={cn('flex h-16 items-center border-b px-4 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
                     {!isCollapsed && (
                         <Link to='/'>
                             {logoUrl ? (
@@ -304,7 +304,7 @@ export function AppShell() {
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                                 className={cn(
                                                     'flex items-center gap-3 flex-1 px-3 py-2 rounded-md transition-all',
-                                                    isActive && !hasChildren ? 'bg-accent/50 text-accent-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                                                    isActive && !hasChildren ? 'bg-primary shadow-lg shadow-primary/20 text-primary-foreground font-semibold' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
                                                     isCollapsed && 'justify-center px-0'
                                                 )}
                                             >
@@ -315,7 +315,7 @@ export function AppShell() {
                                                     )}
                                                 </div>
                                                 {!isCollapsed && (
-                                                    <span className='truncate transition-all duration-300 opacity-100'>{item.label}</span>
+                                                    <span className='truncate transition-all duration-300 opacity-100 font-medium tracking-tight'>{item.label}</span>
                                                 )}
                                             </Link>
 
@@ -550,7 +550,7 @@ export function AppShell() {
             {/* Main Content */}
             <main className='flex-1 bg-muted/20 flex flex-col min-h-0 overflow-hidden'>
                 {/* Desktop Sticky Header - Simplified */}
-                <header className='hidden md:flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-20'>
+                <header className='hidden md:flex items-center justify-between px-6 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-20'>
                     <div className='font-medium text-sm text-muted-foreground'>
                         {format(currentDate, 'EEEE, MMMM do, yyyy')}
                     </div>
@@ -576,6 +576,8 @@ export function AppShell() {
         </div>
     );
 }
+
+
 
 
 
