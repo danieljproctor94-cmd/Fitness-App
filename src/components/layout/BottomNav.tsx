@@ -13,7 +13,7 @@ export function BottomNav() {
     const location = useLocation();
 
     return (
-        <div className='md:hidden fixed inset-x-0 bottom-0 z-[100] border-t border-white/5 bg-[#0b0c15] backdrop-blur-2xl'>
+        <div className='md:hidden fixed inset-x-0 -bottom-[1px] z-[100] border-t border-white/5 bg-[#0b0c15] pb-20 -mb-20 backdrop-blur-2xl'>
             <div className='flex flex-col w-full pb-[env(safe-area-inset-bottom)]'>
                 <nav className='flex items-center justify-around h-16 px-2'>
                     {/* 1. Home */}
@@ -105,6 +105,7 @@ function NavIcon({ href, label, active }: { href: string; label: string; active:
         </Link>
     );
 }
+
 
 
 
