@@ -28,18 +28,17 @@ serve(async (req) => {
     }
 
     if (!targetUserId) {
-        return new Response(JSON.stringify({ error: "Unauthorized", details: "No user found in token" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const { data: syncs } = await adminClient.from('google_sync_tokens').select('*').eq('user_id', targetUserId)
 
     if (!syncs || syncs.length === 0) {
-        return new Response(JSON.stringify({ error: "Not Linked", details: "Google account not linked" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({ error: "Not Linked" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const sync = syncs[0]
     let importedCount = 0;
-    let totalFound = 0;
 
     // Refresh Token
     const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
@@ -55,25 +54,25 @@ serve(async (req) => {
     const tokenData = await tokenResp.json()
     const access_token = tokenData.access_token
 
-    if (!access_token) {
-        return new Response(JSON.stringify({ error: "Refresh Failed", details: tokenData.error_description || tokenData.error }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    if (!access_token) return new Response(JSON.stringify({ error: "Auth Fail" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-    // Fetch Events (Start from 2 days ago to be safe)
     const timeMin = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
     const timeMax = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     
-    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
-    const calendarResp = await fetch(url, {
-        headers: { Authorization: "Bearer " + access_token }
-    })
+    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true`;
+    const calendarResp = await fetch(url, { headers: { Authorization: "Bearer " + access_token } })
     const calendarData = await calendarResp.json()
     const items = calendarData.items || []
-    totalFound = items.length
 
     for (const event of items) {
-        // Upsert logic
-        const { error } = await adminClient.from('todos').upsert({
+        // We first check if it exists to avoid the ON CONFLICT requirement for a unique constraint
+        const { data: existing } = await adminClient
+            .from('todos')
+            .select('id')
+            .eq('google_event_id', event.id)
+            .maybeSingle()
+
+        const todoData = {
           user_id: sync.user_id,
           google_event_id: event.id,
           title: event.summary || 'Untitled Event',
@@ -81,21 +80,28 @@ serve(async (req) => {
           due_date: event.start?.dateTime?.split('T')[0] || event.start?.date,
           due_time: event.start?.dateTime ? event.start.dateTime.split('T')[1].substring(0, 5) : null,
           last_synced_at: new Date().toISOString()
-        }, { onConflict: 'google_event_id' })
+        }
+
+        let dbResult;
+        if (existing) {
+            dbResult = await adminClient.from('todos').update(todoData).eq('id', existing.id)
+        } else {
+            dbResult = await adminClient.from('todos').insert([todoData])
+        }
         
-        if (!error) importedCount++;
+        if (!dbResult.error) importedCount++;
+        else console.error("DB Error for event", event.id, dbResult.error);
     }
 
     return new Response(JSON.stringify({ 
         success: true, 
         imported: importedCount, 
-        found: totalFound,
-        debug_range: { from: timeMin, to: timeMax }
+        found: items.length 
     }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: "Sync Crash", details: err.message }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: "Crash", details: err.message }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
