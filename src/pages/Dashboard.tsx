@@ -285,7 +285,7 @@ export default function Dashboard() {
     };
 
     return (
-        <div className="p-6 space-y-8">
+        <div className="p-6 space-y-8 pt-12 md:pt-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
@@ -787,6 +787,7 @@ export default function Dashboard() {
         </div >
     );
 }
+
 
 
 

@@ -76,7 +76,7 @@ function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
 
     if (loading) {
         return (
-            <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0b0c15] text-white z-[9999]">
+            <div className="fixed inset-0 pt-safe flex flex-col items-center justify-center bg-[#0b0c15] text-white z-[9999]">
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-purple-500"></div>
                 <p className="mt-4 text-sm font-medium text-white/60">Loading...</p>
             </div>
@@ -180,6 +180,7 @@ function App() {
 }
 
 export default App
+
 
 
 
