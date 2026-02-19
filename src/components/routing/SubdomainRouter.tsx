@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { isAppDomain, getAppUrl } from "@/lib/domain";
 
 interface SubdomainRouterProps {
@@ -7,7 +7,7 @@ interface SubdomainRouterProps {
 }
 
 export function SubdomainRouter({ appRoutes, publicRoutes }: SubdomainRouterProps) {
-    const [isApp, setIsApp] = useState(false);
+    const [isApp, setIsApp] = useState(isAppDomain());
 
     useEffect(() => {
         const checkDomain = () => {
@@ -46,3 +46,4 @@ export function SubdomainRouter({ appRoutes, publicRoutes }: SubdomainRouterProp
 
     return isApp ? <>{appRoutes}</> : <>{publicRoutes}</>;
 }
+

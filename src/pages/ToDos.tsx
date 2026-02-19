@@ -70,7 +70,7 @@ export default function ToDos() {
     // Load More State for Undated Tasks
     const [visibleUndatedCount, setVisibleUndatedCount] = useState(20);
 
-    const { events: googleEvents, connect: connectGoogle, isConnected: isGoogleConnected, isLoading: isGoogleLoading } = useGoogleCalendar();
+    const { connect: connectGoogle, isConnected: isGoogleConnected, isLoading: isGoogleLoading } = useGoogleCalendar();
 
     useEffect(() => {
         if (selectedDate && !editingId) {
@@ -345,7 +345,7 @@ export default function ToDos() {
              return acc;
         }, []);
 
-        return [...filteredTodos, ...formattedGoogleEvents].sort((a, b) => {
+        return [...filteredTodos].sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
             if (a.due_time) return -1;
@@ -480,21 +480,9 @@ export default function ToDos() {
             }
         });
 
-        // Add Google Events
-        const gEvents = (googleEvents || [])
-            .filter(e => e.start && (e.start.date || e.start.dateTime))
-            .map(e => ({
-                id: e.id,
-                name: e.summary || "No Title",
-                date: e.start.date || e.start.dateTime?.split('T')[0] || "",
-                time: e.start.dateTime ? format(parseISO(e.start.dateTime), 'HH:mm') : undefined,
-                type: 'google_event',
-                title: e.summary,
-                exercises: [],
-                duration: '0'
-            }));
+        
 
-        const combinedItems = [...items, ...gEvents];
+        const combinedItems = [...items];
 
         // Sort items: No time (all day) first, then by time ascending
         combinedItems.sort((a, b) => {
@@ -958,7 +946,7 @@ export default function ToDos() {
                                                     </button>
                                                     <div className="flex-1 min-w-0 space-y-1">
                                                         <div className="flex items-center justify-between">
-                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
+                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.google_event_id && "text-blue-400")}>
                                                                 {todo.title}
                                                             </p>
 
@@ -992,7 +980,7 @@ export default function ToDos() {
                                                                         );
                                                                     })}
                                                                 </div>
-                                                            ) : !todo.isGoogleEvent ? (
+                                                            ) : !todo.google_event_id ? (
                                                                 <div className="flex items-center -space-x-1.5">
                                                                     <Avatar className="h-6 w-6 rounded-full border-2 border-background ring-1 ring-border/10">
                                                                         <AvatarImage src={userProfile?.photoURL} className="object-cover" />
@@ -1034,7 +1022,7 @@ export default function ToDos() {
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-col gap-1 transition-opacity">
-                                                        {todo.isGoogleEvent ? (
+                                                        {todo.google_event_id ? (
                                                              <div className="bg-muted/30 p-1.5 rounded-md text-[10px] text-muted-foreground uppercase tracking-wider font-bold">
                                                                  G-Cal
                                                              </div>
@@ -1133,7 +1121,7 @@ export default function ToDos() {
                                                 </button>
                                                 <div className="flex-1 min-w-0 space-y-1">
                                                     <div className="flex items-center justify-between">
-                                                        <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
+                                                        <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.google_event_id && "text-blue-400")}>
                                                             {todo.title}
                                                         </p>
 
@@ -1326,5 +1314,6 @@ export default function ToDos() {
         </div >
     );
 }
+
 
 

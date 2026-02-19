@@ -107,13 +107,18 @@ function App() {
                                         <Routes>
                                             <Route element={<PublicLayout />}>
                                                 <Route path="/" element={<Landing />} />
-                                                <Route path="/features" element={<Landing />} /> {/* For anchor links mostly, but nice to have route */}
-                                                <Route path="*" element={<Landing />} /> {/* Check all others to Landing for now */}
+                                                <Route path="/features" element={<Landing />} />
+                                                <Route path="*" element={<Landing />} />
                                             </Route>
                                         </Routes>
                                     }
                                     appRoutes={
-                                        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
+                                        <Suspense fallback={
+                                            <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0b0c15] text-white">
+                                                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-purple-500"></div>
+                                                <p className="mt-4 text-sm font-medium text-white/60">Loading...</p>
+                                            </div>
+                                        }>
                                             <Routes>
                                                 {/* Auth Routes */}
                                                 <Route element={<PublicRoute />}>
@@ -124,11 +129,12 @@ function App() {
                                                 {/* Protected Routes */}
                                                 <Route element={<ProtectedLayout />}>
                                                     <Route element={<AppShell />}>
-                                                        <Route path="/" element={<Dashboard />} /> {/* App Root is Dashboard */}
+                                                        <Route path="/" element={<Dashboard />} />
                                                         <Route path="/dashboard" element={<Dashboard />} />
                                                         <Route path="/workouts" element={<Workouts />} />
                                                         <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                                        <Route path="/goals" element={<Goals />} />`n                                                        <Route path="/planner" element={<ToDos />} />
+                                                        <Route path="/goals" element={<Goals />} />
+                                                        <Route path="/planner" element={<ToDos />} />
                                                         <Route path="/planner/analytics" element={<TaskAnalytics />} />
                                                         <Route path="/measurements" element={<Measurements />} />
                                                         <Route path="/measurements/analytics" element={<MeasurementAnalytics />} />
@@ -157,6 +163,3 @@ function App() {
 }
 
 export default App
-
-
-

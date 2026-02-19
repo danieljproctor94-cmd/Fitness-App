@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/features/auth/AuthContext";
 import { useData } from "@/features/data/DataContext";
@@ -7,10 +7,15 @@ import { getAppUrl } from "@/lib/domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -27,7 +32,6 @@ export default function Login() {
             navigate("/dashboard");
         } catch (err: any) {
             console.error(err);
-            // SHOW THE REAL ERROR MESSAGE
             setError(err.message || "Failed to sign in.");
         } finally {
             setLoading(false);
@@ -73,28 +77,61 @@ export default function Login() {
                         <CardContent className="grid gap-4">
                             {error && <div className="text-sm text-red-500 bg-red-500/10 p-2 rounded">{error}</div>}
                             <div className="grid gap-2">
-                                <label htmlFor="email">Email</label>
-                                <Input
-                                    id="email"
-                                    type="text"
-                                    placeholder="m@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
+                                <Label htmlFor="email">Email</Label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="m@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="pl-10"
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div className="grid gap-2">
-                                <label htmlFor="password">Password</label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
+                                <Label htmlFor="password">Password</Label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="pl-10 pr-10"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="relative">
+                            <div className="flex items-center space-x-2 py-1">
+                                <Checkbox
+                                    id="remember"
+                                    checked={rememberMe}
+                                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                                />
+                                <Label
+                                    htmlFor="remember"
+                                    className="text-sm font-medium leading-none cursor-pointer"
+                                >
+                                    Remember me
+                                </Label>
+                            </div>
+
+                            <div className="relative my-2">
                                 <div className="absolute inset-0 flex items-center">
                                     <span className="w-full border-t" />
                                 </div>
@@ -125,6 +162,9 @@ export default function Login() {
                                     Sign up
                                 </Link>
                             </div>
+                            <div className="text-center text-xs text-muted-foreground mt-2">
+                                By signing up, you agree with our terms.
+                            </div>
                         </CardFooter>
                     </form>
                 </Card>
@@ -132,3 +172,5 @@ export default function Login() {
         </div>
     );
 }
+
+

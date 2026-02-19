@@ -21,7 +21,7 @@ import googleIcon from "@/assets/google.png";
 export default function Dashboard() {
     const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo, updateToDo, toggleRecurringCompletion, goals } = useData();
     const safeGoals = Array.isArray(goals) ? goals : [];
-    const { events: googleEvents } = useGoogleCalendar();
+    const { isConnected: isGoogleConnected } = useGoogleCalendar();
     const [currentDate, setCurrentDate] = useState(new Date());
 
     // Quick Add State
@@ -539,7 +539,7 @@ export default function Dashboard() {
                                 return false;
                             });
 
-                             // Mix in Google Events
+                             // Google events are now integrated into the todos table
                              const formattedGoogleEvents = (googleEvents || []).reduce((acc: any[], event) => {
                                  const startStr = event.start.dateTime || event.start.date;
                                  if (!startStr) return acc;
@@ -561,7 +561,7 @@ export default function Dashboard() {
                                  return acc;
                             }, []);
                             
-                            const combined = [...todaysTasks, ...formattedGoogleEvents].sort((a, b) => {
+                            const combined = [...todaysTasks].sort((a, b) => {
                                 if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
                                 if (a.due_time) return -1;
                                 if (b.due_time) return 1;
@@ -598,7 +598,7 @@ export default function Dashboard() {
                                         )}>
                                             <CardContent className="p-3">
                                                 <div className="flex items-start gap-3">
-                                                    {todo.isGoogleEvent ? (
+                                                    {todo.google_event_id ? (
                                                         <div className="mt-1 h-5 w-5 flex items-center justify-center shrink-0">
                                                             <img src={googleIcon} alt="G" className="h-4 w-4 opacity-80" />
                                                         </div>
@@ -615,7 +615,7 @@ export default function Dashboard() {
                                                     )}
                                                     <div className="flex-1 min-w-0 space-y-1">
                                                         <div className="flex items-center justify-between">
-                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.isGoogleEvent && "text-blue-400")}>
+                                                            <p className={cn("text-sm font-medium leading-none truncate", todo.completed && "line-through text-muted-foreground", todo.google_event_id && "text-blue-400")}>
                                                                 {todo.title}
                                                             </p>
 
@@ -643,7 +643,7 @@ export default function Dashboard() {
                                                                     <RefreshCw className="h-3 w-3" /> {todo.recurrence}
                                                                 </span>
                                                             )}
-                                                            {todo.isGoogleEvent && (
+                                                            {todo.google_event_id && (
                                                                 <span className="flex items-center gap-1 bg-blue-500/10 text-blue-500 px-1.5 py-0.5 rounded">
                                                                      G-Cal
                                                                 </span>
@@ -807,6 +807,7 @@ export default function Dashboard() {
         </div >
     );
 }
+
 
 
 
