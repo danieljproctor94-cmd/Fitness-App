@@ -60,24 +60,35 @@ export function useGoogleCalendar() {
             scope: SCOPES,
             ux_mode: 'popup',
             access_type: 'offline',
-prompt: 'consent', // CRITICAL: This requests the Refresh Token
+            prompt: 'consent', // CRITICAL: This requests the Refresh Token
             callback: async (response: any) => {
                 if (response.code) {
                     setIsLoading(true);
                     try {
-                        // SEND CODE TO BACKEND (Supabase Edge Function)
-                        // This function will exchange the code for tokens and save them.
-                        const { data: funcData, error } = await supabase.functions.invoke('google-calendar-auth', {
+                        const { error } = await supabase.functions.invoke('google-calendar-auth', {
                             body: { code: response.code }
                         });
 
-                        if (error) { console.error("Edge Function Error:", error); if (error.context) { try { const errJson = await error.context.json(); throw new Error(errJson.error_description || errJson.error || error.message); } catch(e) { throw error; } } throw error; }
+                        if (error) {
+                            console.error("Edge Function Error:", error);
+                            // Try to extract detailed error from response
+                            if ((error as any).context) {
+                                try {
+                                    const errJson = await (error as any).context.json();
+                                    throw new Error(errJson.error_description || errJson.error || error.message);
+                                } catch (e) {
+                                    throw error;
+                                }
+                            }
+                            throw error;
+                        }
 
                         setIsConnected(true);
                         toast.success("Calendar sync enabled successfully!");
                     } catch (err: any) {
                         console.error("Auth Exception:", err);
-                        const errorMsg = err.context?.message || err.message || "Failed to link Google account."; toast.error(`Error: ${errorMsg}`);
+                        const errorMsg = err.message || "Failed to link Google account.";
+                        toast.error(Error: \);
                     } finally {
                         setIsLoading(false);
                     }
@@ -98,10 +109,11 @@ prompt: 'consent', // CRITICAL: This requests the Refresh Token
                 .delete()
                 .eq('user_id', user.id);
 
-            if (error) { console.error("Edge Function Error:", error); if (error.context) { try { const errJson = await error.context.json(); throw new Error(errJson.error_description || errJson.error || error.message); } catch(e) { throw error; } } throw error; }
+            if (error) throw error;
             setIsConnected(false);
             toast.success("Calendar sync disabled.");
-        } catch (err) {
+        } catch (err: any) {
+            console.error("Disconnect Error:", err);
             toast.error("Failed to disconnect.");
         } finally {
             setIsLoading(false);
@@ -116,6 +128,3 @@ prompt: 'consent', // CRITICAL: This requests the Refresh Token
         isReady: isGisLoaded
     };
 }
-
-
-
