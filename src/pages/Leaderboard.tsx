@@ -278,7 +278,7 @@ export default function Leaderboard() {
                                                     {user.name} {user.isCurrentUser && "(You)"}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {viewMode === "weight" ? "Fitness Enthusiast" : `${Math.floor(user.activeMinutes / 60)}h ${user.activeMinutes % 60}m logged`}
+                                                    {viewMode === "activity" ? `${Math.floor(user.activeMinutes / 60)}h ${user.activeMinutes % 60}m logged` : ""}
                                                 </span>
                                             </div>
                                         </div>
@@ -296,3 +296,4 @@ export default function Leaderboard() {
         </div>
     );
 }
+
