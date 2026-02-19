@@ -322,28 +322,7 @@ export default function ToDos() {
             return t;
         });
 
-        // Mix in Google Events
-        const formattedGoogleEvents = (googleEvents || []).reduce((acc: any[], event) => {
-             const startStr = event.start.dateTime || event.start.date;
-             if (!startStr) return acc;
-             
-             const eventDate = parseISO(startStr);
-             if (isSameDay(eventDate, selectedDate)) {
-                 acc.push({
-                     id: `g_${event.id}`,
-                     title: event.summary || "No Title",
-                     description: event.description || "",
-                     due_date: format(eventDate, 'yyyy-MM-dd'),
-                     due_time: event.start.dateTime ? format(eventDate, 'HH:mm') : undefined,
-                     recurrence: 'none',
-                     urgency: 'normal',
-                     completed: false,
-                     isGoogleEvent: true,
-                     shared_with: []
-                 });
-             }
-             return acc;
-        }, []);
+        
 
         return [...filteredTodos].sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -352,7 +331,7 @@ export default function ToDos() {
             if (b.due_time) return 1;
             return 0;
         });
-    }, [todos, selectedDate, todoCompletions, googleEvents]);
+    }, [todos, selectedDate, todoCompletions]);
 
     // List Filter State
     const [listFilter, setListFilter] = useState<'anytime' | 'recurring' | 'overdue' | 'completed'>('anytime');
@@ -497,7 +476,7 @@ export default function ToDos() {
         });
 
         return combinedItems;
-    }, [todos, currentDate, googleEvents, todoCompletions]);
+    }, [todos, currentDate, todoCompletions]);
 
     // Stats Logic
     const todayCount = useMemo(() => {
@@ -1314,6 +1293,8 @@ export default function ToDos() {
         </div >
     );
 }
+
+
 
 
 
