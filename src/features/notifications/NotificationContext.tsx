@@ -22,6 +22,20 @@ interface NotificationContextType {
     addNotification: (notification: Omit<Notification, 'id' | 'read' | 'timestamp'>) => void;
 }
 
+
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+function urlBase64ToUint8Array(base64String: string) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
@@ -155,27 +169,52 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }, [unreadCount]);
 
     const enablePush = async () => {
-        if (!('Notification' in window)) {
-            toast.error('Notifications are not supported by your browser.');
+        if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+            toast.error("Notifications are not supported by your browser.");
             return;
         }
 
         try {
             const permission = await Notification.requestPermission();
-            setPushEnabled(permission === 'granted');
+            setPushEnabled(permission === "granted");
 
-            if (permission === 'granted') {
-                toast.success('Push notifications enabled!');
-                // Ensure SW is ready
-                if ('serviceWorker' in navigator) {
-                    await navigator.serviceWorker.ready;
+            if (permission === "granted") {
+                const registration = await navigator.serviceWorker.ready;
+                
+                // Get or create subscription
+                let subscription = await registration.pushManager.getSubscription();
+                
+                if (!subscription && VAPID_PUBLIC_KEY) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+                    });
                 }
-            } else if (permission === 'denied') {
-                toast.error('Notifications denied. Please enable them in your browser settings.');
+
+                if (subscription && user) {
+                    const p256dh = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey("p256dh")!))));
+                    const auth = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(subscription.getKey("auth")!))));
+
+                    const { error } = await supabase.from("push_subscriptions").upsert({
+                        user_id: user.id,
+                        endpoint: subscription.endpoint,
+                        p256dh,
+                        auth,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: "endpoint" });
+
+                    if (error) console.error("Error saving push subscription:", error);
+                    else toast.success("Push notifications fully active!");
+                } else if (!VAPID_PUBLIC_KEY) {
+                    console.warn("No VAPID_PUBLIC_KEY found in .env. Skipping server-push registration.");
+                    toast.success("Notifications enabled (Local-only mode)");
+                }
+            } else if (permission === "denied") {
+                toast.error("Notifications denied. Please enable them in your browser settings.");
             }
         } catch (error) {
-            console.error('Error enabling push:', error);
-            toast.error('Failed to enable notifications');
+            console.error("Error enabling push:", error);
+            toast.error("Failed to enable notifications");
         }
     };
 

@@ -1,4 +1,4 @@
-﻿import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
@@ -65,10 +65,9 @@ serve(async (req) => {
     const items = calendarData.items || []
 
     for (const event of items) {
-        // We first check if it exists to avoid the ON CONFLICT requirement for a unique constraint
         const { data: existing } = await adminClient
             .from('todos')
-            .select('id')
+            .select('id, notify, notify_before')
             .eq('google_event_id', event.id)
             .maybeSingle()
 
@@ -79,7 +78,10 @@ serve(async (req) => {
           description: event.description || '',
           due_date: event.start?.dateTime?.split('T')[0] || event.start?.date,
           due_time: event.start?.dateTime ? event.start.dateTime.split('T')[1].substring(0, 5) : null,
-          last_synced_at: new Date().toISOString()
+          last_synced_at: new Date().toISOString(),
+          // Enable notifications for synced events by default
+          notify: true,
+          notify_before: existing?.notify_before || '10_min'
         }
 
         let dbResult;

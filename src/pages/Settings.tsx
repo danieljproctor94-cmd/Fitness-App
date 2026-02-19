@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Bell, Moon, Globe, Sparkles } from "lucide-react";
+import { Bell, Moon, Globe, Sparkles, Smartphone } from "lucide-react";
+import { useNotifications } from "@/features/notifications/NotificationContext";
 import { useTheme } from "@/components/theme-provider";
 import { useData } from "@/features/data/DataContext";
 import { uploadAvatar } from "@/lib/storage-utils";
@@ -15,6 +16,7 @@ export default function Settings() {
     // Theme
     const { setTheme, theme } = useTheme();
     const { userProfile } = useData();
+    const { pushEnabled, enablePush } = useNotifications();
 
     // Mock Settings State
     const [notifications, setNotifications] = useState(true);
@@ -67,6 +69,29 @@ export default function Settings() {
                     (If this is not 'admin', the logo settings won't show)
                 </p>
             </div>
+
+            {/* PWA Settings */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Smartphone className="h-5 w-5 text-primary" /> Application Info
+                    </CardTitle>
+                    <CardDescription>PWA and system settings.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label>Push Notifications</Label>
+                            <p className="text-xs text-muted-foreground">Receive system notifications for task reminders.</p>
+                        </div>
+                        <Switch checked={pushEnabled} onCheckedChange={enablePush} />
+                    </div>
+                    <div className="border-t pt-4">
+                        <p className="text-xs text-muted-foreground">Version: 1.2.0 (Stable)</p>
+                        <p className="text-xs text-muted-foreground">Platform: {navigator.userAgent.includes("Android") ? "Android PWA" : navigator.userAgent.includes("iPhone") ? "iOS PWA" : "Desktop Web"}</p>
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* Admin Settings - Logo */}
             {userProfile.subscription_tier === 'admin' && (
@@ -320,3 +345,4 @@ export default function Settings() {
         </div>
     );
 }
+

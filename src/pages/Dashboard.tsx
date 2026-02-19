@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight, Plus, RefreshCw, CheckSquare as CheckSquareIcon, ArrowDown, ArrowUp, AlertTriangle, Circle, Target } from "lucide-react";
+import { Activity, CheckCircle2, Clock, Dumbbell, Flame, Weight, Plus, RefreshCw, CheckSquare as CheckSquareIcon, ArrowDown, ArrowUp, AlertTriangle, Circle, Target, Smartphone, Download } from "lucide-react";
+import { usePWAInstall } from "@/features/pwa/InstallContext";
 import { Progress } from "@/components/ui/progress";
 import { useData } from "@/features/data/DataContext";
 import { format, isAfter, parseISO, startOfWeek, isSameDay, isBefore, getDay, getDate, getMonth } from "date-fns";
@@ -20,6 +21,7 @@ import googleIcon from "@/assets/google.png";
 
 export default function Dashboard() {
     const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo, updateToDo, toggleRecurringCompletion, goals } = useData();
+    const { isInstallable, installApp } = usePWAInstall();
     const safeGoals = Array.isArray(goals) ? goals : [];
     useGoogleCalendar();
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -286,6 +288,26 @@ export default function Dashboard() {
 
     return (
         <div className="p-6 space-y-8">
+            {/* PWA Install Banner */}
+            {isInstallable && (
+                <Card className="bg-primary/10 border-primary/30 shadow-lg border-2 border-dashed animate-in fade-in slide-in-from-top-4 duration-500">
+                    <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 text-center md:text-left">
+                            <div className="bg-primary/20 p-3 rounded-2xl flex-shrink-0">
+                                <Smartphone className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="font-bold text-lg leading-none">Install App</h3>
+                                <p className="text-sm text-muted-foreground pb-2 md:pb-0">Add to home screen for the best experience and offline access.</p>
+                            </div>
+                        </div>
+                        <Button onClick={installApp} className="w-full md:w-auto gap-2 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90">
+                            <Download className="h-4 w-4" /> Install Now
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
@@ -785,6 +807,7 @@ export default function Dashboard() {
         </div >
     );
 }
+
 
 
 

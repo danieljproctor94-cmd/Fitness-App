@@ -11,31 +11,35 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       manifest: {
         name: 'Progress Syncer',
-        short_name: 'Progress Syncer',
-        description: 'Track your workouts, habits, and body measurements.',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        short_name: 'Progress',
+        description: 'Track your workouts, habits, and body measurements with Progress Syncer.',
+        theme_color: '#0b0c15',
+        background_color: '#0b0c15',
         display: 'standalone',
         start_url: '/',
-        scope: '/',
+        orientation: 'portrait',
         icons: [
           {
-            src: 'https://mhwxdqcnlibqxeiyyuxl.supabase.co/storage/v1/object/public/avatars/83018041-32c6-44c9-b1f0-8953506a6fe6/0.9004334509043234.png',
+            src: '/logo.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: 'https://mhwxdqcnlibqxeiyyuxl.supabase.co/storage/v1/object/public/avatars/83018041-32c6-44c9-b1f0-8953506a6fe6/0.9004334509043234.png',
+            src: '/logo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
           }
         ]
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
       }
     })
   ],
@@ -45,34 +49,3 @@ export default defineConfig({
     },
   },
 })
-
-
-
-
-
-// restart-trigger: 20260217161541
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// restart-trigger: 20260217163837

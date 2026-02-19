@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/features/notifications/NotificationContext";
 import { ReminderManager } from "@/features/reminders/ReminderManager";
+import { PWAInstallProvider } from "@/features/pwa/InstallContext";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
@@ -99,53 +100,56 @@ function App() {
                 <AuthProvider>
                     <DataProvider>
                         <NotificationProvider>
-                            <FaviconUpdater />
-                            <ReminderManager />
-                            <BrowserRouter>
-                                <SubdomainRouter
-                                    publicRoutes={
-                                        <Routes>
-                                            <Route element={<PublicLayout />}>
-                                                <Route path="/" element={<Landing />} />
-                                                <Route path="/features" element={<Landing />} /> {/* For anchor links mostly, but nice to have route */}
-                                                <Route path="*" element={<Landing />} /> {/* Check all others to Landing for now */}
-                                            </Route>
-                                        </Routes>
-                                    }
-                                    appRoutes={
-                                        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
+                            <PWAInstallProvider>
+                                <FaviconUpdater />
+                                <ReminderManager />
+                                <BrowserRouter>
+                                    <SubdomainRouter
+                                        publicRoutes={
                                             <Routes>
-                                                {/* Auth Routes */}
-                                                <Route element={<PublicRoute />}>
-                                                    <Route path="/login" element={<Login />} />
-                                                    <Route path="/register" element={<Register />} />
-                                                </Route>
-
-                                                {/* Protected Routes */}
-                                                <Route element={<ProtectedLayout />}>
-                                                    <Route element={<AppShell />}>
-                                                        <Route path="/" element={<Dashboard />} /> {/* App Root is Dashboard */}
-                                                        <Route path="/dashboard" element={<Dashboard />} />
-                                                        <Route path="/workouts" element={<Workouts />} />
-                                                        <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                                        <Route path="/goals" element={<Goals />} />`n                                                        <Route path="/planner" element={<ToDos />} />
-                                                        <Route path="/planner/analytics" element={<TaskAnalytics />} />
-                                                        <Route path="/measurements" element={<Measurements />} />
-                                                        <Route path="/measurements/analytics" element={<MeasurementAnalytics />} />
-                                                        <Route path="/leaderboard" element={<Leaderboard />} />
-                                                        <Route path="/account" element={<Account />} />
-                                                        <Route path="/settings" element={<Settings />} />
-                                                        <Route path="/support" element={<Support />} />
-                                                        <Route path="/mindset" element={<Mindset />} />
-                                                        <Route path="/collaboration" element={<Collaboration />} />
-                                                        <Route path="/admin/users" element={<ManageUsers />} />
-                                                    </Route>
+                                                <Route element={<PublicLayout />}>
+                                                    <Route path="/" element={<Landing />} />
+                                                    <Route path="/features" element={<Landing />} />
+                                                    <Route path="*" element={<Landing />} />
                                                 </Route>
                                             </Routes>
-                                        </Suspense>
-                                    }
-                                />
-                            </BrowserRouter>
+                                        }
+                                        appRoutes={
+                                            <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
+                                                <Routes>
+                                                    {/* Auth Routes */}
+                                                    <Route element={<PublicRoute />}>
+                                                        <Route path="/login" element={<Login />} />
+                                                        <Route path="/register" element={<Register />} />
+                                                    </Route>
+
+                                                    {/* Protected Routes */}
+                                                    <Route element={<ProtectedLayout />}>
+                                                        <Route element={<AppShell />}>
+                                                            <Route path="/" element={<Dashboard />} />
+                                                            <Route path="/dashboard" element={<Dashboard />} />
+                                                            <Route path="/workouts" element={<Workouts />} />
+                                                            <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
+                                                            <Route path="/goals" element={<Goals />} />
+                                                            <Route path="/planner" element={<ToDos />} />
+                                                            <Route path="/planner/analytics" element={<TaskAnalytics />} />
+                                                            <Route path="/measurements" element={<Measurements />} />
+                                                            <Route path="/measurements/analytics" element={<MeasurementAnalytics />} />
+                                                            <Route path="/leaderboard" element={<Leaderboard />} />
+                                                            <Route path="/account" element={<Account />} />
+                                                            <Route path="/settings" element={<Settings />} />
+                                                            <Route path="/support" element={<Support />} />
+                                                            <Route path="/mindset" element={<Mindset />} />
+                                                            <Route path="/collaboration" element={<Collaboration />} />
+                                                            <Route path="/admin/users" element={<ManageUsers />} />
+                                                        </Route>
+                                                    </Route>
+                                                </Routes>
+                                            </Suspense>
+                                        }
+                                    />
+                                </BrowserRouter>
+                            </PWAInstallProvider>
                         </NotificationProvider>
                     </DataProvider>
                 </AuthProvider>
@@ -157,6 +161,3 @@ function App() {
 }
 
 export default App
-
-
-

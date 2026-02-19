@@ -1,4 +1,4 @@
-﻿import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
@@ -15,7 +15,6 @@ serve(async (req) => {
   try {
     const { code } = await req.json()
     
-    // Auth Check manually
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
         return new Response(JSON.stringify({ error: "No Login Found" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -36,7 +35,6 @@ serve(async (req) => {
     const gid = Deno.env.get('GOOGLE_CLIENT_ID')
     const gsec = Deno.env.get('GOOGLE_CLIENT_SECRET')
 
-    // 1. Exchange Code
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -55,7 +53,6 @@ serve(async (req) => {
        return new Response(JSON.stringify({ error: "Google Exchange Error", details: googleData.error_description || googleData.error }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // 2. Save Tokens
     const { error: dbError } = await adminClient
       .from('google_sync_tokens')
       .upsert({
@@ -70,7 +67,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Storage Error", details: dbError.message }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // 3. INITIAL SYNC (Triggered immediately so user sees data)
     console.log("Starting Initial Sync for user:", user.id)
     const calendarResp = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=' + new Date().toISOString(), {
       headers: { Authorization: "Bearer " + googleData.access_token }
@@ -87,7 +83,9 @@ serve(async (req) => {
             description: event.description || '',
             due_date: event.start.dateTime?.split('T')[0] || event.start.date,
             due_time: event.start.dateTime ? event.start.dateTime.split('T')[1].substring(0, 5) : null,
-            last_synced_at: new Date().toISOString()
+            last_synced_at: new Date().toISOString(),
+            notify: true,
+            notify_before: '10_min'
           }, { onConflict: 'google_event_id' })
           
           if (!syncErr) importedCount++
