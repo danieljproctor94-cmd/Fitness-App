@@ -70,7 +70,7 @@ export default function ToDos() {
     // Load More State for Undated Tasks
     const [visibleUndatedCount, setVisibleUndatedCount] = useState(20);
 
-    const { connect: connectGoogle, isConnected: isGoogleConnected, isLoading: isGoogleLoading } = useGoogleCalendar();
+    const { connect: connectGoogle, isConnected: isGoogleConnected, isLoading: isGoogleLoading, sync: syncGoogle } = useGoogleCalendar();
 
     useEffect(() => {
         if (selectedDate && !editingId) {
@@ -538,7 +538,7 @@ export default function ToDos() {
 
                     {/* Sync Button (Primary Action Style) */}
                     <Button
-                        onClick={connectGoogle}
+                        onClick={() => isGoogleConnected ? syncGoogle() : connectGoogle()}
                         disabled={isGoogleLoading}
                         className={cn(
                             "gap-2 font-medium transition-all h-10 px-6 w-full sm:w-auto",
@@ -1293,6 +1293,7 @@ export default function ToDos() {
         </div >
     );
 }
+
 
 
 

@@ -54,7 +54,7 @@ interface DataContextType {
     acceptFriendRequest: (id: string) => Promise<void>;
     resendFriendRequest: (id: string) => Promise<void>;
     removeFriend: (id: string) => Promise<void>;
-    refreshCollaborations: () => Promise<void>;
+    refreshCollaborations: () => Promise<void>;`n    refreshAllData: () => void;
     isLoading: boolean;
     isTimerRunning: boolean;
     timerStartTime: Date | null;
@@ -88,7 +88,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '');
     const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '');
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);`n    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
     const [isTimerRunning, setIsTimerRunning] = useState(() => localStorage.getItem('workout_timer_running') === 'true');
     const [timerStartTime, setTimerStartTime] = useState<Date | null>(() => {
@@ -109,7 +109,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
              setElapsedSeconds(0);
         }
-        return () => clearInterval(interval);
+        useEffect(() => { const h = () => setRefreshTrigger(p => p + 1); window.addEventListener("refresh-data", h); return () => window.removeEventListener("refresh-data", h); }, []);`n`n    return () => clearInterval(interval);
     }, [isTimerRunning, timerStartTime]);
 
     const startTimer = () => {
@@ -200,7 +200,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } finally { setIsLoading(false); }
         };
         fetchUserData();
-    }, [user]);
+    }, [user, refreshTrigger]);
 
     const addWorkout = async (workout: Omit<Workout, 'id'>) => {
         if (!user) { toast.error("No user logged in!"); return; }
@@ -377,19 +377,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addGoal, updateGoal, deleteGoal, shareGoal, removeGoalCollaborator,
         toggleRecurringCompletion, excludeRecurringTask, shareToDo, updateUserProfile, fetchAllUsers,
         appLogo, updateAppLogo, socialUrl, updateSocialUrl, appFavicon, updateAppFavicon,
-        sendFriendRequest, acceptFriendRequest, resendFriendRequest, removeFriend, refreshCollaborations: fetchCollaborations,
+        sendFriendRequest, acceptFriendRequest, resendFriendRequest, removeFriend, refreshCollaborations: fetchCollaborations,`n        refreshAllData: () => setRefreshTrigger(prev => prev + 1),
         isLoading, isTimerRunning, timerStartTime, elapsedSeconds, startTimer, stopTimer
     }), [
         workouts, measurements, mindsetLogs, todos, goals, todoCompletions, todoExceptions, userProfile, collaborations,
         appLogo, isLoading, isTimerRunning, elapsedSeconds, timerStartTime
     ]);
 
-    return (
+    useEffect(() => { const h = () => setRefreshTrigger(p => p + 1); window.addEventListener("refresh-data", h); return () => window.removeEventListener("refresh-data", h); }, []);`n`n    return (
         <DataContext.Provider value={value}>
             {children}
         </DataContext.Provider>
     );
 };
+
+
 
 
 

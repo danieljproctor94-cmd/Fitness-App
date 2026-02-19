@@ -33,6 +33,26 @@ export function useGoogleCalendar() {
         document.body.appendChild(script);
     }, []);
 
+    const sync = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const { data, error } = await supabase.functions.invoke('sync-google-calendar');
+            if (error) throw error;
+            if (data?.imported > 0) {
+                toast.success(`Synced ${data.imported} events from Google Calendar!`);
+                // Trigger a refresh event so the data context re-fetches
+                window.dispatchEvent(new Event('refresh-data'));
+            } else if (data?.success) {
+                toast.info("Calendar is already up to date.");
+            }
+        } catch (err: any) {
+            console.error("Manual Sync Error:", err);
+            toast.error("Failed to sync events.");
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
     const connect = useCallback(() => {
         if (!isGisLoaded || !CLIENT_ID) {
             toast.error("Calendar service is still loading...");
@@ -53,29 +73,21 @@ export function useGoogleCalendar() {
                             body: { code: response.code }
                         });
 
-                        // 1. Check for hard network/gateway error
                         if (error) {
-                            console.error("Invoke Error:", error);
-                            let msg = "Connection Error";
-                            if (error.message) msg = error.message;
-                            
-                            // If it's still a 401/403 despite my bypass, we need to know
-                            toast.error(`Internal Error: ${msg}`);
-                            return;
+                            throw new Error(error.message || "Network Error");
                         }
 
-                        // 2. Check for logic error returned as 200 JSON
                         if (data && data.error) {
-                            console.error("Logic Error:", data);
-                            toast.error(`Sync Error: ${data.error} - ${data.details || "No details"}`);
-                            return;
+                            throw new Error(`${data.error}: ${data.details || "No details"}`);
                         }
 
                         setIsConnected(true);
                         toast.success("Calendar sync enabled successfully!");
+                        // Initial sync is already performed by the backend, but we refresh the UI
+                        window.dispatchEvent(new Event('refresh-data'));
                     } catch (err: any) {
-                        console.error("Connection Crash:", err);
-                        toast.error(`Failed to reach server: ${err.message}`);
+                        console.error("Sync Error Details:", err);
+                        toast.error(`Sync Error: ${err.message}`);
                     } finally {
                         setIsLoading(false);
                     }
@@ -101,5 +113,5 @@ export function useGoogleCalendar() {
         }
     }, [user]);
 
-    return { connect, disconnect, isConnected, isLoading, isReady: isGisLoaded };
+    return { connect, disconnect, sync, isConnected, isLoading, isReady: isGisLoaded };
 }
