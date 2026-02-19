@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
-export default function Leaderboard() {
+export default function Leaderboard() {\n    const navigate = useNavigate();
     const { userProfile, workouts, measurements, isLoading, collaborations } = useData();
     const [viewMode, setViewMode] = useState("weight");
     const [filterMode, setFilterMode] = useState("friends"); // friends | everyone
@@ -134,7 +134,7 @@ export default function Leaderboard() {
                         </div>
                         <div className="flex flex-col">
                             <span className="font-bold text-sm">
-                                {collaborations.filter(c => c.status === 'accepted').length} Team Members
+                                {collaborations.filter(c => c.status === "accepted").length + 1} Team Members
                             </span>
                             <button onClick={handleInvite} className="text-xs text-primary hover:underline text-left font-medium">
                                 + Invite to Team
@@ -157,7 +157,7 @@ export default function Leaderboard() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode("weight")}
-                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "weight" ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "weight" ? "bg-primary text-white hover:bg-primary/90 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <Weight className="h-4 w-4" /> Weight Loss
                         </Button>
@@ -165,7 +165,7 @@ export default function Leaderboard() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode("activity")}
-                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "activity" ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`gap-2 w-full sm:w-auto transition-all duration-200 ${viewMode === "activity" ? "bg-primary text-white hover:bg-primary/90 shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                         >
                             <Activity className="h-4 w-4" /> Activity
                         </Button>
@@ -296,3 +296,4 @@ export default function Leaderboard() {
         </div>
     );
 }
+
