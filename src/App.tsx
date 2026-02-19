@@ -11,7 +11,7 @@ import { ReminderManager } from "@/features/reminders/ReminderManager";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";`nimport { isAppDomain } from "@/lib/domain";
 
 // Lazy Load Pages
 const Workouts = lazy(() => import("@/pages/Workouts"));
@@ -69,6 +69,22 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     }
 }
 
+
+function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
+    const { loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#0b0c15] text-white z-[9999]">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-purple-500"></div>
+                <p className="mt-4 text-sm font-medium text-white/60">Loading...</p>
+            </div>
+        );
+    }
+
+    return <>{children}</>;
+}
+
 function App() {
     useEffect(() => {
         const handleChunkError = (event: ErrorEvent | PromiseRejectionEvent) => {
@@ -102,7 +118,7 @@ function App() {
                             <FaviconUpdater />
                             <ReminderManager />
                             <BrowserRouter>
-                                <SubdomainRouter
+                                <AuthLoadingWrapper><SubdomainRouter
                                     publicRoutes={
                                         <Routes>
                                             <Route element={<PublicLayout />}>
@@ -151,7 +167,7 @@ function App() {
                                         </Suspense>
                                     }
                                 />
-                            </BrowserRouter>
+                            </AuthLoadingWrapper></BrowserRouter>
                         </NotificationProvider>
                     </DataProvider>
                 </AuthProvider>
@@ -163,3 +179,4 @@ function App() {
 }
 
 export default App
+
