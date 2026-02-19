@@ -1,5 +1,5 @@
 ﻿
-import { useState } from "react";
+import { useState } from "react";`nimport { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Medal, Crown, Activity, Weight, Share2, Users, Globe } from "lucide-react";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
-export default function Leaderboard() {
+export default function Leaderboard() {`n    const navigate = useNavigate();
     const { userProfile, workouts, measurements, isLoading, collaborations } = useData();
     const [viewMode, setViewMode] = useState("weight");
     const [filterMode, setFilterMode] = useState("friends"); // friends | everyone
@@ -100,11 +100,7 @@ export default function Leaderboard() {
         }
     };
 
-    const handleInvite = () => {
-        // Simulating copy to clipboard
-        navigator.clipboard.writeText("Join me on FitnessApp! https://fitnessapp.com/join?ref=" + (userProfile.id || "user"));
-        toast.success("Invite link copied to clipboard!");
-    };
+    const handleInvite = () => { navigate("/collaboration"); };
 
     return (
         <div className="p-6 space-y-6">
@@ -134,7 +130,7 @@ export default function Leaderboard() {
                         </div>
                         <div className="flex flex-col">
                             <span className="font-bold text-sm">
-                                {collaborations.filter(c => c.status === 'accepted').length} Team Members
+                                {collaborations.filter(c => c.status === "accepted").length + 1} Team Members
                             </span>
                             <button onClick={handleInvite} className="text-xs text-primary hover:underline text-left font-medium">
                                 + Invite to Team
@@ -296,5 +292,6 @@ export default function Leaderboard() {
         </div>
     );
 }
+
 
 
