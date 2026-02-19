@@ -88,7 +88,7 @@ export function useGoogleCalendar() {
                     } catch (err: any) {
                         console.error("Auth Exception:", err);
                         const errorMsg = err.message || "Failed to link Google account.";
-                        toast.error(Error: \);
+                        toast.error(`Error: ${errorMsg}`);
                     } finally {
                         setIsLoading(false);
                     }
