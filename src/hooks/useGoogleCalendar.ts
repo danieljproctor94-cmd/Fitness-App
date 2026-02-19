@@ -67,11 +67,11 @@ prompt: 'consent', // CRITICAL: This requests the Refresh Token
                     try {
                         // SEND CODE TO BACKEND (Supabase Edge Function)
                         // This function will exchange the code for tokens and save them.
-                        const { error } = await supabase.functions.invoke('google-calendar-auth', {
+                        const { data: funcData, error } = await supabase.functions.invoke('google-calendar-auth', {
                             body: { code: response.code }
                         });
 
-                        if (error) throw error;
+                        if (error) { console.error("Edge Function Error:", error); if (error.context) { try { const errJson = await error.context.json(); throw new Error(errJson.error_description || errJson.error || error.message); } catch(e) { throw error; } } throw error; }
 
                         setIsConnected(true);
                         toast.success("Calendar sync enabled successfully!");
@@ -98,7 +98,7 @@ prompt: 'consent', // CRITICAL: This requests the Refresh Token
                 .delete()
                 .eq('user_id', user.id);
 
-            if (error) throw error;
+            if (error) { console.error("Edge Function Error:", error); if (error.context) { try { const errJson = await error.context.json(); throw new Error(errJson.error_description || errJson.error || error.message); } catch(e) { throw error; } } throw error; }
             setIsConnected(false);
             toast.success("Calendar sync disabled.");
         } catch (err) {
@@ -116,5 +116,6 @@ prompt: 'consent', // CRITICAL: This requests the Refresh Token
         isReady: isGisLoaded
     };
 }
+
 
 
