@@ -7,7 +7,7 @@ import { Medal, Crown, Activity, Weight, Share2, Users, Globe } from "lucide-rea
 import { useData } from "@/features/data/DataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
@@ -255,4 +255,5 @@ export default function Leaderboard() {
         </div>
     );
 }
+
 
