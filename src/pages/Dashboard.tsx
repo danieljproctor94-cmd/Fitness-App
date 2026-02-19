@@ -21,7 +21,7 @@ import googleIcon from "@/assets/google.png";
 export default function Dashboard() {
     const { workouts, measurements, userProfile, isLoading, todos, todoCompletions, todoExceptions, addToDo, updateToDo, toggleRecurringCompletion, goals } = useData();
     const safeGoals = Array.isArray(goals) ? goals : [];
-    const { events: googleEvents } = useGoogleCalendar();
+    useGoogleCalendar();
     const [currentDate, setCurrentDate] = useState(new Date());
 
     // Quick Add State
@@ -539,29 +539,7 @@ export default function Dashboard() {
                                 return false;
                             });
 
-                             // Mix in Google Events
-                             const formattedGoogleEvents = (googleEvents || []).reduce((acc: any[], event) => {
-                                 const startStr = event.start.dateTime || event.start.date;
-                                 if (!startStr) return acc;
-                                 
-                                 const eventDate = parseISO(startStr);
-                                 if (isSameDay(eventDate, today)) {
-                                     acc.push({
-                                         id: `g_${event.id}`,
-                                         title: event.summary || "No Title",
-                                         description: event.description || "",
-                                         due_date: format(eventDate, 'yyyy-MM-dd'),
-                                         due_time: event.start.dateTime ? format(eventDate, 'HH:mm') : undefined,
-                                         recurrence: 'none',
-                                         urgency: 'normal',
-                                         completed: false,
-                                         isGoogleEvent: true,
-                                     });
-                                 }
-                                 return acc;
-                            }, []);
-                            
-                            const combined = [...todaysTasks, ...formattedGoogleEvents].sort((a, b) => {
+                             const combined = todaysTasks.map(t => ({ ...t, isGoogleEvent: !!t.google_event_id })).sort((a, b) => {
                                 if (a.due_time && b.due_time) return a.due_time.localeCompare(b.due_time);
                                 if (a.due_time) return -1;
                                 if (b.due_time) return 1;
@@ -807,6 +785,8 @@ export default function Dashboard() {
         </div >
     );
 }
+
+
 
 
 
