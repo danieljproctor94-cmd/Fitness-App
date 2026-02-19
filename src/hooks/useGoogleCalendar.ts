@@ -60,35 +60,42 @@ export function useGoogleCalendar() {
             scope: SCOPES,
             ux_mode: 'popup',
             access_type: 'offline',
-            prompt: 'consent', // CRITICAL: This requests the Refresh Token
+            prompt: 'consent',
             callback: async (response: any) => {
                 if (response.code) {
                     setIsLoading(true);
                     try {
-                        const { error } = await supabase.functions.invoke('google-calendar-auth', {
+                        const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
                             body: { code: response.code }
                         });
 
                         if (error) {
-                            console.error("Edge Function Error:", error);
-                            // Try to extract detailed error from response
+                            console.error("Function Error Object:", error);
+                            let errMsg = error.message || "Unknown error";
+                            
+                            // Try to get body text if context exists
                             if ((error as any).context) {
                                 try {
-                                    const errJson = await (error as any).context.json();
-                                    throw new Error(errJson.error_description || errJson.error || error.message);
+                                    const bodyText = await (error as any).context.text();
+                                    console.error("Error Body Text:", bodyText);
+                                    try {
+                                        const parsed = JSON.parse(bodyText);
+                                        errMsg = parsed.error_description || parsed.error || bodyText || errMsg;
+                                    } catch (e) {
+                                        errMsg = bodyText || errMsg;
+                                    }
                                 } catch (e) {
-                                    throw error;
+                                    console.error("Could not read error body", e);
                                 }
                             }
-                            throw error;
+                            throw new Error(errMsg);
                         }
 
                         setIsConnected(true);
                         toast.success("Calendar sync enabled successfully!");
                     } catch (err: any) {
-                        console.error("Auth Exception:", err);
-                        const errorMsg = err.message || "Failed to link Google account.";
-                        toast.error(`Error: ${errorMsg}`);
+                        console.error("Full Auth Exception:", err);
+                        toast.error(`Sync Error: ${err.message || "Failed to link"}`);
                     } finally {
                         setIsLoading(false);
                     }
