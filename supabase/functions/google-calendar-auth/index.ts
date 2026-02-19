@@ -7,15 +7,24 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 serve(async (req) => {
-  // Handle CORS
+  console.log("Request received:", req.method)
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*' } })
   }
 
   try {
     const { code } = await req.json()
+    console.log("Code received:", code ? "YES" : "NO")
 
-    // 1. Exchange Code for Tokens
+    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+        console.error("Missing Google Environment Variables")
+        return new Response(JSON.stringify({ error: "Server Configuration Error" }), { 
+            status: 500, 
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } 
+        })
+    }
+
     const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -29,6 +38,7 @@ serve(async (req) => {
     })
 
     const tokens = await tokenResponse.json()
+    console.log("Google Token Response:", JSON.stringify(tokens))
 
     if (tokens.error) {
        return new Response(JSON.stringify(tokens), { 
@@ -37,18 +47,15 @@ serve(async (req) => {
        })
     }
 
-    // 2. Initialize Supabase Admin
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!)
-
-    // 3. Get User ID from Token
     const authHeader = req.headers.get('Authorization')!
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
 
     if (userError || !user) {
+      console.error("Auth Error:", userError)
       return new Response('Unauthorized', { status: 401, headers: { 'Access-Control-Allow-Origin': '*' } })
     }
 
-    // 4. Save to Database
     const { error: dbError } = await supabase
       .from('google_sync_tokens')
       .upsert({
@@ -60,6 +67,7 @@ serve(async (req) => {
       })
 
     if (dbError) {
+      console.error("DB Error:", dbError)
       return new Response(JSON.stringify(dbError), { 
         status: 500,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
@@ -70,6 +78,7 @@ serve(async (req) => {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     })
   } catch (err) {
+    console.error("Function Crash:", err.message)
     return new Response(JSON.stringify({ error: err.message }), { 
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }

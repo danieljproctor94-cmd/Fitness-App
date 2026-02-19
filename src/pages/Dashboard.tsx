@@ -487,7 +487,7 @@ export default function Dashboard() {
                 </Card>
 
                 {/* Tasks for Today */}
-                <Card className="col-span-full md:col-span-4 h-full flex flex-col">
+                <Card className="col-span-full md:col-span-4 flex flex-col">
                                         <CardHeader className="flex flex-row items-center justify-between pb-6 shrink-0">
                         <CardTitle>Tasks for Today</CardTitle>
                         <div className="flex items-center gap-2">
@@ -497,7 +497,7 @@ export default function Dashboard() {
                         </div>
                     </CardHeader>
 
-                    <CardContent className="flex-1 overflow-y-auto px-6 scrollbar-thin min-h-[250px] max-h-[350px]">
+                    <CardContent className="px-6 pb-6">
                         {isLoading ? (
                             <div className="space-y-3">
                                 <Skeleton className="h-12 w-full" />
@@ -787,6 +787,7 @@ export default function Dashboard() {
         </div >
     );
 }
+
 
 
 

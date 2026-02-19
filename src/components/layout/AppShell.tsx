@@ -179,7 +179,7 @@ export function AppShell() {
     }, [user]);
 
     return (
-        <div className='flex min-h-screen w-full overflow-hidden flex-col md:flex-row bg-background'>
+        <div className='flex h-screen w-full overflow-hidden flex-col md:flex-row bg-background'>
             {/* Mobile Header */}
             <div className='flex items-center justify-between border-b px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] md:hidden shrink-0 bg-background/95 backdrop-blur-sm z-50'>
                 <div className='flex items-center gap-3'>
@@ -215,7 +215,7 @@ export function AppShell() {
 
             {/* Sidebar (Desktop) */}
             <aside className={cn(
-                'fixed inset-y-0 z-[60] flex flex-col border-r bg-background transition-all duration-300 md:relative md:translate-x-0',
+                'fixed inset-y-0 left-0 z-[60] flex flex-col border-r bg-background transition-all duration-300 md:relative md:translate-x-0',
                 isMobileMenuOpen ? 'translate-x-0 w-56' : '-translate-x-full md:translate-x-0',
                 isCollapsed ? 'md:w-20' : 'md:w-56'
             )}>
@@ -566,7 +566,7 @@ export function AppShell() {
                     </div>
                 </header>
 
-                <div className='flex-1 overflow-y-auto pb-16 md:pb-0 no-scrollbar'>
+                <div className='flex-1 overflow-y-auto pb-16 md:pb-0'>
                     <Outlet />
                 </div>
                 <BottomNav />
@@ -576,6 +576,8 @@ export function AppShell() {
         </div>
     );
 }
+
+
 
 
 
