@@ -1,6 +1,6 @@
 ﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubdomainRouter } from "@/components/routing/SubdomainRouter";
-import { AuthProvider } from "@/features/auth/AuthContext";
+import { AuthProvider, useAuth } from "@/features/auth/AuthContext";
 import { DataProvider } from "@/features/data/DataContext";
 import { ProtectedLayout } from "@/features/auth/ProtectedLayout";
 import { AppShell } from "@/components/layout/AppShell";
@@ -12,7 +12,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import { lazy, Suspense, useEffect } from 'react';
-import { isAppDomain } from '@/lib/domain';
+
 
 // Lazy Load Pages
 const Workouts = lazy(() => import("@/pages/Workouts"));
@@ -180,5 +180,6 @@ function App() {
 }
 
 export default App
+
 
 
