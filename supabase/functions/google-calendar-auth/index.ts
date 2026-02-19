@@ -13,40 +13,36 @@ serve(async (req) => {
 
   try {
     const { code } = await req.json()
-    console.log("Auth Function Started")
+    
+    // VERIFY SECRETS
+    const SURL = Deno.env.get('SUPABASE_URL')
+    const SKEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const GID = Deno.env.get('GOOGLE_CLIENT_ID')
+    const GSEC = Deno.env.get('GOOGLE_CLIENT_SECRET')
+
+    if (!SURL || !SKEY || !GID || !GSEC) {
+       return new Response(JSON.stringify({ 
+         error: "Missing Env Vars", 
+         debug: { url: !!SURL, key: !!SKEY, gid: !!GID, gsec: !!GSEC } 
+       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-        return new Response(JSON.stringify({ error: "No Authorization header provided" }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+        return new Response(JSON.stringify({ error: "No Auth Header" }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     const token = authHeader.replace('Bearer ', '')
-    console.log("Token received, length:", token.length)
-
-    // Use Service Role to verify the token - this is the most robust method
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const adminClient = createClient(SURL, SKEY)
 
     const { data: { user }, error: authError } = await adminClient.auth.getUser(token)
     
     if (authError || !user) {
-      console.error("Verification Error:", authError)
       return new Response(JSON.stringify({ 
-          error: "Invalid user token", 
-          details: authError?.message,
-          code: authError?.status 
-      }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
-
-    console.log("User verified:", user.id)
-
-    const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
-    const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
-
-    if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      return new Response(JSON.stringify({ error: "Server configuration missing" }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+          error: "Supabase Auth Failed", 
+          details: authError?.message || "User Null",
+          token_len: token.length
+      }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // 1. Exchange Code for Tokens
@@ -55,8 +51,8 @@ serve(async (req) => {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         code,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
+        client_id: GID,
+        client_secret: GSEC,
         grant_type: 'authorization_code',
         redirect_uri: 'postmessage', 
       }),
@@ -65,10 +61,10 @@ serve(async (req) => {
     const googleData = await tokenResponse.json()
 
     if (googleData.error) {
-       return new Response(JSON.stringify({ error: googleData.error_description || googleData.error }), { 
-         status: 400,
-         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-       })
+       return new Response(JSON.stringify({ 
+         error: "Google Auth Failed", 
+         details: googleData.error_description || googleData.error 
+       }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // 2. Save Refresh Token
@@ -83,8 +79,8 @@ serve(async (req) => {
       })
 
     if (dbError) {
-      return new Response(JSON.stringify({ error: "Database error: " + dbError.message }), { 
-        status: 500,
+      return new Response(JSON.stringify({ error: "Database Error", details: dbError.message }), { 
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -93,8 +89,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { 
-      status: 500,
+    return new Response(JSON.stringify({ error: "Internal Crash", details: err.message }), { 
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }

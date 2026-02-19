@@ -6,40 +6,24 @@ import { supabase } from '@/lib/supabase';
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 const SCOPES = "https://www.googleapis.com/auth/calendar.readonly";
 
-export interface GoogleEvent {
-    id: string;
-    summary: string;
-    description?: string;
-    start: { dateTime?: string; date?: string };
-    end: { dateTime?: string; date?: string };
-    htmlLink: string;
-}
-
 export function useGoogleCalendar() {
     const { user } = useAuth();
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isGisLoaded, setIsGisLoaded] = useState(false);
 
-    // 1. Check if user already has sync enabled in our DB
     useEffect(() => {
         if (!user) return;
-
         const checkSyncStatus = async () => {
             const { data, error } = await supabase
                 .from('google_sync_tokens')
                 .select('id')
                 .single();
-
-            if (data && !error) {
-                setIsConnected(true);
-            }
+            if (data && !error) setIsConnected(true);
         };
-
         checkSyncStatus();
     }, [user]);
 
-    // 2. Load Google Identity Services (GIS) Script
     useEffect(() => {
         const script = document.createElement("script");
         script.src = "https://accounts.google.com/gsi/client";
@@ -65,37 +49,23 @@ export function useGoogleCalendar() {
                 if (response.code) {
                     setIsLoading(true);
                     try {
-                        const { error } = await supabase.functions.invoke('google-calendar-auth', {
+                        const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
                             body: { code: response.code }
                         });
 
                         if (error) {
-                            console.error("Function Error Object:", error);
-                            let errMsg = error.message || "Unknown error";
-                            let details = "";
-                            
-                            if ((error as any).context) {
-                                try {
-                                    const bodyText = await (error as any).context.text();
-                                    try {
-                                        const parsed = JSON.parse(bodyText);
-                                        errMsg = parsed.error || errMsg;
-                                        details = parsed.details || "";
-                                    } catch (e) {
-                                        errMsg = bodyText || errMsg;
-                                    }
-                                } catch (e) {
-                                    console.error("Could not read error body", e);
-                                }
-                            }
-                            throw new Error(details ? `${errMsg}: ${details}` : errMsg);
+                            throw new Error(error.message || "Network Error");
+                        }
+
+                        if (data && data.error) {
+                            throw new Error(`${data.error}: ${data.details || "No details"}`);
                         }
 
                         setIsConnected(true);
                         toast.success("Calendar sync enabled successfully!");
                     } catch (err: any) {
-                        console.error("Full Auth Exception:", err);
-                        toast.error(`Sync Error: ${err.message || "Failed to link"}`);
+                        console.error("Sync Error Details:", err);
+                        toast.error(`Sync Error: ${err.message}`);
                     } finally {
                         setIsLoading(false);
                     }
@@ -108,31 +78,18 @@ export function useGoogleCalendar() {
 
     const disconnect = useCallback(async () => {
         if (!user) return;
-        
         setIsLoading(true);
         try {
-            const { error } = await supabase
-                .from('google_sync_tokens')
-                .delete()
-                .eq('user_id', user.id);
-
+            const { error } = await supabase.from('google_sync_tokens').delete().eq('user_id', user.id);
             if (error) throw error;
             setIsConnected(false);
             toast.success("Calendar sync disabled.");
         } catch (err: any) {
-            console.error("Disconnect Error:", err);
             toast.error("Failed to disconnect.");
         } finally {
             setIsLoading(false);
         }
     }, [user]);
 
-    return {
-        connect,
-        disconnect,
-        isConnected,
-        isLoading,
-        isReady: isGisLoaded
-    };
+    return { connect, disconnect, isConnected, isLoading, isReady: isGisLoaded };
 }
-
