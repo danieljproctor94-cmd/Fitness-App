@@ -13,8 +13,10 @@ export function BottomNav() {
     const location = useLocation();
 
     return (
-        <div className='md:hidden fixed inset-x-0 -bottom-[1px] z-[90] border-t border-white/5 bg-[#0b0c15]/60 pb-20 -mb-20 backdrop-blur-2xl'>
-            <div className='flex flex-col w-full pb-[env(safe-area-inset-bottom)]'>
+        <div className='md:hidden fixed inset-x-0 bottom-0 z-[90] border-t border-white/5 bg-[#0b0c15]/80 backdrop-blur-2xl'>
+            <div className='flex flex-col w-full pb-[min(env(safe-area-inset-bottom),2rem)]'>
+                {/* Safety Seal - ensures no white gap below bar */}
+                <div className='absolute inset-x-0 top-full h-20 bg-[#0b0c15] pointer-events-none' />
                 <nav className='flex items-center justify-around h-16 px-2'>
                     {/* 1. Home */}
                     <NavIcon href='/dashboard' label='Home' active={location.pathname === '/dashboard'} />
@@ -105,6 +107,7 @@ function NavIcon({ href, label, active }: { href: string; label: string; active:
         </Link>
     );
 }
+
 
 
 

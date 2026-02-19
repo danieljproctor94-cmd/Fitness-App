@@ -179,9 +179,9 @@ export function AppShell() {
     }, [user]);
 
     return (
-        <div className='fixed inset-0 flex flex-col md:flex-row bg-[#0b0c15] overflow-hidden'>
+        <div className='fixed inset-0 flex h-[100dvh] w-full flex-col md:flex-row bg-[#0b0c15] overflow-hidden'>
             {/* Mobile Header */}
-            <div className='flex items-center justify-between border-b px-4 pb-4 pt-[max(env(safe-area-inset-top),1rem)] md:hidden shrink-0 bg-background/95 backdrop-blur-sm z-50'>
+            <div className='flex items-center justify-between border-b px-4 pb-4 pt-[max(env(safe-area-inset-top),1.5rem)] h-auto min-h-[5rem] md:hidden shrink-0 bg-background/95 backdrop-blur-sm z-50'>
                 <div className='flex items-center gap-3'>
                     <Button variant='ghost' size='icon' onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className='-ml-2'>
                         <Menu className='h-6 w-6' />
@@ -576,6 +576,7 @@ export function AppShell() {
         </div>
     );
 }
+
 
 
 
