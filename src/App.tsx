@@ -1,6 +1,6 @@
 ﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubdomainRouter } from "@/components/routing/SubdomainRouter";
-import { AuthProvider, useAuth } from "@/features/auth/AuthContext";
+import { AuthProvider } from "@/features/auth/AuthContext";
 import { DataProvider } from "@/features/data/DataContext";
 import { ProtectedLayout } from "@/features/auth/ProtectedLayout";
 import { AppShell } from "@/components/layout/AppShell";
@@ -11,8 +11,7 @@ import { ReminderManager } from "@/features/reminders/ReminderManager";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import { lazy, Suspense, useEffect } from 'react';
-
+import { lazy, Suspense, useEffect } from "react";
 
 // Lazy Load Pages
 const Workouts = lazy(() => import("@/pages/Workouts"));
@@ -70,22 +69,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
     }
 }
 
-
-function AuthLoadingWrapper({ children }: { children: React.ReactNode }) {
-    const { loading } = useAuth();
-
-    if (loading) {
-        return (
-            <div className="fixed inset-0 pt-safe flex flex-col items-center justify-center bg-[#0b0c15] text-white z-[9999]">
-                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-purple-500"></div>
-                <p className="mt-4 text-sm font-medium text-white/60">Loading...</p>
-            </div>
-        );
-    }
-
-    return <>{children}</>;
-}
-
 function App() {
     useEffect(() => {
         const handleChunkError = (event: ErrorEvent | PromiseRejectionEvent) => {
@@ -119,23 +102,18 @@ function App() {
                             <FaviconUpdater />
                             <ReminderManager />
                             <BrowserRouter>
-                                <AuthLoadingWrapper><SubdomainRouter
+                                <SubdomainRouter
                                     publicRoutes={
                                         <Routes>
                                             <Route element={<PublicLayout />}>
                                                 <Route path="/" element={<Landing />} />
-                                                <Route path="/features" element={<Landing />} />
-                                                <Route path="*" element={<Landing />} />
+                                                <Route path="/features" element={<Landing />} /> {/* For anchor links mostly, but nice to have route */}
+                                                <Route path="*" element={<Landing />} /> {/* Check all others to Landing for now */}
                                             </Route>
                                         </Routes>
                                     }
                                     appRoutes={
-                                        <Suspense fallback={
-                                            <div className="flex h-screen w-full flex-col items-center justify-center bg-[#0b0c15] text-white">
-                                                <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-purple-500"></div>
-                                                <p className="mt-4 text-sm font-medium text-white/60">Loading...</p>
-                                            </div>
-                                        }>
+                                        <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
                                             <Routes>
                                                 {/* Auth Routes */}
                                                 <Route element={<PublicRoute />}>
@@ -146,12 +124,11 @@ function App() {
                                                 {/* Protected Routes */}
                                                 <Route element={<ProtectedLayout />}>
                                                     <Route element={<AppShell />}>
-                                                        <Route path="/" element={<Dashboard />} />
+                                                        <Route path="/" element={<Dashboard />} /> {/* App Root is Dashboard */}
                                                         <Route path="/dashboard" element={<Dashboard />} />
                                                         <Route path="/workouts" element={<Workouts />} />
                                                         <Route path="/workouts/analytics" element={<WorkoutAnalytics />} />
-                                                        <Route path="/goals" element={<Goals />} />
-                                                        <Route path="/planner" element={<ToDos />} />
+                                                        <Route path="/goals" element={<Goals />} />`n                                                        <Route path="/planner" element={<ToDos />} />
                                                         <Route path="/planner/analytics" element={<TaskAnalytics />} />
                                                         <Route path="/measurements" element={<Measurements />} />
                                                         <Route path="/measurements/analytics" element={<MeasurementAnalytics />} />
@@ -168,7 +145,7 @@ function App() {
                                         </Suspense>
                                     }
                                 />
-                            </AuthLoadingWrapper></BrowserRouter>
+                            </BrowserRouter>
                         </NotificationProvider>
                     </DataProvider>
                 </AuthProvider>
@@ -180,7 +157,6 @@ function App() {
 }
 
 export default App
-
 
 
 

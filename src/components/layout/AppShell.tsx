@@ -179,9 +179,9 @@ export function AppShell() {
     }, [user]);
 
     return (
-        <div className='flex h-[100dvh] w-full overflow-hidden flex-col md:flex-row bg-background'>
+        <div className='flex h-screen w-full overflow-hidden flex-col md:flex-row'>
             {/* Mobile Header */}
-            <div className='flex items-center justify-between border-b px-4 pb-4 pt-[max(env(safe-area-inset-top),1rem)] md:hidden shrink-0 bg-background/95 backdrop-blur-sm z-50'>
+            <div className='flex items-center justify-between border-b p-4 md:hidden shrink-0'>
                 <div className='flex items-center gap-3'>
                     <Button variant='ghost' size='icon' onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className='-ml-2'>
                         <Menu className='h-6 w-6' />
@@ -208,18 +208,18 @@ export function AppShell() {
 
             {isMobileMenuOpen && (
                 <div
-                    className='fixed inset-0 z-[140] bg-black/50 md:hidden animate-in fade-in-0'
+                    className='fixed inset-0 z-[55] bg-black/50 md:hidden animate-in fade-in-0'
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
             {/* Sidebar (Desktop) */}
             <aside className={cn(
-                'fixed inset-y-0 left-0 z-[150] flex flex-col border-r bg-background transition-all duration-300 md:relative md:translate-x-0',
+                'fixed inset-y-0 z-[60] flex flex-col border-r bg-background transition-all duration-300 md:relative md:translate-x-0',
                 isMobileMenuOpen ? 'translate-x-0 w-56' : '-translate-x-full md:translate-x-0',
                 isCollapsed ? 'md:w-20' : 'md:w-56'
             )}>
-                <div className={cn('flex h-16 md:h-16 items-center border-b px-4 pt-[env(safe-area-inset-top)] md:pt-0 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
+                <div className={cn('flex h-16 items-center border-b px-4 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
                     {!isCollapsed && (
                         <Link to='/'>
                             {logoUrl ? (
@@ -304,7 +304,7 @@ export function AppShell() {
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                                 className={cn(
                                                     'flex items-center gap-3 flex-1 px-3 py-2 rounded-md transition-all',
-                                                    isActive && !hasChildren ? 'bg-primary shadow-lg shadow-primary/20 text-primary-foreground font-semibold' : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
+                                                    isActive && !hasChildren ? 'bg-accent/50 text-accent-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                                                     isCollapsed && 'justify-center px-0'
                                                 )}
                                             >
@@ -315,7 +315,7 @@ export function AppShell() {
                                                     )}
                                                 </div>
                                                 {!isCollapsed && (
-                                                    <span className='truncate transition-all duration-300 opacity-100 font-medium tracking-tight'>{item.label}</span>
+                                                    <span className='truncate transition-all duration-300 opacity-100'>{item.label}</span>
                                                 )}
                                             </Link>
 
@@ -550,7 +550,7 @@ export function AppShell() {
             {/* Main Content */}
             <main className='flex-1 bg-muted/20 flex flex-col min-h-0 overflow-hidden'>
                 {/* Desktop Sticky Header - Simplified */}
-                <header className='hidden md:flex items-center justify-between px-6 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-20'>
+                <header className='hidden md:flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-20'>
                     <div className='font-medium text-sm text-muted-foreground'>
                         {format(currentDate, 'EEEE, MMMM do, yyyy')}
                     </div>
@@ -566,7 +566,7 @@ export function AppShell() {
                     </div>
                 </header>
 
-                <div className='flex-1 overflow-y-auto pb-32 md:pb-6'>
+                <div className='flex-1 overflow-y-auto pb-16 md:pb-0 no-scrollbar'>
                     <Outlet />
                 </div>
                 <BottomNav />
@@ -576,23 +576,5 @@ export function AppShell() {
         </div>
     );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
