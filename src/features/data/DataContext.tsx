@@ -54,7 +54,8 @@ interface DataContextType {
     acceptFriendRequest: (id: string) => Promise<void>;
     resendFriendRequest: (id: string) => Promise<void>;
     removeFriend: (id: string) => Promise<void>;
-    refreshCollaborations: () => Promise<void>;`n    refreshAllData: () => void;
+    refreshCollaborations: () => Promise<void>;
+    refreshAllData: () => void;
     isLoading: boolean;
     isTimerRunning: boolean;
     timerStartTime: Date | null;
@@ -88,7 +89,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '');
     const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '');
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
-    const [isLoading, setIsLoading] = useState(true);`n    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [collaborations, setCollaborations] = useState<Collaboration[]>([]);
     const [isTimerRunning, setIsTimerRunning] = useState(() => localStorage.getItem('workout_timer_running') === 'true');
     const [timerStartTime, setTimerStartTime] = useState<Date | null>(() => {
@@ -96,6 +98,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return stored ? new Date(stored) : null;
     });
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    const refreshAllData = () => setRefreshTrigger(prev => prev + 1);
+
+    useEffect(() => {
+        const handleRefresh = () => refreshAllData();
+        window.addEventListener('refresh-data', handleRefresh);
+        return () => window.removeEventListener('refresh-data', handleRefresh);
+    }, []);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -109,7 +119,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
              setElapsedSeconds(0);
         }
-        useEffect(() => { const h = () => setRefreshTrigger(p => p + 1); window.addEventListener("refresh-data", h); return () => window.removeEventListener("refresh-data", h); }, []);`n`n    return () => clearInterval(interval);
+        return () => clearInterval(interval);
     }, [isTimerRunning, timerStartTime]);
 
     const startTimer = () => {
@@ -377,34 +387,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addGoal, updateGoal, deleteGoal, shareGoal, removeGoalCollaborator,
         toggleRecurringCompletion, excludeRecurringTask, shareToDo, updateUserProfile, fetchAllUsers,
         appLogo, updateAppLogo, socialUrl, updateSocialUrl, appFavicon, updateAppFavicon,
-        sendFriendRequest, acceptFriendRequest, resendFriendRequest, removeFriend, refreshCollaborations: fetchCollaborations,`n        refreshAllData: () => setRefreshTrigger(prev => prev + 1),
+        sendFriendRequest, acceptFriendRequest, resendFriendRequest, removeFriend, refreshCollaborations: fetchCollaborations,
+        refreshAllData,
         isLoading, isTimerRunning, timerStartTime, elapsedSeconds, startTimer, stopTimer
     }), [
         workouts, measurements, mindsetLogs, todos, goals, todoCompletions, todoExceptions, userProfile, collaborations,
-        appLogo, isLoading, isTimerRunning, elapsedSeconds, timerStartTime
+        appLogo, isLoading, isTimerRunning, elapsedSeconds, timerStartTime, refreshTrigger
     ]);
 
-    useEffect(() => { const h = () => setRefreshTrigger(p => p + 1); window.addEventListener("refresh-data", h); return () => window.removeEventListener("refresh-data", h); }, []);`n`n    return (
+    return (
         <DataContext.Provider value={value}>
             {children}
         </DataContext.Provider>
     );
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
