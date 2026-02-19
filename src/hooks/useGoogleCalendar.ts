@@ -53,19 +53,29 @@ export function useGoogleCalendar() {
                             body: { code: response.code }
                         });
 
+                        // 1. Check for hard network/gateway error
                         if (error) {
-                            throw new Error(error.message || "Network Error");
+                            console.error("Invoke Error:", error);
+                            let msg = "Connection Error";
+                            if (error.message) msg = error.message;
+                            
+                            // If it's still a 401/403 despite my bypass, we need to know
+                            toast.error(`Internal Error: ${msg}`);
+                            return;
                         }
 
+                        // 2. Check for logic error returned as 200 JSON
                         if (data && data.error) {
-                            throw new Error(`${data.error}: ${data.details || "No details"}`);
+                            console.error("Logic Error:", data);
+                            toast.error(`Sync Error: ${data.error} - ${data.details || "No details"}`);
+                            return;
                         }
 
                         setIsConnected(true);
                         toast.success("Calendar sync enabled successfully!");
                     } catch (err: any) {
-                        console.error("Sync Error Details:", err);
-                        toast.error(`Sync Error: ${err.message}`);
+                        console.error("Connection Crash:", err);
+                        toast.error(`Failed to reach server: ${err.message}`);
                     } finally {
                         setIsLoading(false);
                     }
