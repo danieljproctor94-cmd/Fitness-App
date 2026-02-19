@@ -5,7 +5,7 @@ import { useNotifications } from '@/features/notifications/NotificationContext';
 export function ReminderManager() {
     const { todos } = useData();
     const { addNotification } = useNotifications();
-    const processedRef = useRef(new Set());
+    const processedRef = useRef(new Set<string>());
 
     useEffect(() => {
         const checkReminders = () => {
@@ -14,14 +14,23 @@ export function ReminderManager() {
             const nowMs = now.getTime();
 
             // Load cross-tab sent reminders from localStorage
-            let crossTabSent = {};
+            let crossTabSent: Record<string, number> = {};
             try {
-                crossTabSent = JSON.parse(localStorage.getItem('fapp_sent_reminders') || '{}');
+                const stored = localStorage.getItem('fapp_sent_reminders');
+                crossTabSent = stored ? JSON.parse(stored) : {};
+                
                 // Cleanup old entries (older than 24h) to keep it small
                 const yesterday = Date.now() - 86400000;
+                let hasChanges = false;
                 Object.keys(crossTabSent).forEach(k => {
-                    if (crossTabSent[k] < yesterday) delete crossTabSent[k];
+                    if (crossTabSent[k] < yesterday) {
+                        delete crossTabSent[k];
+                        hasChanges = true;
+                    }
                 });
+                if (hasChanges) {
+                    localStorage.setItem('fapp_sent_reminders', JSON.stringify(crossTabSent));
+                }
             } catch (e) {
                 crossTabSent = {};
             }
@@ -42,7 +51,7 @@ export function ReminderManager() {
                 const dueTimeMs = dueDateTime.getTime();
 
                 let triggerTimeMs = dueTimeMs;
-                let offset = 600000; // 10 min
+                let offset = 600000; // 10 min (default)
 
                 if (todo.notify_before === '1_hour') {
                     offset = 3600000;
@@ -50,13 +59,20 @@ export function ReminderManager() {
                     offset = 86400000;
                 } else if (todo.notify_before === 'at_time') {
                     offset = 0;
+                } else if (todo.notify_before === '5_min') {
+                    offset = 300000;
+                } else if (todo.notify_before === '15_min') {
+                    offset = 900000;
+                } else if (todo.notify_before === '30_min') {
+                    offset = 1800000;
                 }
+                
                 triggerTimeMs -= offset;
 
                 const diff = nowMs - triggerTimeMs;
                 // 2 minutes window
                 if (diff >= 0 && diff < 120000) {
-                    const key = todo.id + '-' + triggerTimeMs;
+                    const key = `${todo.id}-${triggerTimeMs}`;
                     
                     // Check both local ref and cross-tab localStorage
                     if (!processedRef.current.has(key) && !crossTabSent[key]) {
@@ -64,7 +80,7 @@ export function ReminderManager() {
                         const p = h >= 12 ? 'PM' : 'AM';
                         const hr = h % 12 || 12;
                         const min = m.toString().padStart(2, '0');
-                        const timeStr = hr + ':' + min + ' ' + p;
+                        const timeStr = `${hr}:${min} ${p}`;
 
                         // Mark as sent immediately to race against other tabs
                         crossTabSent[key] = Date.now();

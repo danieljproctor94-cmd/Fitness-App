@@ -9,7 +9,7 @@ export interface Workout { id: string; name: string; date: string; time?: string
 export interface Measurement { id: string; date: string; weight: number; height?: number; waist?: number; neck?: number; chest?: number; arms?: number; photo_url?: string; created_at?: string; }
 export interface UserProfile { displayName: string; photoURL: string; gender: 'male' | 'female'; height: string; waist: string; neck: string; chest: string; arms: string; age?: string; activity_level?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active'; subscription_tier?: string; email?: string; last_sign_in_at?: string; id?: string; weekly_workout_goal?: number; starting_weight?: number; mindset_reminder_enabled?: boolean; mindset_reminder_time?: string; }
 export interface MindsetLog { id: string; date: string; grateful_for: string; improvements: string; created_at?: string; }
-export interface ToDo { id: string; title: string; description?: string | null; due_date?: string | null; due_time?: string | null; completed: boolean; recurrence: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'; notify: boolean; notify_before?: '10_min' | '1_hour' | '1_day' | null; urgency?: 'low' | 'normal' | 'high' | 'critical'; created_at?: string; shared_with?: string[]; google_event_id?: string | null; }
+export interface ToDo { id: string; title: string; description?: string | null; due_date?: string | null; due_time?: string | null; completed: boolean; recurrence: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'; notify: boolean; notify_before?: 'at_time' | '5_min' | '10_min' | '15_min' | '30_min' | '1_hour' | '1_day' | null; urgency?: 'low' | 'normal' | 'high' | 'critical'; created_at?: string; shared_with?: string[]; google_event_id?: string | null; }
 export interface ToDoCompletion { id: string; todo_id: string; user_id: string; completed_date: string; created_at?: string; }
 export interface ToDoException { id: string; todo_id: string; user_id: string; exception_date: string; created_at?: string; }
 export interface Goal { id: string; user_id: string; title: string; category: "Money" | "Travel" | "Relationships" | "Fitness" | "Career" | "Other"; target_date?: string; status: "pending" | "completed" | "abandoned"; progress: number; image_url?: string; color?: string; description?: string; created_at?: string; shared_with?: string[]; google_event_id?: string | null; }
@@ -401,4 +401,5 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         </DataContext.Provider>
     );
 };
+
 
