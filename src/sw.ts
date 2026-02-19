@@ -26,7 +26,7 @@ self.addEventListener('push', (event) => {
         badge: '/logo.png',
         data: data.url || '/',
         vibrate: [100, 50, 100],
-        tag: 'fitness-app-notification',
+        tag: data.tag || 'fitness-app-notification',
         renotify: true
     };
 
@@ -56,3 +56,4 @@ self.addEventListener('notificationclick', (event) => {
         })
     );
 });
+

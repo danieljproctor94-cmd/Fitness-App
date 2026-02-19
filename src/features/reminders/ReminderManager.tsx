@@ -13,6 +13,19 @@ export function ReminderManager() {
             const now = new Date();
             const nowMs = now.getTime();
 
+            // Load cross-tab sent reminders from localStorage
+            let crossTabSent = {};
+            try {
+                crossTabSent = JSON.parse(localStorage.getItem('fapp_sent_reminders') || '{}');
+                // Cleanup old entries (older than 24h) to keep it small
+                const yesterday = Date.now() - 86400000;
+                Object.keys(crossTabSent).forEach(k => {
+                    if (crossTabSent[k] < yesterday) delete crossTabSent[k];
+                });
+            } catch (e) {
+                crossTabSent = {};
+            }
+
             todos.forEach(todo => {
                 if (!todo.notify || todo.completed) return;
                 if (!todo.due_date || !todo.due_time) return;
@@ -35,6 +48,8 @@ export function ReminderManager() {
                     offset = 3600000;
                 } else if (todo.notify_before === '1_day') {
                     offset = 86400000;
+                } else if (todo.notify_before === 'at_time') {
+                    offset = 0;
                 }
                 triggerTimeMs -= offset;
 
@@ -42,19 +57,25 @@ export function ReminderManager() {
                 // 2 minutes window
                 if (diff >= 0 && diff < 120000) {
                     const key = todo.id + '-' + triggerTimeMs;
-                    if (!processedRef.current.has(key)) {
+                    
+                    // Check both local ref and cross-tab localStorage
+                    if (!processedRef.current.has(key) && !crossTabSent[key]) {
                         console.log('Triggering reminder for:', todo.title);
                         const p = h >= 12 ? 'PM' : 'AM';
                         const hr = h % 12 || 12;
                         const min = m.toString().padStart(2, '0');
                         const timeStr = hr + ':' + min + ' ' + p;
 
+                        // Mark as sent immediately to race against other tabs
+                        crossTabSent[key] = Date.now();
+                        localStorage.setItem('fapp_sent_reminders', JSON.stringify(crossTabSent));
+                        processedRef.current.add(key);
+
                         addNotification({
                             title: 'Reminder: ' + todo.title,
-                            message: 'Task is due at ' + timeStr,
+                            message: 'Due at ' + timeStr,
                             type: 'info'
                         });
-                        processedRef.current.add(key);
                     }
                 }
             });
