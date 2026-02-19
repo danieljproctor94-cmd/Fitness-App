@@ -11,7 +11,8 @@ import { ReminderManager } from "@/features/reminders/ReminderManager";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
-import { lazy, Suspense, useEffect } from "react";`nimport { isAppDomain } from "@/lib/domain";
+import { lazy, Suspense, useEffect } from 'react';
+import { isAppDomain } from '@/lib/domain';
 
 // Lazy Load Pages
 const Workouts = lazy(() => import("@/pages/Workouts"));
@@ -179,4 +180,5 @@ function App() {
 }
 
 export default App
+
 
