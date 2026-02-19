@@ -1,11 +1,6 @@
 ﻿import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
-const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -19,9 +14,23 @@ serve(async (req) => {
   try {
     const { code } = await req.json()
     
-    if (!code) {
-        return new Response(JSON.stringify({ error: "No code provided" }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // Use built-in env vars
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+    )
+
+    // Get the user from the JWT
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    
+    if (authError || !user) {
+      console.error("Auth Error:", authError)
+      return new Response(JSON.stringify({ error: "Invalid user session: " + (authError?.message || "User not found") }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
+
+    const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
+    const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
 
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
       return new Response(JSON.stringify({ error: "Server missing Google secrets" }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -50,21 +59,13 @@ serve(async (req) => {
        })
     }
 
-    // 2. Auth Check
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!)
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-        return new Response(JSON.stringify({ error: "Missing Authorization header" }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
+    // 2. Save to Database using Service Role (Admin)
+    const adminClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Invalid user session" }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-    }
-
-    // 3. Save to Database
-    const { error: dbError } = await supabase
+    const { error: dbError } = await adminClient
       .from('google_sync_tokens')
       .upsert({
         user_id: user.id,
@@ -75,6 +76,7 @@ serve(async (req) => {
       })
 
     if (dbError) {
+      console.error("DB Error:", dbError)
       return new Response(JSON.stringify({ error: "Database error: " + dbError.message }), { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -85,6 +87,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err: any) {
+    console.error("Function exception:", err)
     return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { 
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
