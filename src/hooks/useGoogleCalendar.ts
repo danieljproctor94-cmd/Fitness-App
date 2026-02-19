@@ -65,7 +65,7 @@ export function useGoogleCalendar() {
                 if (response.code) {
                     setIsLoading(true);
                     try {
-                        const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+                        const { error } = await supabase.functions.invoke('google-calendar-auth', {
                             body: { code: response.code }
                         });
 
@@ -135,3 +135,4 @@ export function useGoogleCalendar() {
         isReady: isGisLoaded
     };
 }
+
