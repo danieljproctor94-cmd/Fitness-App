@@ -219,7 +219,7 @@ export function AppShell() {
                 isMobileMenuOpen ? 'translate-x-0 w-56' : '-translate-x-full md:translate-x-0',
                 isCollapsed ? 'md:w-20' : 'md:w-56'
             )}>
-                <div className={cn('flex h-24 pt-[max(env(safe-area-inset-top),1rem)] items-center border-b px-4 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
+                <div className={cn('flex h-16 md:h-16 items-center border-b px-4 pt-[env(safe-area-inset-top)] md:pt-0 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
                     {!isCollapsed && (
                         <Link to='/'>
                             {logoUrl ? (
@@ -576,6 +576,7 @@ export function AppShell() {
         </div>
     );
 }
+
 
 
 
