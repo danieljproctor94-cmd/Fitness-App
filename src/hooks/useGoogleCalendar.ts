@@ -65,22 +65,22 @@ export function useGoogleCalendar() {
                 if (response.code) {
                     setIsLoading(true);
                     try {
-                        const { error } = await supabase.functions.invoke('google-calendar-auth', {
+                        const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
                             body: { code: response.code }
                         });
 
                         if (error) {
                             console.error("Function Error Object:", error);
                             let errMsg = error.message || "Unknown error";
+                            let details = "";
                             
-                            // Try to get body text if context exists
                             if ((error as any).context) {
                                 try {
                                     const bodyText = await (error as any).context.text();
-                                    console.error("Error Body Text:", bodyText);
                                     try {
                                         const parsed = JSON.parse(bodyText);
-                                        errMsg = parsed.error_description || parsed.error || bodyText || errMsg;
+                                        errMsg = parsed.error || errMsg;
+                                        details = parsed.details || "";
                                     } catch (e) {
                                         errMsg = bodyText || errMsg;
                                     }
@@ -88,7 +88,7 @@ export function useGoogleCalendar() {
                                     console.error("Could not read error body", e);
                                 }
                             }
-                            throw new Error(errMsg);
+                            throw new Error(details ? `${errMsg}: ${details}` : errMsg);
                         }
 
                         setIsConnected(true);
@@ -135,4 +135,3 @@ export function useGoogleCalendar() {
         isReady: isGisLoaded
     };
 }
-

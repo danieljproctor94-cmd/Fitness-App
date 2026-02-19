@@ -13,27 +13,40 @@ serve(async (req) => {
 
   try {
     const { code } = await req.json()
-    
-    // Use built-in env vars
-    const supabaseClient = createClient(
+    console.log("Auth Function Started")
+
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+        return new Response(JSON.stringify({ error: "No Authorization header provided" }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    console.log("Token received, length:", token.length)
+
+    // Use Service Role to verify the token - this is the most robust method
+    const adminClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the user from the JWT
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    const { data: { user }, error: authError } = await adminClient.auth.getUser(token)
     
     if (authError || !user) {
-      console.error("Auth Error:", authError)
-      return new Response(JSON.stringify({ error: "Invalid user session: " + (authError?.message || "User not found") }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      console.error("Verification Error:", authError)
+      return new Response(JSON.stringify({ 
+          error: "Invalid user token", 
+          details: authError?.message,
+          code: authError?.status 
+      }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
+
+    console.log("User verified:", user.id)
 
     const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
     const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
 
     if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
-      return new Response(JSON.stringify({ error: "Server missing Google secrets" }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ error: "Server configuration missing" }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // 1. Exchange Code for Tokens
@@ -52,19 +65,13 @@ serve(async (req) => {
     const googleData = await tokenResponse.json()
 
     if (googleData.error) {
-       console.error("Google Auth Error:", googleData)
        return new Response(JSON.stringify({ error: googleData.error_description || googleData.error }), { 
          status: 400,
          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
        })
     }
 
-    // 2. Save to Database using Service Role (Admin)
-    const adminClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
+    // 2. Save Refresh Token
     const { error: dbError } = await adminClient
       .from('google_sync_tokens')
       .upsert({
@@ -76,7 +83,6 @@ serve(async (req) => {
       })
 
     if (dbError) {
-      console.error("DB Error:", dbError)
       return new Response(JSON.stringify({ error: "Database error: " + dbError.message }), { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -87,7 +93,6 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err: any) {
-    console.error("Function exception:", err)
     return new Response(JSON.stringify({ error: err.message || "Internal Server Error" }), { 
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
