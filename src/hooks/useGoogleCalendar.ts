@@ -59,7 +59,8 @@ export function useGoogleCalendar() {
             client_id: CLIENT_ID,
             scope: SCOPES,
             ux_mode: 'popup',
-            access_type: 'offline', // CRITICAL: This requests the Refresh Token
+            access_type: 'offline',
+prompt: 'consent', // CRITICAL: This requests the Refresh Token
             callback: async (response: any) => {
                 if (response.code) {
                     setIsLoading(true);
@@ -76,7 +77,7 @@ export function useGoogleCalendar() {
                         toast.success("Calendar sync enabled successfully!");
                     } catch (err: any) {
                         console.error("Auth Exception:", err);
-                        toast.error("Failed to link Google account.");
+                        const errorMsg = err.context?.message || err.message || "Failed to link Google account."; toast.error(`Error: ${errorMsg}`);
                     } finally {
                         setIsLoading(false);
                     }
@@ -115,3 +116,5 @@ export function useGoogleCalendar() {
         isReady: isGisLoaded
     };
 }
+
+
