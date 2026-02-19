@@ -179,9 +179,9 @@ export function AppShell() {
     }, [user]);
 
     return (
-        <div className='flex h-[100dvh] w-full overflow-hidden flex-col md:flex-row bg-[#0b0c15] pt-[env(safe-area-inset-top)]'>
+        <div className='flex h-screen w-full overflow-hidden flex-col md:flex-row bg-[#0b0c15]'>
             {/* Mobile Header */}
-            <div className='flex items-center justify-between border-b px-4 pb-4 pt-4 md:hidden shrink-0 bg-background/95 backdrop-blur-sm z-50'>
+            <div className='flex items-center justify-between border-b px-4 pb-4 pt-[max(env(safe-area-inset-top),1rem)] md:hidden shrink-0 bg-background/95 backdrop-blur-sm z-50'>
                 <div className='flex items-center gap-3'>
                     <Button variant='ghost' size='icon' onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className='-ml-2'>
                         <Menu className='h-6 w-6' />
@@ -219,7 +219,7 @@ export function AppShell() {
                 isMobileMenuOpen ? 'translate-x-0 w-56' : '-translate-x-full md:translate-x-0',
                 isCollapsed ? 'md:w-20' : 'md:w-56'
             )}>
-                <div className={cn('flex h-16 items-center border-b px-4 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
+                <div className={cn('flex h-24 pt-[max(env(safe-area-inset-top),1rem)] items-center border-b px-4 shrink-0 transition-all', isCollapsed ? 'justify-center' : 'justify-between')}>
                     {!isCollapsed && (
                         <Link to='/'>
                             {logoUrl ? (
@@ -576,6 +576,9 @@ export function AppShell() {
         </div>
     );
 }
+
+
+
 
 
 
