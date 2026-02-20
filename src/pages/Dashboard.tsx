@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -425,11 +425,11 @@ export default function Dashboard() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Weekly Active Mins</CardTitle>
+                        <CardTitle className="text-sm font-medium">Weekly Active Hours</CardTitle>
                         <Activity className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        {isLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{activeMinutes}</div>}
+                        {isLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{(activeMinutes / 60).toFixed(1)}h</div>}
                         <p className="text-xs text-muted-foreground mt-1">This week</p>
                     </CardContent>
                 </Card>

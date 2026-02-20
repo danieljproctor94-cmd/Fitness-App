@@ -1,4 +1,4 @@
-﻿
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -82,7 +82,7 @@ export default function Leaderboard() {
             const finalColor = val === 0 ? "text-muted-foreground" : color;
             return <span className={`font-bold ${finalColor}`}>{val === 0 ? "0" : `${sign}${val}`} kg</span>;
         } else {
-            return <span className="font-bold">{user.activeMinutes} mins</span>;
+            return <span className="font-bold">{(user.activeMinutes / 60).toFixed(1)} hrs</span>;
         }
     };
 
@@ -166,7 +166,7 @@ export default function Leaderboard() {
                             Your {viewMode === "weight" ? "Weight Change" : "Activity"}
                         </CardTitle>
                         <CardDescription>
-                            {viewMode === "weight" ? "Total change since starting" : "Total active minutes logged"}
+                            {viewMode === "weight" ? "Total change since starting" : "Total active hours logged"}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -206,7 +206,7 @@ export default function Leaderboard() {
                 <Card className="md:col-span-2">
                     <CardHeader>
                         <CardTitle>{viewMode === "weight" ? "Biggest Losers" : "Most Active"}</CardTitle>
-                        <CardDescription>Ranked by {viewMode === "weight" ? "total weight lost" : "total minutes trained"}.</CardDescription>
+                        <CardDescription>Ranked by {viewMode === "weight" ? "total weight lost" : "total hours trained"}.</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0">
                         {isLoading ? (
