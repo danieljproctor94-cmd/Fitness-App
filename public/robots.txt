@@ -1,4 +1,9 @@
-User-agent: *
+﻿User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /register
+Disallow: /*?*
 
-Sitemap: https://fittrack.com/sitemap.xml
+Sitemap: https://progresssyncer.com/sitemap.xml
