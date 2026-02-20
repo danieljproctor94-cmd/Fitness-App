@@ -29,7 +29,7 @@ const Goals = lazy(() => import("@/pages/Goals"));
 const ToDos = lazy(() => import("@/pages/ToDos"));
 const TaskAnalytics = lazy(() => import("@/pages/TaskAnalytics"));
 const Collaboration = lazy(() => import("@/pages/Collaboration"));
-const ReloadPrompt = lazy(() => import("@/components/ReloadPrompt").then(module => ({ default: module.ReloadPrompt })));
+
 import { FaviconUpdater } from "@/components/FaviconUpdater";
 
 
@@ -155,7 +155,7 @@ function App() {
                 </AuthProvider>
             </ErrorBoundary>
             <Toaster />
-            <ReloadPrompt />
+            
         </ThemeProvider >
     )
 }
