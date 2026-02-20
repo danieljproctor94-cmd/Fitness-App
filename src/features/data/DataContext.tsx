@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from "sonner";
@@ -86,8 +86,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [todoCompletions, setTodoCompletions] = useState<ToDoCompletion[]>([]);
     const [todoExceptions, setTodoExceptions] = useState<ToDoException[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '');
-    const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '');
+    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '/logo.png');
+    const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '/logo.png');
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
     const [isLoading, setIsLoading] = useState(true);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
