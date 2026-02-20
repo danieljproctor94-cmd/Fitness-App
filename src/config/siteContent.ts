@@ -1,4 +1,4 @@
-import {
+﻿import {
     BarChart3,
     Users,
     Brain,
@@ -36,7 +36,7 @@ export const siteContent = {
         badge: "New: AI Coaching is Live!"
     },
     hero: {
-        badge: "Rated #1 New Fitness App of 2026",
+        badge: "Rated #1 Trending Productivity App of 2026",
         title: {
             first: "Build the habit.",
             highlight: "See the results."
