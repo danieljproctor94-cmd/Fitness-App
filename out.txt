@@ -1,0 +1,8 @@
+src/components/public/PublicFooter.tsx(2,27): error TS6133: 'Linkedin' is declared but its value is never read.
+src/components/public/PublicNavbar.tsx(4,19): error TS6133: 'ArrowRight' is declared but its value is never read.
+src/config/siteContent.ts(7,5): error TS6133: 'Shield' is declared but its value is never read.
+src/config/siteContent.ts(8,5): error TS6133: 'Check' is declared but its value is never read.
+src/config/siteContent.ts(12,5): error TS6133: 'Trophy' is declared but its value is never read.
+src/config/siteContent.ts(13,5): error TS6133: 'MessageSquare' is declared but its value is never read.
+src/config/siteContent.ts(14,5): error TS6133: 'Play' is declared but its value is never read.
+src/pages/public/Landing.tsx(2,63): error TS6133: 'PlayCircle' is declared but its value is never read.
