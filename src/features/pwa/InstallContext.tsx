@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface PWAInstallContextType {
     isInstallable: boolean;
@@ -20,15 +20,29 @@ export const PWAInstallProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setIsInstallable(true);
         };
 
+        // If the event fired before React mounted, we can grab it from window
+        if ((window as any).globalDeferredPrompt) {
+            handleBeforeInstallPrompt((window as any).globalDeferredPrompt);
+        }
+
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+        // Also handle appinstalled event to reset state
+        const handleAppInstalled = () => {
+            setIsInstallable(false);
+            setDeferredPrompt(null);
+            (window as any).globalDeferredPrompt = null;
+        };
+        window.addEventListener('appinstalled', handleAppInstalled);
+
         // Check if already installed
-        if (window.matchMedia('(display-mode: standalone)').matches) {
+        if (window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone) {
             setIsInstallable(false);
         }
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener('appinstalled', handleAppInstalled);
         };
     }, []);
 
@@ -44,7 +58,9 @@ export const PWAInstallProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (outcome === 'accepted') {
             console.log('User accepted the install prompt');
             setIsInstallable(false);
-        } else {
+            setDeferredPrompt(null);
+            (window as any).globalDeferredPrompt = null;
+        }  else {
             console.log('User dismissed the install prompt');
         }
 
