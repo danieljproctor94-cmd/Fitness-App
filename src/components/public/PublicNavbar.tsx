@@ -52,7 +52,7 @@ export function PublicNavbar() {
                     {/* Logo */}
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-shrink-0 flex items-center gap-2">
                         {appLogo ? (
-                            <img src={appLogo} alt="Logo" className="h-8 md:h-10 w-auto object-contain" />
+                            <img src={appLogo} alt="Logo" className="h-10 w-auto object-contain" />
                         ) : (
                             <>
                                 <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
@@ -100,8 +100,8 @@ export function PublicNavbar() {
                     </div>
 
                     {/* Mobile Menu Button */}
-                    <div className="md:hidden">
-                        <button onClick={toggleMenu} className="p-2 -mr-2 text-foreground/80 hover:text-foreground transition-colors">
+                    <div className="md:hidden pr-2">
+                        <button onClick={toggleMenu} className="p-2 text-foreground/80 hover:text-foreground transition-colors">
                             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
                     </div>
