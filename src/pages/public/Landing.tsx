@@ -6,7 +6,7 @@ import { getAppUrl } from "@/lib/domain";
 import { SEO } from "@/components/shared/SEO";
 
 export default function Landing() {
-    const { loginWithGoogle } = useAuth();
+    const { loginWithGoogle, user } = useAuth();
     const { hero, features, pricing } = siteContent;
 
     return (
@@ -36,11 +36,19 @@ export default function Landing() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-                        <Button
-                            onClick={loginWithGoogle}
-                            size="lg"
-                            className="h-14 px-8 w-64 text-lg rounded-full shadow-xl shadow-primary/20 bg-white text-black hover:bg-gray-100 border border-transparent transition-all hover:scale-105"
-                        >
+                        {user ? (
+                            <a href={getAppUrl('/dashboard')}>
+                                <Button size="lg" className="h-14 px-8 w-64 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all hover:scale-105">
+                                    Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                                </Button>
+                            </a>
+                        ) : (
+                            <>
+                                <Button
+                                    onClick={loginWithGoogle}
+                                    size="lg"
+                                    className="h-14 px-8 w-64 text-lg rounded-full shadow-xl shadow-primary/20 bg-white text-black hover:bg-gray-100 border border-transparent transition-all hover:scale-105"
+                                >
                             <svg className="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
                                 <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
@@ -54,6 +62,8 @@ export default function Landing() {
                                 {hero.buttons.start} <ArrowRight className="ml-2 h-5 w-5" />
                             </Button>
                         </a>
+                            </>
+                        )}
                     </div>
 
                     {/* Floating Dashboard Preview */}
@@ -199,9 +209,15 @@ export default function Landing() {
                     <p className="text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
                         Join thousands of others who are crushing their goals with Progress Syncer.
                     </p>
-                    <Button onClick={() => window.location.href = getAppUrl('/register')} size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-primary hover:bg-gray-100 shadow-xl transition-all hover:scale-105">
-                        Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
+                    {user ? (
+                        <Button onClick={() => window.location.href = getAppUrl('/dashboard')} size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-primary hover:bg-gray-100 shadow-xl transition-all hover:scale-105">
+                            Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                    ) : (
+                        <Button onClick={() => window.location.href = getAppUrl('/register')} size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-primary hover:bg-gray-100 shadow-xl transition-all hover:scale-105">
+                            Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                    )}
                 </div>
             </section>
         </div>
