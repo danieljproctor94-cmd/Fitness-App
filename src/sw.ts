@@ -1,6 +1,6 @@
-/// <reference lib="webworker" />
+﻿/// <reference lib="webworker" />
 import { cleanupOutdatedCaches, precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching'
-import { clientsClaim } from 'workbox-core'
+
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 
 declare let self: ServiceWorkerGlobalScope
@@ -22,9 +22,13 @@ try {
   console.warn('Error setting up nav route', error)
 }
 
-self.skipWaiting();
+self.addEventListener('install', () => {
+    self.skipWaiting();
+});
 
-clientsClaim();
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
 
 
 self.addEventListener('push', (event) => {
