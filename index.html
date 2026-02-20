@@ -25,7 +25,7 @@
   <script>
     window.globalDeferredPrompt = null;
     window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
+      
       window.globalDeferredPrompt = e;
     });
   </script>

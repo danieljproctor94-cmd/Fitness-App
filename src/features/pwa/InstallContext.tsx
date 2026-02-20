@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface PWAInstallContextType {
     isInstallable: boolean;
@@ -14,7 +14,7 @@ export const PWAInstallProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     useEffect(() => {
         const handleBeforeInstallPrompt = (e: any) => {
             // Prevent Chrome 67 and earlier from automatically showing the prompt
-            e.preventDefault();
+            
             // Stash the event so it can be triggered later.
             setDeferredPrompt(e);
             setIsInstallable(true);

@@ -8,8 +8,6 @@ declare let self: ServiceWorkerGlobalScope
 
 cleanupOutdatedCaches()
 
-precacheAndRoute(self.__WB_MANIFEST)
-
 try {
   const handler = new NetworkFirst({ cacheName: 'navigations', networkTimeoutSeconds: 3 })
   const navigationRoute = new NavigationRoute(handler, {
@@ -22,6 +20,8 @@ try {
 } catch (error) {
   console.warn('Error setting up nav route', error)
 }
+
+precacheAndRoute(self.__WB_MANIFEST)
 
 self.addEventListener('install', () => {
     self.skipWaiting();
