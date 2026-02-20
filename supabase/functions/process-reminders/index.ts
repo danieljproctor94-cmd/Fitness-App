@@ -1,4 +1,4 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+﻿import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import * as webpush from 'https://esm.sh/web-push'
 
@@ -156,7 +156,7 @@ async function sendPush(userId, payload) {
       await webpush.sendNotification(pushConfig, JSON.stringify(payload))
     } catch (e) {
       console.error(`Error sending push to ${userId}:`, e)
-      if (e.statusCode === 410) {
+      if (e.statusCode === 410 || e.statusCode === 404) {
         await supabase.from('push_subscriptions').delete().eq('id', sub.id)
       }
     }

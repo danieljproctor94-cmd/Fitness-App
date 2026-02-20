@@ -48,7 +48,7 @@ self.addEventListener('push', (event) => {
         data: data.url || '/',
         vibrate: [100, 50, 100],
         tag: data.tag || 'fitness-app-notification',
-        renotify: true
+        renotify: false
     };
 
     event.waitUntil(
