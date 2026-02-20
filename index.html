@@ -51,17 +51,7 @@
   
   <title>Progress Syncer</title>
 
-<script>
-    if ('serviceWorker' in navigator) {
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
-      });
-    }
-  </script>
+
 </head>
 
 <body>
