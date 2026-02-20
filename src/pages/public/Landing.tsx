@@ -47,16 +47,16 @@ export default function Landing() {
                         {hero.description}
                     </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                         {isAuthenticated ? (
-                            <a href={getAppUrl('/dashboard')}>
-                                <Button size="lg" className="h-14 px-8 w-64 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/25 transition-all hover:scale-105 font-bold">
+                            <a href={getAppUrl('/dashboard')} className="w-full sm:w-auto flex justify-center">
+                                <Button size="lg" className="h-14 px-8 w-full sm:w-64 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/25 transition-all hover:scale-105 font-bold">
                                     Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
                                 </Button>
                             </a>
                         ) : (
                             <>
-                                <a href={getAppUrl('/register')}>
+                                <a href={getAppUrl('/register')} className="w-full sm:w-auto flex justify-center">
                                     <Button size="lg" className="h-14 px-8 w-full sm:w-64 text-lg rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/30 transition-all hover:scale-105 hover:-translate-y-1 font-bold">
                                         {hero.buttons.start} <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
@@ -65,7 +65,7 @@ export default function Landing() {
                                     onClick={loginWithGoogle}
                                     variant="outline"
                                     size="lg"
-                                    className="h-14 px-8 w-full sm:w-auto text-lg rounded-xl border-border bg-card/50 backdrop-blur-sm hover:bg-muted text-foreground transition-all hover:scale-105 font-medium"
+                                    className="h-14 px-8 w-full sm:w-64 text-lg rounded-xl border-border bg-card/50 backdrop-blur-sm hover:bg-muted text-foreground transition-all hover:scale-105 font-medium flex justify-center"
                                 >
                                     <svg className="mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                                         <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
@@ -378,12 +378,12 @@ export default function Landing() {
                         Join the fastest growing platform of elite performers out there today.
                     </p>
                     
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Button onClick={() => window.location.href = getAppUrl(isAuthenticated ? '/dashboard' : '/register')} size="lg" className="h-16 px-10 text-xl font-bold rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/30 transition-all hover:scale-105 hover:-translate-y-1">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 w-full max-w-sm sm:max-w-none mx-auto">
+                        <Button onClick={() => window.location.href = getAppUrl(isAuthenticated ? '/dashboard' : '/register')} size="lg" className="w-full sm:w-auto sm:min-w-[280px] h-16 px-10 text-xl font-bold rounded-2xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xl shadow-primary/30 transition-all hover:scale-105 hover:-translate-y-1 flex justify-center">
                             {isAuthenticated ? 'Enter Dashboard' : 'Get Started Now'} <ArrowRight className="ml-3 h-6 w-6" />
                         </Button>
                         {!isAuthenticated && (
-                            <Button variant="outline" size="lg" className="h-16 px-10 text-xl font-bold rounded-2xl border-border bg-card hover:bg-muted hover:scale-105 transition-all">
+                            <Button variant="outline" size="lg" className="w-full sm:w-auto sm:min-w-[280px] h-16 px-10 text-xl font-bold rounded-2xl border-border bg-card hover:bg-muted hover:scale-105 transition-all flex justify-center">
                                 Talk to Sales
                             </Button>
                         )}
