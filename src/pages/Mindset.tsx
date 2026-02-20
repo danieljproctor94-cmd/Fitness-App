@@ -92,13 +92,12 @@ export default function Mindset() {
 
     const handleReminderToggle = async (checked: boolean) => {
         if (checked) {
-            // Request permission
-            if ("Notification" in window) {
-                const permission = await Notification.requestPermission();
-                if (permission !== "granted") {
-                    toast.error("Notification permission denied. We cannot send you reminders.");
-                    return; // Don't enable if denied
-                }
+            if (!pushEnabled) {
+                await enablePush();
+            }
+            if (!("Notification" in window) || Notification.permission !== "granted") {
+                toast.error("Notification permission denied. We cannot send you reminders.");
+                return;
             }
         }
         await updateUserProfile({ mindset_reminder_enabled: checked });
