@@ -52,7 +52,12 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-        self.registration.showNotification(title, options)
+        self.registration.getNotifications({ tag: options.tag }).then((existing) => {
+            if (existing && existing.length > 0) {
+                return; // Absolutely suppress duplicate pushes natively arriving at OS
+            }
+            return self.registration.showNotification(title, options);
+        })
     );
 });
 

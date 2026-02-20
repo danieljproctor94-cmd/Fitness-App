@@ -144,6 +144,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                                 }
 
                                 if (registration && registration.showNotification) {
+                                    const existing = await registration.getNotifications({ tag: formatted.id });
+                                    if (existing && existing.length > 0) return; // Prevent duplicate popup if SW is already handing it natively
+
+                                    const lockKey = 'notif_spawning_' + formatted.id;
+                                    if (localStorage.getItem(lockKey)) return; // Dedupe cross-tab frontend races
+                                    localStorage.setItem(lockKey, 'true');
+                                    setTimeout(() => localStorage.removeItem(lockKey), 10000);
+
                                     await registration.showNotification(formatted.title, {
                                         body: formatted.message,
                                         icon: '/logo_192.png',
@@ -154,6 +162,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                             }
 
                             // Fallback to standard window Notification API if SW not available
+                            const locLockKey = 'notif_spawning_' + formatted.id;
+                            if (localStorage.getItem(locLockKey)) return;
+                            localStorage.setItem(locLockKey, 'true');
+                            setTimeout(() => localStorage.removeItem(locLockKey), 10000);
+
                             new Notification(formatted.title, {
                                 body: formatted.message,
                                 icon: '/logo_192.png',
