@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -419,7 +419,7 @@ export default function ToDos() {
                 ...t,
                 time: t.due_time,
                 name: t.title,
-                type: 'todo',
+                type: t.google_event_id ? 'google_event' : 'todo',
                 exercises: [],
                 duration: '0'
             };
@@ -906,7 +906,7 @@ export default function ToDos() {
                                     {todosOnSelectedDate.map((todo: any) => (
                                         <Card key={todo.id} className={cn(
                                             "shadow-none border transition-all group relative overflow-hidden",
-                                            todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40 border-border/60 hover:bg-card hover:border-emerald-500/30",
+                                            todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40_BLUE border-border/60 hover:bg-card hover:border-emerald-500/30",
                                             !todo.completed && todo.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
                                                 !todo.completed && todo.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
                                                     !todo.completed && (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? 'border-l-4 border-l-primary' :
@@ -1080,7 +1080,7 @@ export default function ToDos() {
                                 ) : visibleSideList.map((todo: any) => (
                                     <Card key={todo.id} className={cn(
                                         "shadow-none border transition-all group relative overflow-hidden",
-                                        todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40 border-border/60 hover:bg-card hover:border-emerald-500/30",
+                                        todo.completed ? "bg-muted/20 border-border/50 opacity-60" : "bg-card/40_BLUE border-border/60 hover:bg-card hover:border-emerald-500/30",
                                         !todo.completed && todo.urgency === 'critical' ? 'border-l-4 border-l-red-500' :
                                             !todo.completed && todo.urgency === 'high' ? 'border-l-4 border-l-orange-500' :
                                                 !todo.completed && (todo.urgency === 'normal' || (todo.urgency as any) === 'medium') ? 'border-l-4 border-l-primary' :
