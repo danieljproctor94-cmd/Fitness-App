@@ -71,6 +71,40 @@ export default function ToDos() {
     const [visibleUndatedCount, setVisibleUndatedCount] = useState(20);
 
     const { connect: connectGoogle, isConnected: isGoogleConnected, isLoading: isGoogleLoading, sync: syncGoogle } = useGoogleCalendar();
+    const [timeUntilSync, setTimeUntilSync] = useState("");
+
+    useEffect(() => {
+        if (!isGoogleConnected) return;
+
+        const calculateTime = () => {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            let targetMinute = minutes < 30 ? 30 : 60;
+            let diffMinutes = targetMinute - minutes - 1;
+            let diffSeconds = 60 - seconds;
+            
+            if (diffSeconds === 60) {
+                diffMinutes += 1;
+                diffSeconds = 0;
+            }
+
+            const mStr = diffMinutes.toString().padStart(2, "0");
+            const sStr = diffSeconds.toString().padStart(2, "0");
+            setTimeUntilSync(`${mStr}:${sStr}`);
+
+            // Automatically refresh data when timer hits exactly 00:00 to show new events
+            if (mStr === "00" && sStr === "00") {
+                // adding a small delay to ensure edge function actually completed
+                setTimeout(() => window.dispatchEvent(new Event("refresh-data")), 5000);
+            }
+        };
+
+        calculateTime();
+        const interval = setInterval(calculateTime, 1000);
+        return () => clearInterval(interval);
+    }, [isGoogleConnected]);
 
     useEffect(() => {
         if (selectedDate && !editingId) {
@@ -552,11 +586,16 @@ export default function ToDos() {
                                 <RefreshCw className="h-4 w-4 animate-spin" />
                                 <span>Syncing...</span>
                             </>
-                        ) : isGoogleConnected ? (
-                            <>
+) : isGoogleConnected ? (
+                            <div className="flex items-center gap-2">
                                 <img src={googleIcon} alt="G" className="h-4 w-4" />
-                                <span>Synced</span>
-                            </>
+                                <span className="flex items-center gap-1.5">
+                                    Synced
+                                    <span className="text-[10px] font-mono bg-background/50 px-1.5 py-0.5 rounded text-muted-foreground border border-border/50">
+                                        {timeUntilSync}
+                                    </span>
+                                </span>
+                            </div>
                         ) : (
                             <>
                                 <Plus className="h-4 w-4" />
