@@ -15,7 +15,7 @@ export default defineConfig({
       injectRegister: 'auto',
       manifest: {
         name: 'Progress Syncer',
-        short_name: 'Progress',
+        short_name: 'Progress Syncer',
         description: 'Track your workouts, habits, and body measurements with Progress Syncer.',
         theme_color: '#0b0c15',
         background_color: '#0b0c15',
