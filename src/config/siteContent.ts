@@ -169,22 +169,6 @@ export const siteContent = {
                 buttonText: "Start Pro Trial",
                 popular: true,
                 variant: "default"
-            },
-            {
-                name: "Teams",
-                price: "$49",
-                period: "/month",
-                description: "For coaches, gyms, and friend groups.",
-                features: [
-                    "Everything in Pro",
-                    "Unlimited team members",
-                    "Shared templates & libraries",
-                    "Custom branding",
-                    "Priority 24/7 support"
-                ],
-                buttonText: "Contact Sales",
-                popular: false,
-                variant: "outline"
             }
         ]
     },

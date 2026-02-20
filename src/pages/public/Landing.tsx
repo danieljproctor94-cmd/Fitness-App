@@ -293,7 +293,7 @@ export default function Landing() {
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         {pricing.plans.map((plan, index) => (
                             <div key={index} className={`relative p-10 rounded-[2.5rem] border ${plan.popular ? 'border-primary bg-primary/10 shadow-2xl shadow-primary/20 scale-105 z-20' : 'border-border bg-card/50 backdrop-blur-md z-10'} flex flex-col`}>
                                 {plan.popular && (
