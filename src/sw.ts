@@ -1,12 +1,25 @@
-/// <reference lib="webworker" />
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
+﻿import { cleanupOutdatedCaches, precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
+import { NavigationRoute, registerRoute } from 'workbox-routing'
 
 declare let self: ServiceWorkerGlobalScope
 
 cleanupOutdatedCaches()
 
 precacheAndRoute(self.__WB_MANIFEST)
+
+try {
+  const handler = createHandlerBoundToURL('/index.html')
+  const navigationRoute = new NavigationRoute(handler, {
+    denylist: [
+      /^\/_/,
+      new RegExp('/[^/?]+\\\\.[^/]+$') 
+    ],
+  })
+  registerRoute(navigationRoute)
+} catch (error) {
+  console.warn('Error setting up nav route', error)
+}
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
@@ -28,8 +41,8 @@ self.addEventListener('push', (event) => {
     const title = data.title || 'New Notification';
     const options = {
         body: data.body || 'You have a new message',
-        icon: '/logo.png',
-        badge: '/logo.png',
+        icon: '/logo_192.png',
+        badge: '/logo_192.png',
         data: data.url || '/',
         vibrate: [100, 50, 100],
         tag: data.tag || 'fitness-app-notification',
@@ -48,14 +61,12 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // Check if there is already a window/tab open with the target URL
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
                 if (client.url === urlToOpen && 'focus' in client) {
                     return client.focus();
                 }
             }
-            // If not, open a new window
             if (self.clients.openWindow) {
                 return self.clients.openWindow(urlToOpen);
             }
