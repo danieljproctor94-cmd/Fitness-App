@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Users } from "lucide-react";
 import { siteContent } from "@/config/siteContent";
 import { useAuth } from "@/features/auth/AuthContext";
@@ -39,7 +39,7 @@ export default function Landing() {
                         <Button
                             onClick={loginWithGoogle}
                             size="lg"
-                            className="h-14 px-8 text-lg rounded-full shadow-xl shadow-primary/20 bg-white text-black hover:bg-gray-100 border border-transparent transition-all hover:scale-105"
+                            className="h-14 px-8 w-64 text-lg rounded-full shadow-xl shadow-primary/20 bg-white text-black hover:bg-gray-100 border border-transparent transition-all hover:scale-105"
                         >
                             <svg className="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
@@ -50,7 +50,7 @@ export default function Landing() {
                             {hero.buttons.google}
                         </Button>
                         <a href={getAppUrl('/register')}>
-                            <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all hover:scale-105">
+                            <Button size="lg" className="h-14 px-8 w-64 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all hover:scale-105">
                                 {hero.buttons.start} <ArrowRight className="ml-2 h-5 w-5" />
                             </Button>
                         </a>
