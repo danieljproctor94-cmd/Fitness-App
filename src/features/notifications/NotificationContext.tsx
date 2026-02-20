@@ -136,13 +136,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;
 
-                                // Do not manually spawn an OS notification if the device is successfully subscribed to WebPush.
-                                // The backend Edge Function directly pings the OS-level Service Worker natively!
-                                const activeSub = await registration.pushManager.getSubscription();
-                                if (activeSub) {
-                                    return; // Silently abort local popup!
-                                }
-
                                 if (registration && registration.showNotification) {
                                     const existing = await registration.getNotifications({ tag: formatted.id });
                                     if (existing && existing.length > 0) return; // Prevent duplicate popup if SW is already handing it natively
@@ -216,7 +209,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 // Get or create subscription
                 let subscription = await registration.pushManager.getSubscription();
                 
-                if (!subscription && VAPID_PUBLIC_KEY) {
+                // FORCE RE-SUBSCRIPTION TO ENSURE NEW VAPID KEY IS APPLIED
+                if (subscription) {
+                    const currentKey = subscription.options?.applicationServerKey;
+                    const expectedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+                    // Just force an unsubscribe to cleanly rotate the broken VAPID keys
+                    await subscription.unsubscribe();
+                }
+
+                if (VAPID_PUBLIC_KEY) {
                     subscription = await registration.pushManager.subscribe({
                         userVisibleOnly: true,
                         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
