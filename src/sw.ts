@@ -1,7 +1,8 @@
 ﻿/// <reference lib="webworker" />
-import { cleanupOutdatedCaches, precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching'
+import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
 
 import { NavigationRoute, registerRoute } from 'workbox-routing'
+import { NetworkFirst } from 'workbox-strategies'
 
 declare let self: ServiceWorkerGlobalScope
 
@@ -10,7 +11,7 @@ cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST)
 
 try {
-  const handler = createHandlerBoundToURL('index.html')
+  const handler = new NetworkFirst({ cacheName: 'navigations', networkTimeoutSeconds: 3 })
   const navigationRoute = new NavigationRoute(handler, {
     denylist: [
       /^\/_/,
@@ -74,4 +75,5 @@ self.addEventListener('notificationclick', (event) => {
         })
     );
 });
+
 
