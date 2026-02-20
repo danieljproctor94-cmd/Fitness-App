@@ -121,18 +121,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                         try {
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;
-                                const sub = await registration.pushManager.getSubscription();
-                                if (sub) {
-                                    // If we have a push subscription, the server's web-push will have triggered the service worker.
-                                    // Do not duplicate the OS notification.
+                                if (registration && registration.showNotification) {
+                                    await registration.showNotification(formatted.title, {
+                                        body: formatted.message,
+                                        icon: '/logo_192.png',
+                                        tag: formatted.id
+                                    });
                                     return;
                                 }
                             }
 
-                            // Fallback to standard window Notification API if no push subscription
+                            // Fallback to standard window Notification API if SW not available
                             new Notification(formatted.title, {
                                 body: formatted.message,
-                                icon: '/logo.png',
+                                icon: '/logo_192.png',
                                 tag: formatted.id
                             });
                         } catch (e) {
