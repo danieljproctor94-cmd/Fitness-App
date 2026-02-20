@@ -23,7 +23,7 @@ interface NotificationContextType {
 }
 
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || "BHHJ9vFxX6_yQDjpPeHPhxd12bVRM1xreBdQQDpEbAaSTJWOF23xcF8_zPJbcioYhd_fXo1IN-ieCxa0QszbRvk";
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || "BEWo0rG-3KnTBSYZO0X7IE-kHBQ44ntukW_3BxE5T1q-rZQ7bbGNHBGuOQV-laCXQtT0yw6KM5CTd3CPjdKOcZA";
 
 function urlBase64ToUint8Array(base64String: string) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -118,6 +118,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
                         if (Notification.permission !== 'granted') return;
 
+                        // Use Web Locks API to prevent multiple tabs from showing the same notification
+                        const lockId = 'notif_lock_' + formatted.id;
+                        if (navigator.locks) {
+                            navigator.locks.request(lockId, { mode: 'exclusive', ifAvailable: true }, async (lock) => {
+                                if (!lock) return; // Another tab got the lock and is displaying this notification
+                                await showLocalNotification();
+                            });
+                        } else {
+                            // Fallback if locks API isn't supported
+                            await showLocalNotification();
+                        }
+                    };
+
+                    const showLocalNotification = async () => {
                         try {
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;

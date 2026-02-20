@@ -6,8 +6,8 @@ console.log("Push Notification Processor started")
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') || ''
-const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || ''
+const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY') || 'BEWo0rG-3KnTBSYZO0X7IE-kHBQ44ntukW_3BxE5T1q-rZQ7bbGNHBGuOQV-laCXQtT0yw6KM5CTd3CPjdKOcZA'
+const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY') || 'Js1KhV3mGvOT1cavtqUuA3Q9TVHFJvvEX6aWpBdvT_8'
 
 webpush.setVapidDetails(
   'mailto:support@fitnessapp.com',
