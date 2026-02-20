@@ -148,36 +148,6 @@ export function AppShell() {
         document.getElementsByTagName('head')[0].appendChild(link);
     }, [faviconUrl]);
 
-    const [onlineCount, setOnlineCount] = useState(1);
-
-    useEffect(() => {
-        const channel = supabase.channel('online-users', {
-            config: {
-                presence: {
-                    key: user?.id,
-                },
-            },
-        });
-
-        channel
-            .on('presence', { event: 'sync' }, () => {
-                const state = channel.presenceState();
-                setOnlineCount(Object.keys(state).length);
-            })
-            .subscribe(async (status) => {
-                if (status === 'SUBSCRIBED') {
-                    await channel.track({
-                        user_id: user?.id,
-                        online_at: new Date().toISOString(),
-                    });
-                }
-            });
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [user]);
-
     return (
         <div className='flex h-screen w-full overflow-hidden flex-col md:flex-row'>
             {/* Mobile Header */}
@@ -195,13 +165,7 @@ export function AppShell() {
                     </Link>
                 </div>
                 <div className='flex items-center gap-3'>
-                    <div className='px-2.5 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium flex items-center gap-1.5 border border-primary/20 h-7'>
-                        <span className='relative flex h-2 w-2'>
-                            <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75'></span>
-                            <span className='relative inline-flex rounded-full h-2 w-2 bg-primary'></span>
-                        </span>
-                        {onlineCount}
-                    </div>
+                    
                     <NotificationBell />
                 </div>
             </div>
@@ -555,13 +519,7 @@ export function AppShell() {
                         {format(currentDate, 'EEEE, MMMM do, yyyy')}
                     </div>
                     <div className='flex items-center gap-4'>
-                        <div className='px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium flex items-center gap-2 border border-primary/20'>
-                            <span className='relative flex h-2 w-2'>
-                                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75'></span>
-                                <span className='relative inline-flex rounded-full h-2 w-2 bg-primary'></span>
-                            </span>
-                            {onlineCount} Online
-                        </div>
+                        
                         <NotificationBell />
                     </div>
                 </header>
