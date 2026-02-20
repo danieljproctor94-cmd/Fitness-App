@@ -135,6 +135,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                         try {
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;
+
+                                // Do not manually spawn an OS notification if the device is successfully subscribed to WebPush.
+                                // The backend Edge Function directly pings the OS-level Service Worker natively!
+                                const activeSub = await registration.pushManager.getSubscription();
+                                if (activeSub) {
+                                    return; // Silently abort local popup!
+                                }
+
                                 if (registration && registration.showNotification) {
                                     await registration.showNotification(formatted.title, {
                                         body: formatted.message,
