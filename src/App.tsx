@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubdomainRouter } from "@/components/routing/SubdomainRouter";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { DataProvider } from "@/features/data/DataContext";
@@ -7,7 +7,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/features/notifications/NotificationContext";
-import { ReminderManager } from "@/features/reminders/ReminderManager";
+
 import { PWAInstallProvider } from "@/features/pwa/InstallContext";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
@@ -102,7 +102,7 @@ function App() {
                         <NotificationProvider>
                             <PWAInstallProvider>
                                 <FaviconUpdater />
-                                <ReminderManager />
+                                
                                 <BrowserRouter>
                                     <SubdomainRouter
                                         publicRoutes={

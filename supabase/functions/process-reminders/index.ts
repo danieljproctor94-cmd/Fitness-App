@@ -53,10 +53,20 @@ serve(async (req) => {
       const notifyAt = new Date(dueTime.getTime() - notifyBeforeMinutes * 60000);
 
       if (now >= notifyAt) {
+        const notifId = crypto.randomUUID();
         await sendPush(todo.user_id, {
           title: `Reminder: ${todo.title}`,
           body: todo.description || 'Your task is due soon!',
-          url: '/planner'
+          url: '/planner',
+          tag: notifId
+        });
+
+        await supabase.from('notifications').insert({
+          id: notifId,
+          user_id: todo.user_id,
+          title: `Reminder: ${todo.title}`,
+          message: todo.description || 'Your task is due soon!',
+          type: 'info'
         });
         
         await supabase.from('todos').update({ notification_sent: true }).eq('id', todo.id)
@@ -91,10 +101,20 @@ serve(async (req) => {
           .eq('date', todayStr)
 
         if (count === 0) {
+          const notifId = crypto.randomUUID();
           await sendPush(profile.id, {
             title: "Daily Mindset Journal",
             body: "Take a moment to reflect on your day and gratitude.",
-            url: "/mindset"
+            url: "/mindset",
+            tag: notifId
+          });
+
+          await supabase.from('notifications').insert({
+            id: notifId,
+            user_id: profile.id,
+            title: "Daily Mindset Journal",
+            message: "Take a moment to reflect on your day and gratitude.",
+            type: 'info'
           });
           
           await supabase.from('profiles').update({ mindset_last_notified: todayStr }).eq('id', profile.id)

@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -113,35 +113,30 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
                     // Trigger System Notification
                     const triggerNotification = async () => {
+                        // Show in-app toast
+                        toast(formatted.title, { description: formatted.message });
+
                         if (Notification.permission !== 'granted') return;
 
                         try {
-                            // Try Service Worker first (for Android/PWA support)
                             if ('serviceWorker' in navigator) {
                                 const registration = await navigator.serviceWorker.ready;
-                                if (registration && registration.active) {
-                                    // Check if we are focused? Maybe not needed, SW handles it.
-                                    await registration.showNotification(formatted.title, {
-                                        body: formatted.message,
-                                        icon: '/logo.png',
-                                        badge: '/logo.png'
-                                    });
+                                const sub = await registration.pushManager.getSubscription();
+                                if (sub) {
+                                    // If we have a push subscription, the server's web-push will have triggered the service worker.
+                                    // Do not duplicate the OS notification.
                                     return;
                                 }
                             }
-                        } catch (e) {
-                            console.warn("SW notification failed, falling back to window.Notification", e);
-                        }
 
-                        // Fallback to standard Notification API (Desktop/Foreground)
-                        try {
+                            // Fallback to standard window Notification API if no push subscription
                             new Notification(formatted.title, {
                                 body: formatted.message,
-                                icon: '/logo.png'
+                                icon: '/logo.png',
+                                tag: formatted.id
                             });
                         } catch (e) {
                             console.error("Window notification failed", e);
-                            toast(formatted.title, { description: formatted.message });
                         }
                     };
 

@@ -1,4 +1,4 @@
-﻿
+
 import { useState, useEffect, useMemo } from "react";
 import { format, isSameDay, parseISO, subDays } from "date-fns";
 import { useData } from "@/features/data/DataContext";
@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame, Bell, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { MindsetLog } from "@/features/data/DataContext";
+import { useNotifications } from "@/features/notifications/NotificationContext";
 
 // Simple "Mock AI" to generate a summary based on keywords
 // In a real app, this would call an OpenAI API endpoint
@@ -68,6 +69,7 @@ const calculateStreak = (logs: MindsetLog[]) => {
 
 export default function Mindset() {
     const { mindsetLogs, addMindsetLog, isLoading, userProfile, updateUserProfile } = useData();
+    const { enablePush, pushEnabled } = useNotifications();
     const [todayLog, setTodayLog] = useState<any | null>(null);
     const [gratefulFor, setGratefulFor] = useState("");
     const [improvements, setImprovements] = useState("");
