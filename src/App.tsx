@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+﻿import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubdomainRouter } from "@/components/routing/SubdomainRouter";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { DataProvider } from "@/features/data/DataContext";
@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { NotificationProvider } from "@/features/notifications/NotificationContext";
 
-import { PWAInstallProvider } from "@/features/pwa/InstallContext";
+
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
@@ -100,7 +100,7 @@ function App() {
                 <AuthProvider>
                     <DataProvider>
                         <NotificationProvider>
-                            <PWAInstallProvider>
+                            
                                 <FaviconUpdater />
                                 
                                 <BrowserRouter>
@@ -149,7 +149,7 @@ function App() {
                                         }
                                     />
                                 </BrowserRouter>
-                            </PWAInstallProvider>
+                            
                         </NotificationProvider>
                     </DataProvider>
                 </AuthProvider>
