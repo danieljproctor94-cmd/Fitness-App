@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/features/data/DataContext";
 import { Menu, X, LogOut, ChevronRight } from "lucide-react";
@@ -53,11 +53,13 @@ export function PublicNavbar() {
                     {/* Logo */}
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-shrink-0 flex items-center gap-2">
                         {appLogo ? (
-                            <img src={appLogo} alt="Logo" className="h-10 w-auto" />
+                            <img src={appLogo} alt="Logo" className="h-8 md:h-10 w-auto object-contain" />
                         ) : (
-                            <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
+                            <>
+                                <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
+                                <span className="font-bold text-xl tracking-tight hidden sm:block">{navbar.brand}</span>
+                            </>
                         )}
-                        <span className="font-bold text-xl tracking-tight hidden sm:block">{navbar.brand}</span>
                     </Link>
 
                     {/* Desktop Links (Pill) */}

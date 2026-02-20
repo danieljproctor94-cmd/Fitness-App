@@ -1,9 +1,11 @@
-import { siteContent } from "@/config/siteContent";
+﻿import { siteContent } from "@/config/siteContent";
 import { Github, Twitter, Instagram, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useData } from "@/features/data/DataContext";
 
 export function PublicFooter() {
+    const { appLogo } = useData();
     return (
         <footer className="bg-background border-t border-border/50 pt-20 pb-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,10 +16,14 @@ export function PublicFooter() {
                     {/* Brand Column (Takes up 4 cols on large) */}
                     <div className="lg:col-span-4 flex flex-col justify-between">
                         <div>
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
-                                <span className="font-bold text-2xl tracking-tight">{siteContent.footer.brand}</span>
-                            </div>
+                            {appLogo ? (
+                                <img src={appLogo} alt="Logo" className="h-8 md:h-10 w-auto object-contain mb-6" />
+                            ) : (
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
+                                    <span className="font-bold text-2xl tracking-tight">{siteContent.footer.brand}</span>
+                                </div>
+                            )}
                             <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
                                 {siteContent.footer.description}
                             </p>
