@@ -46,9 +46,8 @@ export function PublicNavbar() {
     const { navbar } = siteContent;
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-background/80 backdrop-blur-lg border-b border-border' : 'bg-transparent py-4'}`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16 rounded-full border border-transparent transition-all">
+        <nav className="fixed top-4 left-4 right-4 md:top-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[90%] md:max-w-5xl z-50 transition-all duration-300">
+            <div className={`flex items-center justify-between h-16 px-4 sm:px-6 md:px-8 rounded-full border transition-all ${scrolled ? 'bg-background/95 backdrop-blur-xl border-border shadow-xl shadow-black/10' : 'bg-background border-border/50 shadow-lg shadow-black/5'}`}>
                     
                     {/* Logo */}
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-shrink-0 flex items-center gap-2">
@@ -107,12 +106,11 @@ export function PublicNavbar() {
                         </button>
                     </div>
 
-                </div>
             </div>
 
             {/* Mobile Menu Dropdown */}
             {isMenuOpen && (
-                <div className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border absolute w-full z-50 animate-in slide-in-from-top-4">
+                <div className="md:hidden absolute top-[calc(100%+12px)] left-0 w-full bg-background/95 backdrop-blur-xl border border-border rounded-3xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-4 overflow-hidden">
                     <div className="px-4 py-6 space-y-4">
                         <div className="flex flex-col space-y-2 mb-6">
                             {navbar.links.map((link) => (
