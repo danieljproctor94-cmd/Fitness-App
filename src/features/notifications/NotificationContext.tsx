@@ -211,8 +211,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 
                 // FORCE RE-SUBSCRIPTION TO ENSURE NEW VAPID KEY IS APPLIED
                 if (subscription) {
-                    const currentKey = subscription.options?.applicationServerKey;
-                    const expectedKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
                     // Just force an unsubscribe to cleanly rotate the broken VAPID keys
                     await subscription.unsubscribe();
                 }
