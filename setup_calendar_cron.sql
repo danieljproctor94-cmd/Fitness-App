@@ -3,7 +3,7 @@
 
 SELECT cron.schedule(
     'sync-google-calendars-hourly',
-    '0 * * * *',
+    '*/30 * * * *',
     $$
     SELECT
       net.http_post(

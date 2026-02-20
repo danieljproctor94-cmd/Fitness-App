@@ -67,19 +67,33 @@ serve(async (req) => {
 
             let importedCount = 0
             for (const event of items) {
-                const { error: syncErr } = await adminClient.from('todos').upsert({
-                    user_id: sync.user_id,
-                    google_event_id: event.id,
-                    title: event.summary || 'Untitled Event',
-                    description: event.description || '',
-                    due_date: event.start.dateTime?.split('T')[0] || event.start.date,
-                    due_time: event.start.dateTime ? event.start.dateTime.split('T')[1].substring(0, 5) : null,
-                    last_synced_at: new Date().toISOString(),
-                    notify: true,
-                    notify_before: '10_min' // Default to 10 minutes before as per user request
-                }, { onConflict: 'google_event_id' })
+                const { data: existing } = await adminClient
+                    .from('todos')
+                    .select('id, notify, notify_before')
+                    .eq('google_event_id', event.id)
+                    .maybeSingle()
+
+                const todoData = {
+                  user_id: sync.user_id,
+                  google_event_id: event.id,
+                  title: event.summary || 'Untitled Event',
+                  description: event.description || '',
+                  due_date: event.start?.dateTime?.split('T')[0] || event.start?.date,
+                  due_time: event.start?.dateTime ? event.start.dateTime.split('T')[1].substring(0, 5) : null,
+                  last_synced_at: new Date().toISOString(),
+                  notify: true,
+                  notify_before: existing?.notify_before || '10_min'
+                }
+
+                let dbResult;
+                if (existing) {
+                    dbResult = await adminClient.from('todos').update(todoData).eq('id', existing.id)
+                } else {
+                    dbResult = await adminClient.from('todos').insert([todoData])
+                }
                 
-                if (!syncErr) importedCount++
+                if (!dbResult.error) importedCount++
+                else console.error("DB Error for event " + event.id + ": ", dbResult.error)
             }
 
             results.push({ user_id: sync.user_id, status: 'success', imported: importedCount })
