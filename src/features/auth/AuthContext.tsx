@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+﻿import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 interface AuthContextType {
     user: User | null;
+    isAuthenticated: boolean;
     loading: boolean;
     login: (email: string, pass: string) => Promise<void>;
     loginWithGoogle: () => Promise<void>;
@@ -12,6 +13,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
+    isAuthenticated: false,
     loading: true,
     login: async () => { },
     loginWithGoogle: async () => { },
@@ -23,6 +25,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     const login = async (email: string, pass: string) => {
         const { error } = await supabase.auth.signInWithPassword({
@@ -48,6 +51,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     useEffect(() => {
+        // Init isAuthenticated
+        setIsAuthenticated(document.cookie.includes('ps_auth_status=1'));
+
         // Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUser(session?.user ?? null);
@@ -64,8 +70,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return () => subscription.unsubscribe();
     }, []);
 
+    useEffect(() => {
+        if (!loading) {
+            setIsAuthenticated(!!user || document.cookie.includes('ps_auth_status=1'));
+            
+            let domain = window.location.hostname;
+            if (domain.includes('progresssyncer.com')) {
+                domain = '.progresssyncer.com';
+            }
+            
+            if (user) {
+                document.cookie = 'ps_auth_status=1; domain=' + domain + '; path=/; max-age=31536000; SameSite=Lax;';
+            } else {
+                document.cookie = 'ps_auth_status=; domain=' + domain + '; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            }
+        }
+    }, [user, loading]);
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated, loading, login, loginWithGoogle, logout }}>
             {children}
         </AuthContext.Provider>
     );

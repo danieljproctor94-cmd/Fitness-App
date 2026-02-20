@@ -6,7 +6,7 @@ import { getAppUrl } from "@/lib/domain";
 import { SEO } from "@/components/shared/SEO";
 
 export default function Landing() {
-    const { loginWithGoogle, user } = useAuth();
+    const { loginWithGoogle, isAuthenticated } = useAuth();
     const { hero, features, pricing } = siteContent;
 
     return (
@@ -36,7 +36,7 @@ export default function Landing() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-                        {user ? (
+                        {isAuthenticated ? (
                             <a href={getAppUrl('/dashboard')}>
                                 <Button size="lg" className="h-14 px-8 w-64 text-lg rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all hover:scale-105">
                                     Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
@@ -209,7 +209,7 @@ export default function Landing() {
                     <p className="text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
                         Join thousands of others who are crushing their goals with Progress Syncer.
                     </p>
-                    {user ? (
+                    {isAuthenticated ? (
                         <Button onClick={() => window.location.href = getAppUrl('/dashboard')} size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-primary hover:bg-gray-100 shadow-xl transition-all hover:scale-105">
                             Go to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
                         </Button>

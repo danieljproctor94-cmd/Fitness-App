@@ -1,4 +1,4 @@
-﻿import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/features/data/DataContext";
 import { Menu, X, ArrowRight, LogOut } from "lucide-react";
@@ -9,7 +9,7 @@ import { getAppUrl } from "@/lib/domain";
 
 export function PublicNavbar() {
     const { appLogo } = useData();
-    const { user, logout, loginWithGoogle } = useAuth();
+    const { isAuthenticated, logout, loginWithGoogle } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -61,7 +61,7 @@ export function PublicNavbar() {
                     </div>
 
                     <div className="hidden md:flex items-center gap-6">
-                        {user ? (
+                        {isAuthenticated ? (
                             <div className="flex items-center gap-4">
                                 <a href={getAppUrl('/dashboard')}>
                                     <Button className="rounded-full px-6">{navbar.cta.dashboard}</Button>
@@ -115,7 +115,7 @@ export function PublicNavbar() {
                         ))}
 
                         <div className="mt-4 pt-4 border-t border-border">
-                            {user ? (
+                            {isAuthenticated ? (
                                 <div className="space-y-3">
                                     <a href={getAppUrl('/dashboard')} onClick={() => setIsMenuOpen(false)}>
                                         <Button className="w-full rounded-full h-12 text-lg">{navbar.cta.dashboard}</Button>
