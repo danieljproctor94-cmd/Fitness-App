@@ -514,7 +514,7 @@ export function AppShell() {
             {/* Main Content */}
             <main className='flex-1 bg-muted/20 flex flex-col min-h-0 overflow-hidden'>
                 {/* Desktop Sticky Header - Simplified */}
-                <header className='hidden md:flex items-center justify-between px-6 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-20'>
+                <header className='hidden md:flex items-center justify-between px-6 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-20'>
                     <div className='font-medium text-sm text-muted-foreground'>
                         {format(currentDate, 'EEEE, MMMM do, yyyy')}
                     </div>
