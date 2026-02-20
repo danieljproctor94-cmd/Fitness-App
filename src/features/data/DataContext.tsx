@@ -86,8 +86,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [todoCompletions, setTodoCompletions] = useState<ToDoCompletion[]>([]);
     const [todoExceptions, setTodoExceptions] = useState<ToDoException[]>([]);
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
-    const [appLogo, setAppLogo] = useState<string>('/logo.png');
-    const [appFavicon, setAppFavicon] = useState<string>('/logo.png');
+    const [appLogo, setAppLogo] = useState<string>(() => localStorage.getItem('app_logo_url') || '');
+    const [appFavicon, setAppFavicon] = useState<string>(() => localStorage.getItem('app_favicon_url') || '');
     const [socialUrl, setSocialUrl] = useState<string>(() => localStorage.getItem('social_url') || '');
     const [isLoading, setIsLoading] = useState(true);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -158,8 +158,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         const fetchPublicSettings = async () => {
+            const { data: sData } = await supabase.from('app_settings').select('value').eq('key', 'app_logo').single();
+            if (sData) { setAppLogo(sData.value); localStorage.setItem('app_logo_url', sData.value); }
             const { data: socialData } = await supabase.from('app_settings').select('value').eq('key', 'social_url').single();
             if (socialData) { setSocialUrl(socialData.value); localStorage.setItem('social_url', socialData.value); }
+            const { data: faviconData } = await supabase.from('app_settings').select('value').eq('key', 'app_favicon').single();
+            if (faviconData) { setAppFavicon(faviconData.value); localStorage.setItem('app_favicon_url', faviconData.value); }
         };
         fetchPublicSettings();
 
