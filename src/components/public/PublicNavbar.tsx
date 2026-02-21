@@ -52,12 +52,9 @@ export function PublicNavbar() {
                     {/* Logo */}
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-shrink-0 flex items-center gap-2">
                         {appLogo ? (
-                            <img src={appLogo} alt="Logo" className="h-10 w-auto object-contain" />
+                            <img src={appLogo} alt="Logo" className="h-10 w-auto object-contain" style={{ fetchPriority: 'high' } as any} />
                         ) : (
-                            <>
-                                <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
-                                <span className="font-bold text-xl tracking-tight hidden sm:block">{navbar.brand}</span>
-                            </>
+                            <div className="h-10 w-32"></div>
                         )}
                     </Link>
 

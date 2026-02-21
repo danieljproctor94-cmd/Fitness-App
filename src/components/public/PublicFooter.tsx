@@ -20,8 +20,7 @@ export function PublicFooter() {
                                 <img src={appLogo} alt="Logo" className="h-8 md:h-10 w-auto object-contain mb-6" />
                             ) : (
                                 <div className="flex items-center gap-3 mb-6">
-                                    <div className="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center font-bold text-primary">PS</div>
-                                    <span className="font-bold text-2xl tracking-tight">{siteContent.footer.brand}</span>
+                                    <div className="h-10 w-32"></div>
                                 </div>
                             )}
                             <p className="text-muted-foreground mb-8 max-w-sm leading-relaxed">
