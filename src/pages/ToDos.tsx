@@ -913,7 +913,7 @@ export default function ToDos() {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
+                    <div className="flex-1 overflow-y-auto pr-2 no-scrollbar">
                         <div className="mb-6">
                             <h4 className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider pl-1">Scheduled</h4>
 

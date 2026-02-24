@@ -461,7 +461,7 @@ export default function Workouts() {
                         <span className="text-xs font-mono bg-muted px-2 py-1 rounded text-muted-foreground">{workoutsOnSelectedDate.length} sessions</span>
                     </div>
 
-                    <div className="flex-1 space-y-3 pr-2">
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 no-scrollbar">
                         {isLoading ? (
                             <div className="space-y-3">
                                 <Skeleton className="h-24 w-full" />
