@@ -1299,6 +1299,7 @@ export default function ToDos() {
                         }}
                         currentDate={currentDate}
                         view={calendarView}
+                        isPlanner={true}
                     />
                 </div>
             </div>
