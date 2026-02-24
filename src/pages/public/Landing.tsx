@@ -12,7 +12,7 @@ export default function Landing() {
     const [openFaq, setOpenFaq] = useState<number | null>(0);
 
     return (
-        <div className="flex flex-col min-h-screen bg-background selection:bg-primary/30">
+        <div className="flex flex-col min-h-screen bg-background selection:bg-primary/30 overflow-x-hidden">
             <SEO
                 title={siteContent.seo.title}
                 description={siteContent.seo.description}
@@ -151,7 +151,7 @@ export default function Landing() {
 
             {/* LOGOS SECTION */}
             <section className="py-10 border-y border-border/50 bg-black/20">
-                <div className="max-w-7xl mx-auto px-4 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="text-sm font-semibold text-muted-foreground tracking-[0.2em] mb-8">{hero.logos.title}</p>
                     <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-1000">
                         {hero.logos.names.map((logo, idx) => (
@@ -168,7 +168,7 @@ export default function Landing() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-border/50">
                         {metrics.map((metric, idx) => (
-                            <div key={idx} className="p-8 text-center">
+                            <div key={idx} className="p-6 md:p-8 text-center">
                                 <p className="text-5xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-foreground to-foreground/50 mb-2">
                                     {metric.value}
                                 </p>
@@ -195,7 +195,7 @@ export default function Landing() {
                         {features.items.map((item, index) => {
                             const Icon = item.icon;
                             return (
-                                <div key={index} className="p-8 rounded-3xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group">
+                                <div key={index} className="p-6 md:p-8 rounded-3xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group">
                                     <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
                                         <Icon className="h-7 w-7" />
                                     </div>
@@ -210,10 +210,10 @@ export default function Landing() {
 
             {/* DETAILED ALTERNATE FEATURES */}
             <section className="py-32 bg-background overflow-hidden relative">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-32">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20 md:space-y-32">
                     {detailedFeatures.map((feature, idx) => (
                         <div key={idx} className={`flex flex-col lg:flex-row items-center gap-16 ${feature.align === 'left' ? 'lg:flex-row-reverse' : ''}`}>
-                            <div className="flex-1 space-y-8">
+                            <div className="flex-1 space-y-6 md:space-y-8">
                                 <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                                     <Rocket className="h-6 w-6" />
                                 </div>
@@ -259,7 +259,7 @@ export default function Landing() {
 
                     <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
                         {testimonials.items.map((testim, idx) => (
-                            <div key={idx} className="break-inside-avoid p-8 rounded-3xl bg-card border border-border/50 shadow-lg relative overflow-hidden group hover:border-primary/50 transition-colors">
+                            <div key={idx} className="break-inside-avoid p-6 md:p-8 rounded-3xl bg-card border border-border/50 shadow-lg relative overflow-hidden group hover:border-primary/50 transition-colors">
                                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <svg className="w-16 h-16 fill-foreground" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" /></svg>
                                 </div>
@@ -295,7 +295,7 @@ export default function Landing() {
 
                     <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         {pricing.plans.map((plan, index) => (
-                            <div key={index} className={`relative p-10 rounded-[2.5rem] border ${plan.popular ? 'border-primary bg-primary/10 shadow-2xl shadow-primary/20 scale-105 z-20' : 'border-border bg-card/50 backdrop-blur-md z-10'} flex flex-col`}>
+                            <div key={index} className={`relative p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] border ${plan.popular ? 'border-primary bg-primary/10 shadow-2xl shadow-primary/20 scale-100 md:scale-105 z-20' : 'border-border bg-card/50 backdrop-blur-md z-10'} flex flex-col`}>
                                 {plan.popular && (
                                     <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-sm font-bold tracking-widest uppercase rounded-full shadow-lg shadow-primary/30">
                                         Most Popular
@@ -348,13 +348,13 @@ export default function Landing() {
                             <div key={idx} className="border border-transparent hover:border-border/30 rounded-xl overflow-hidden transition-all duration-300">
                                 <button
                                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-muted/10 focus:outline-none rounded-xl"
+                                    className="w-full px-4 md:px-6 py-5 flex items-center justify-between text-left hover:bg-muted/10 focus:outline-none rounded-xl"
                                 >
                                     <span className="font-bold text-lg">{item.question}</span>
                                     <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${openFaq === idx ? 'rotate-180 text-primary' : ''}`} />
                                 </button>
                                 <div 
-                                    className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openFaq === idx ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
+                                    className={`px-4 md:px-6 overflow-hidden transition-all duration-300 ease-in-out ${openFaq === idx ? 'max-h-96 pb-6 opacity-100' : 'max-h-0 opacity-0'}`}
                                 >
                                     <p className="text-muted-foreground leading-relaxed text-lg pt-2">
                                         {item.answer}
@@ -370,7 +370,7 @@ export default function Landing() {
             <section className="py-32 relative overflow-hidden bg-background border-t border-border">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"></div>
                 
-                <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                     <div className="inline-flex h-20 w-20 rounded-3xl bg-primary shadow-2xl shadow-primary/50 items-center justify-center mb-8 animate-bounce" style={{animationDuration: '3s'}}>
                         <Award className="h-10 w-10 text-primary-foreground" />
                     </div>
