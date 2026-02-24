@@ -94,17 +94,16 @@ export default function ToDos() {
             const sStr = diffSeconds.toString().padStart(2, "0");
             setTimeUntilSync(`${mStr}:${sStr}`);
 
-            // Automatically refresh data when timer hits exactly 00:00 to show new events
+            // Automatically sync data when timer hits exactly 00:00 to show new events
             if (mStr === "00" && sStr === "00") {
-                // adding a small delay to ensure edge function actually completed
-                setTimeout(() => window.dispatchEvent(new Event("refresh-data")), 5000);
+                syncGoogle(true);
             }
         };
 
         calculateTime();
         const interval = setInterval(calculateTime, 1000);
         return () => clearInterval(interval);
-    }, [isGoogleConnected]);
+    }, [isGoogleConnected, syncGoogle]);
 
     useEffect(() => {
         if (selectedDate && !editingId) {

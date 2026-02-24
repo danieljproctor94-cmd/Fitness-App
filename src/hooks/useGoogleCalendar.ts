@@ -33,25 +33,25 @@ export function useGoogleCalendar() {
         document.body.appendChild(script);
     }, []);
 
-    const sync = useCallback(async () => {
-        setIsLoading(true);
+    const sync = useCallback(async (silent = false) => {
+        if (!silent) setIsLoading(true);
         try {
             const { data, error } = await supabase.functions.invoke('sync-google-calendar');
             if (error) throw error;
             
             if (data?.found > 0) {
-                toast.success(`Found ${data.found} events! (${data.imported} saved)`);
+                if (!silent) toast.success(`Found ${data.found} events! (${data.imported} saved)`);
                 window.dispatchEvent(new Event('refresh-data'));
             } else if (data?.success) {
-                toast.info("No events found in your calendar for the next 30 days.");
+                if (!silent) toast.info("No events found in your calendar for the next 30 days.");
             } else if (data?.error) {
-                toast.error(`Sync Error: ${data.error}`);
+                if (!silent) toast.error(`Sync Error: ${data.error}`);
             }
         } catch (err: any) {
             console.error("Manual Sync Error:", err);
-            toast.error("Failed to sync events.");
+            if (!silent) toast.error("Failed to sync events.");
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     }, []);
 
