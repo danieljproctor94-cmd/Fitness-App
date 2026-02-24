@@ -198,9 +198,9 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                         const isCurrentMonth = isSameMonth(day, currentDate);
                         const isThisToday = isToday(day);
 
-                        const MAX_ITEMS = isPlanner ? dayWorkouts.length : 2;
-                        const displayedWorkouts = isPlanner ? dayWorkouts : dayWorkouts.slice(0, MAX_ITEMS);
-                        const hiddenCount = isPlanner ? 0 : dayWorkouts.length - MAX_ITEMS;
+                        const MAX_ITEMS = isPlanner ? 3 : 2;
+                        const displayedWorkouts = dayWorkouts.slice(0, MAX_ITEMS);
+                        const hiddenCount = dayWorkouts.length - MAX_ITEMS;
 
                         return (
                             <div
