@@ -108,7 +108,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                 >
                     {showIcon && <Icon className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />}
                     <span className="truncate font-medium flex-1">
-                        {displayTime && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{displayTime}</span>}
+                        {displayTime && !isPlanner && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{displayTime}</span>}
                         {item.name}
                     </span>
                     {item.recurrence && item.recurrence !== "none" && (
