@@ -79,13 +79,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
             showIcon = false;
         }
 
-        if (isSelected) {
-            if (item.type !== 'todo') {
-                itemClasses = "bg-primary text-primary-foreground border-primary";
-            } else {
-                itemClasses += " ring-1 ring-inset ring-black/5";
-            }
-        }
+        
 
         if (!isWorkout) {
             let displayTime = item.time;
@@ -137,9 +131,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                 else if (h < 17) timeColorStyles = "bg-yellow-500/15 text-yellow-600 border-yellow-500/30";
                 else timeColorStyles = "bg-blue-500/15 text-blue-600 border-blue-500/30";
                 
-                if (isSelected) {
-                    timeColorStyles = "bg-background/20 text-primary-foreground border-primary-foreground/20";
-                }
+                
             }
         }
 
