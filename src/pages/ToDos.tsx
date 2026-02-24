@@ -548,7 +548,7 @@ export default function ToDos() {
     const { enablePush, pushEnabled } = useNotifications();
 
     return (
-        <div className="flex flex-col p-4 md:p-6 gap-6 h-full min-h-0">
+        <div className="flex flex-col p-4 md:p-6 gap-6 h-full min-h-[800px] lg:min-h-0">
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                 {/* Left Side: Analytics & Sync */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">

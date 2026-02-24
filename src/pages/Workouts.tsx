@@ -225,7 +225,7 @@ export default function Workouts() {
     else if (evening > morning && evening > afternoon) preferredTimePref = "Evening";
 
     return (
-        <div className="flex flex-col p-4 md:p-6 gap-4 h-full min-h-0">
+        <div className="flex flex-col p-4 md:p-6 gap-4 h-full min-h-[800px] lg:min-h-0">
 
             {/* Top Navigation Bar */}
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
