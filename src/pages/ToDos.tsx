@@ -548,7 +548,7 @@ export default function ToDos() {
     const { enablePush, pushEnabled } = useNotifications();
 
     return (
-        <div className="flex flex-col p-4 md:p-6 gap-6 h-full min-h-[950px] lg:min-h-0">
+        <div className="flex flex-col p-4 md:p-6 gap-6 lg:h-full lg:min-h-0">
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                 {/* Left Side: Analytics & Sync */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
@@ -887,7 +887,7 @@ export default function ToDos() {
 
 
 
-            <div className="flex-1 flex flex-col xl:flex-row gap-4 min-h-0">
+            <div className="flex-1 flex flex-col xl:flex-row gap-4 lg:min-h-0">
                 <div className={cn(
                     "w-full xl:w-80 flex-none flex flex-col gap-4 border xl:border-r border-border/50 bg-card rounded-xl xl:rounded-r-none xl:bg-background xl:border-t-0 xl:border-b-0 xl:border-l-0 xl:shadow-none shadow-sm p-4 min-h-0",
                     mobileView === 'calendar' ? "hidden xl:flex" : "flex"
@@ -1282,7 +1282,7 @@ export default function ToDos() {
                 </div>
 
                 <div className={cn(
-                    "flex-1 min-h-0 flex-col bg-card/20 rounded-xl overflow-hidden shadow-sm border border-border/50 relative",
+                    "flex-1 lg:min-h-0 flex-col bg-card/20 rounded-xl overflow-hidden shadow-sm border border-border/50 relative",
                     mobileView === 'list' ? "hidden lg:flex" : "flex"
                 )}>
 

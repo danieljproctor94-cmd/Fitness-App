@@ -190,7 +190,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                 {/* Calendar Grid */}
                 <div className={cn(
                     "grid grid-cols-7 bg-background/50",
-                    view === 'month' ? "auto-rows-[1fr] flex-1 min-h-[700px] lg:min-h-0" : "auto-rows-[1fr] h-full"
+                    view === 'month' ? "auto-rows-[1fr] flex-1 min-h-[850px] lg:min-h-0" : "auto-rows-[1fr] h-full"
                 )}>
                     {calendarDays.map((day, dayIdx) => {
                         const dayWorkouts = getWorkoutsForDay(day);
