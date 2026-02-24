@@ -107,36 +107,42 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                             <div className="flex-1 flex flex-col gap-1 mt-1 overflow-hidden">
                                 {dayWorkouts.map((item: any) => {
                                     // Determine Styles based on Type & Urgency
-                                    let itemClasses = "bg-card text-card-foreground border-border hover:border-primary/50";
+                                    let itemClasses = "bg-card text-card-foreground border-border hover:border-primary/50 hover:shadow-md";
                                     let Icon = Dumbbell;
                                     let showIcon = true;
 
                                     if (item.type === 'todo') {
                                         showIcon = false;
-                                        if (item.urgency === 'critical') itemClasses = "bg-red-500/15 text-red-700 border-red-200/50 hover:border-red-300";
-                                        else if (item.urgency === 'high') itemClasses = "bg-orange-500/15 text-orange-700 border-orange-200/50 hover:border-orange-300";
-                                        else if (item.urgency === 'normal' || item.urgency === 'medium') itemClasses = "bg-primary/15 text-primary border-primary/20 hover:border-primary/40";
-                                        else if (item.urgency === 'low') itemClasses = "bg-slate-500/15 text-slate-700 border-slate-200/50 hover:border-slate-300";
+                                        if (item.urgency === 'critical') itemClasses = "bg-red-500/10 text-red-700 border-red-200 hover:border-red-400";
+                                        else if (item.urgency === 'high') itemClasses = "bg-orange-500/10 text-orange-700 border-orange-200 hover:border-orange-400";
+                                        else if (item.urgency === 'normal' || item.urgency === 'medium') itemClasses = "bg-primary/10 text-primary border-primary/20 hover:border-primary/50";
+                                        else if (item.urgency === 'low') itemClasses = "bg-slate-500/10 text-slate-700 border-slate-200 hover:border-slate-400";
                                     } else if (item.type === 'google_event') {
-                                        itemClasses = "bg-blue-500/10 text-blue-700 border-blue-200/50 hover:border-blue-300"; // Distinct for Google Events
-                                        showIcon = false; // Or use a Google Icon if available
+                                        itemClasses = "bg-blue-500/10 text-blue-700 border-blue-200 hover:border-blue-400";
+                                        showIcon = false;
                                     }
 
                                     if (isSelected) {
-                                        // Override for selected state if customized
-                                        // Usually we want to keep the urgency color but maybe highlight it differently?
-                                        // The original code forced primary color. 
-                                        // Let's keep urgency color but add a ring or stronger border?
-                                        // OR just let the selection logic below override IF it's not a todo?
-                                        // Review request said "match colour of the task to urgency label", implying it should stay colored even when selected?
-                                        // But original code has specific "isSelected" style.
-                                        // Let's TRY to keep urgency color but make it "active" looking.
-
                                         if (item.type !== 'todo') {
                                             itemClasses = "bg-primary text-primary-foreground border-primary";
                                         } else {
-                                            // Ensure it pops slightly more
-                                            itemClasses += " ring-1 ring-inset ring-black/5";
+                                            itemClasses += " ring-2 ring-inset ring-black/10";
+                                        }
+                                    }
+
+                                    let timeDisplay = null;
+                                    let timeColorStyles = "bg-background/20 text-foreground/70 border-border/20";
+                                    if (item.time) {
+                                        const h = parseInt(item.time.split(':')[0], 10);
+                                        if (!isNaN(h)) {
+                                            timeDisplay = h < 12 ? 'AM' : 'PM';
+                                            if (h < 12) timeColorStyles = "bg-orange-500/15 text-orange-600 border-orange-500/30";
+                                            else if (h < 17) timeColorStyles = "bg-yellow-500/15 text-yellow-600 border-yellow-500/30";
+                                            else timeColorStyles = "bg-blue-500/15 text-blue-600 border-blue-500/30";
+                                            
+                                            if (isSelected && item.type !== 'todo') {
+                                                timeColorStyles = "bg-background/20 text-primary-foreground border-primary-foreground/20";
+                                            }
                                         }
                                     }
 
@@ -144,22 +150,37 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                                         <div
                                             key={item.id}
                                             className={cn(
-                                                "text-[10px] px-2 py-1 rounded-md border truncate flex items-center gap-1.5 transition-colors shadow-sm",
+                                                "p-2 rounded-lg border flex flex-col gap-1.5 transition-all shadow-sm overflow-hidden",
                                                 itemClasses
                                             )}
                                             title={item.name}
                                         >
-                                            {showIcon && <Icon className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />}
-                                            <span className="truncate font-medium flex-1">
-    {item.time && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{item.time}</span>}
-    {item.duration && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{item.duration}m</span>}
-    {item.name}
-</span>
-{item.recurrence && item.recurrence !== "none" && (
-    <div className="flex items-center gap-0.5 opacity-90 shrink-0 ml-1 bg-foreground/5 px-1 py-0.5 rounded-[2px] text-[8px] uppercase tracking-wider leading-none border border-border/20" title={"Repeats " + item.recurrence}>
-        <Repeat className="h-2 w-2" />
-    </div>
-)}
+                                            <div className="flex items-center justify-between gap-1 w-full">
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    {showIcon && <Icon className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-90" : "text-primary/70")} />}
+                                                    <span className="truncate font-semibold text-xs">{item.name}</span>
+                                                </div>
+                                                {item.recurrence && item.recurrence !== "none" && (
+                                                    <div className="flex items-center justify-center opacity-80 shrink-0 bg-foreground/10 p-0.5 rounded text-[8px]" title={"Repeats " + item.recurrence}>
+                                                        <Repeat className="h-3 w-3" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            {(timeDisplay || item.duration) && (
+                                                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                                    {timeDisplay && (
+                                                        <span className={cn("font-medium text-[9px] px-1.5 py-0.5 rounded-[4px] border", timeColorStyles)}>
+                                                            {timeDisplay}
+                                                        </span>
+                                                    )}
+                                                    {item.duration && (
+                                                        <span className={cn("font-medium text-[9px] px-1.5 py-0.5 rounded-[4px] border", isSelected && item.type !== 'todo' ? "bg-background/20 text-primary-foreground border-primary-foreground/20" : "bg-muted text-muted-foreground border-border")}>
+                                                            {item.duration}m
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
