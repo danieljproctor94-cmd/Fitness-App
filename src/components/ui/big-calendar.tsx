@@ -150,7 +150,15 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                                             title={item.name}
                                         >
                                             {showIcon && <Icon className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />}
-                                            <span className="truncate font-medium flex-1">{item.name}</span>{item.recurrence && item.recurrence !== "none" && (<div className="flex items-center gap-0.5 opacity-90 shrink-0 ml-1 bg-foreground/5 px-1 py-0.5 rounded-[2px] text-[8px] uppercase tracking-wider leading-none border border-border/20" title={"Repeats " + item.recurrence}><Repeat className="h-2 w-2" /></div>)}
+                                            <span className="truncate font-medium flex-1">
+    {item.time && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{item.time}</span>}
+    {item.name}
+</span>
+{item.recurrence && item.recurrence !== "none" && (
+    <div className="flex items-center gap-0.5 opacity-90 shrink-0 ml-1 bg-foreground/5 px-1 py-0.5 rounded-[2px] text-[8px] uppercase tracking-wider leading-none border border-border/20" title={"Repeats " + item.recurrence}>
+        <Repeat className="h-2 w-2" />
+    </div>
+)}
                                         </div>
                                     );
                                 })}

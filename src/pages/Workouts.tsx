@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BigCalendar } from "@/components/ui/big-calendar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Dumbbell, Plus, Trash2, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity, Clock, Pen, BarChart3 } from "lucide-react";
+import { Dumbbell, Plus, Trash2, X, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Activity, Clock, Pen, BarChart3, Sun, Moon, Sunrise } from "lucide-react";
 import { useData, Workout, Exercise, Set as WorkoutSet } from "@/features/data/DataContext";
 import { format, isSameDay, parseISO, addMonths, subMonths, startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 
@@ -205,6 +205,25 @@ export default function Workouts() {
         workouts.flatMap(w => w.exercises.map(e => e.name?.trim())).filter(Boolean)
     )).sort();
 
+    // Calculate preferred time of day
+    let morning = 0, afternoon = 0, evening = 0;
+    workouts.forEach(w => {
+        if (w.time) {
+            const h = parseInt(w.time.split(':')[0], 10);
+            if (!isNaN(h)) {
+                if (h < 12) morning++;
+                else if (h < 17) afternoon++;
+                else evening++;
+            }
+        }
+    });
+
+    let preferredTimePref = "Mixed";
+    if (workouts.length === 0) preferredTimePref = "No data";
+    else if (morning > afternoon && morning > evening) preferredTimePref = "Morning";
+    else if (afternoon > morning && afternoon > evening) preferredTimePref = "Afternoon";
+    else if (evening > morning && evening > afternoon) preferredTimePref = "Evening";
+
     return (
         <div className="flex flex-col p-4 md:p-6 gap-4">
 
@@ -223,12 +242,23 @@ export default function Workouts() {
                             </Button>
                         </Link>
                         <div className="h-4 w-px bg-border mx-1" />
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap">
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap">
                             <Activity className="h-3.5 w-3.5" />
                             {isLoading ? (
                                 <Skeleton className="h-3 w-32" />
                             ) : (
                                 <span>{weeklyWorkoutsCount} Workouts This Week</span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-xs font-medium text-muted-foreground whitespace-nowrap hidden md:flex">
+                            {preferredTimePref === 'Morning' && <Sunrise className="h-3.5 w-3.5 text-yellow-500" />}
+                            {preferredTimePref === 'Afternoon' && <Sun className="h-3.5 w-3.5 text-orange-500" />}
+                            {preferredTimePref === 'Evening' && <Moon className="h-3.5 w-3.5 text-blue-400" />}
+                            {(preferredTimePref === 'Mixed' || preferredTimePref === 'No data') && <Clock className="h-3.5 w-3.5" />}
+                            {isLoading ? (
+                                <Skeleton className="h-3 w-24" />
+                            ) : (
+                                <span>{preferredTimePref} focus</span>
                             )}
                         </div>
 
