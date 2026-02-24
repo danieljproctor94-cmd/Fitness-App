@@ -88,6 +88,19 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
         }
 
         if (!isWorkout) {
+            let displayTime = item.time;
+            if (item.time) {
+                const parts = item.time.split(':');
+                if (parts.length >= 2) {
+                    const h = parseInt(parts[0], 10);
+                    const m = parts[1];
+                    if (!isNaN(h)) {
+                        const ampm = h >= 12 ? 'PM' : 'AM';
+                        const h12 = h % 12 || 12;
+                        displayTime = `${h12}:${m} ${ampm}`;
+                    }
+                }
+            }
             // Old Compact Design for Planner / ToDos
             return (
                 <div
@@ -100,7 +113,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                 >
                     {showIcon && <Icon className={cn("h-3 w-3", isSelected ? "opacity-90" : "text-primary")} />}
                     <span className="truncate font-medium flex-1">
-                        {item.time && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{item.time}</span>}
+                        {displayTime && <span className="font-mono text-[9px] opacity-70 bg-background/30 px-1 py-0.5 rounded-[2px] mr-1 border-r border-border/20 block sm:inline">{displayTime}</span>}
                         {item.name}
                     </span>
                     {item.recurrence && item.recurrence !== "none" && (
