@@ -21,9 +21,10 @@ interface BigCalendarProps {
     selectedDate: Date;
     currentDate: Date; // Controlled by parent
     view: 'month' | 'week'; // Controlled by parent
+    isPlanner?: boolean;
 }
 
-export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate, view }: BigCalendarProps) {
+export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate, view, isPlanner }: BigCalendarProps) {
     const [viewAllDate, setViewAllDate] = useState<Date | null>(null);
 
     // Calculate Days based on View
@@ -83,7 +84,7 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
 
         if (!isWorkout) {
             let displayTime = item.time;
-            if (item.time) {
+            if (!isPlanner && item.time) {
                 const parts = item.time.split(':');
                 if (parts.length >= 2) {
                     const h = parseInt(parts[0], 10);
@@ -197,9 +198,9 @@ export function BigCalendar({ workouts, onSelectDate, selectedDate, currentDate,
                         const isCurrentMonth = isSameMonth(day, currentDate);
                         const isThisToday = isToday(day);
 
-                        const MAX_ITEMS = 2;
-                        const displayedWorkouts = dayWorkouts.slice(0, MAX_ITEMS);
-                        const hiddenCount = dayWorkouts.length - MAX_ITEMS;
+                        const MAX_ITEMS = isPlanner ? dayWorkouts.length : 2;
+                        const displayedWorkouts = isPlanner ? dayWorkouts : dayWorkouts.slice(0, MAX_ITEMS);
+                        const hiddenCount = isPlanner ? 0 : dayWorkouts.length - MAX_ITEMS;
 
                         return (
                             <div
