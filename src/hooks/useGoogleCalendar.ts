@@ -29,11 +29,14 @@ export function useGoogleCalendar() {
             const { data, error } = await supabase.functions.invoke('sync-google-calendar');
             if (error) throw error;
             
-            if (data?.found > 0) {
-                if (!silent) toast.success(`Found ${data.found} events! (${data.imported} saved)`);
+            if (data?.found > 0 || data?.deleted > 0) {
+                if (!silent) {
+                    if (data?.found > 0) toast.success(`Found ${data.found} events! (${data.imported} saved)`);
+                    if (data?.deleted > 0) toast.success(`Removed ${data.deleted} deleted events.`);
+                }
                 window.dispatchEvent(new Event('refresh-data'));
             } else if (data?.success) {
-                if (!silent) toast.info("No events found in your calendar for the next 30 days.");
+                if (!silent) toast.info("No new events or deletions found in your calendar.");
             } else if (data?.error) {
                 if (!silent) toast.error(`Sync Error: ${data.error}`);
             }
