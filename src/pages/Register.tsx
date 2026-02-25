@@ -84,7 +84,7 @@ export default function Register() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-8">
+        <div className="flex min-h-screen items-center justify-center bg-[#121220] px-4 py-8">
             <div className="w-full max-w-md flex flex-col items-center gap-6">
                 {appLogo && (
                     <div className="flex justify-center">
