@@ -20,7 +20,7 @@ export function SEO({
     preloadImage
 }: SEOProps) {
     const siteTitle = "Progress Syncer";
-    const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+    const fullTitle = title ? title : siteTitle;
     const defaultDescription = "Track your workouts, habits, and body measurements with Progress Syncer. Your all-in-one fitness companion.";
     const metaDescription = description || defaultDescription;
     const metaImage = image || "/og-image.jpg";
