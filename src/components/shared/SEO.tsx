@@ -6,6 +6,8 @@ interface SEOProps {
     keywords?: string;
     image?: string;
     url?: string;
+    structuredData?: object;
+    preloadImage?: string;
 }
 
 export function SEO({
@@ -13,7 +15,9 @@ export function SEO({
     description,
     keywords,
     image,
-    url
+    url,
+    structuredData,
+    preloadImage
 }: SEOProps) {
     const siteTitle = "Progress Syncer";
     const fullTitle = title ? `${title} | ${siteTitle}` : siteTitle;
@@ -54,6 +58,30 @@ export function SEO({
         updateMeta('twitter:title', fullTitle, 'property');
         updateMeta('twitter:description', metaDescription, 'property');
         updateMeta('twitter:image', metaImage, 'property');
+
+                // Structured Data (JSON-LD)
+        if (structuredData) {
+            let scriptElement = document.querySelector('script[type="application/ld+json"]');
+            if (!scriptElement) {
+                scriptElement = document.createElement('script');
+                scriptElement.setAttribute('type', 'application/ld+json');
+                document.head.appendChild(scriptElement);
+            }
+            scriptElement.textContent = JSON.stringify(structuredData);
+        }
+
+        // Preload Critical LCP Image
+        if (preloadImage) {
+            let preloadLink = document.querySelector(`link[rel="preload"][href="${preloadImage}"]`);
+            if (!preloadLink) {
+                preloadLink = document.createElement('link');
+                preloadLink.setAttribute('rel', 'preload');
+                preloadLink.setAttribute('as', 'image');
+                preloadLink.setAttribute('href', preloadImage);
+                preloadLink.setAttribute('fetchpriority', 'high');
+                document.head.appendChild(preloadLink);
+            }
+        }
 
         // Cleanup function (optional, but good practice to reset if unmounted, though for a landing page usually fine)
         return () => {

@@ -17,6 +17,20 @@ export default function Landing() {
                 title={siteContent.seo.title}
                 description={siteContent.seo.description}
                 keywords={siteContent.seo.keywords}
+                preloadImage="/dashboard-preview.png"
+                structuredData={{
+                    "@context": "https://schema.org",
+                    "@type": "SoftwareApplication",
+                    "name": "Progress Syncer",
+                    "operatingSystem": "Web, iOS, Android",
+                    "applicationCategory": "HealthAndFitnessApplication",
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "USD"
+                    },
+                    "description": siteContent.seo.description
+                }}
             />
 
             {/* HERO SECTION */}
@@ -104,6 +118,8 @@ export default function Landing() {
                             <img
                                 src="/dashboard-preview.png"
                                 alt="Dashboard Preview"
+                                fetchPriority="high"
+                                decoding="async"
                                 className="w-full h-full object-cover object-top"
                                 onError={(e) => {
                                     e.currentTarget.style.display = 'none';
