@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame, Bell, Clock, Mic } from "lucide-react";
+import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame, Bell, Clock, Mic, Laugh, Smile, Meh, Frown, Angry } from "lucide-react";
 import { toast } from "sonner";
 import { MindsetLog } from "@/features/data/DataContext";
 import { useNotifications } from "@/features/notifications/NotificationContext";
@@ -75,6 +75,7 @@ export default function Mindset() {
     const [improvements, setImprovements] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [aiSummary, setAiSummary] = useState<string | null>(null);
+    const [mood, setMood] = useState<'rad' | 'good' | 'meh' | 'bad' | 'awful'>('good');
     const [recordingField, setRecordingField] = useState<'grateful' | 'improve' | null>(null);
     const recognitionRef = useRef<any>(null);
 
@@ -389,6 +390,52 @@ export default function Mindset() {
                                     value={improvements}
                                     onChange={(e) => setImprovements(e.target.value)}
                                 />
+                                                        </div>
+                            
+                            <div className="pt-6 border-t border-border/50">
+                                <Label className="text-sm font-semibold mb-4 block text-center md:text-left">How are you feeling right now?</Label>
+                                <div className="flex flex-wrap items-center justify-around md:justify-start gap-4 md:gap-8">
+                                    <button 
+                                        onClick={() => setMood('rad')} 
+                                        type="button"
+                                        className={`flex flex-col items-center gap-2 transition-all hover:scale-110 ${mood === 'rad' ? 'scale-110 opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <Laugh className={`h-10 w-10 ${mood === 'rad' ? 'text-emerald-500' : ''}`} />
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${mood === 'rad' ? 'text-emerald-500' : 'text-muted-foreground'}`}>rad</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setMood('good')} 
+                                        type="button"
+                                        className={`flex flex-col items-center gap-2 transition-all hover:scale-110 ${mood === 'good' ? 'scale-110 opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <Smile className={`h-10 w-10 ${mood === 'good' ? 'text-green-500' : ''}`} />
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${mood === 'good' ? 'text-green-500' : 'text-muted-foreground'}`}>good</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setMood('meh')} 
+                                        type="button"
+                                        className={`flex flex-col items-center gap-2 transition-all hover:scale-110 ${mood === 'meh' ? 'scale-110 opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <Meh className={`h-10 w-10 ${mood === 'meh' ? 'text-blue-500' : ''}`} />
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${mood === 'meh' ? 'text-blue-500' : 'text-muted-foreground'}`}>meh</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setMood('bad')} 
+                                        type="button"
+                                        className={`flex flex-col items-center gap-2 transition-all hover:scale-110 ${mood === 'bad' ? 'scale-110 opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <Frown className={`h-10 w-10 ${mood === 'bad' ? 'text-orange-500' : ''}`} />
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${mood === 'bad' ? 'text-orange-500' : 'text-muted-foreground'}`}>bad</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => setMood('awful')} 
+                                        type="button"
+                                        className={`flex flex-col items-center gap-2 transition-all hover:scale-110 ${mood === 'awful' ? 'scale-110 opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <Angry className={`h-10 w-10 ${mood === 'awful' ? 'text-red-500' : ''}`} />
+                                        <span className={`text-xs font-bold uppercase tracking-wider ${mood === 'awful' ? 'text-red-500' : 'text-muted-foreground'}`}>awful</span>
+                                    </button>
+                                </div>
                             </div>
                         </CardContent>
                         <CardFooter>
