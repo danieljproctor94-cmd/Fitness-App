@@ -42,7 +42,7 @@ export function useGoogleCalendar() {
             }
         } catch (err: any) {
             console.error("Manual Sync Error:", err);
-            if (!silent) toast.error("Failed to sync events.");
+            if (!silent) toast.error(`Failed to sync events. ${err?.message || err}`);
         } finally {
             if (!silent) setIsLoading(false);
         }
