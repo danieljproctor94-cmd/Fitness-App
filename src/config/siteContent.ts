@@ -13,7 +13,7 @@
 
 export const siteContent = {
     seo: {
-        title: "Progress Syncer - The All-in-One Fitness & Goal OS",
+        title: "Progress Syncer - The All-in-One Planner, Mindset & Goal Tracker",
         description: "Transform your body and mind. Plan your workouts, track your habits, log your meals, and collaborate with your teamall in one place.",
         keywords: "fitness tracker, habit tracker, workout planner, team collaboration, goal setting",
         ogImage: "/og-image.jpg",
