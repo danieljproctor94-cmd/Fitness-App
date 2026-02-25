@@ -1,10 +1,10 @@
-﻿import { Button } from "@/components/ui/button";
-import { Check, ArrowRight, ChevronDown, Rocket, Award, Star, Zap, Activity, Target } from "lucide-react";
-import { siteContent } from "@/config/siteContent";
-import { useAuth } from "@/features/auth/AuthContext";
-import { getAppUrl } from "@/lib/domain";
-import { SEO } from "@/components/shared/SEO";
-import { useState } from "react";
+﻿import { Button } from"@/components/ui/button";
+import { Check, ArrowRight, ChevronDown, Rocket, Award, Star, Zap, Activity, Target } from"lucide-react";
+import { siteContent } from"@/config/siteContent";
+import { useAuth } from"@/features/auth/AuthContext";
+import { getAppUrl } from"@/lib/domain";
+import { SEO } from"@/components/shared/SEO";
+import { useState } from"react";
 
 export default function Landing() {
     const { isAuthenticated } = useAuth();
@@ -12,31 +12,21 @@ export default function Landing() {
     const [openFaq, setOpenFaq] = useState<number | null>(0);
 
     return (
-        <div className="flex flex-col min-h-screen bg-background selection:bg-primary/30 overflow-x-hidden">
+        <div className="flex flex-col min-h-screen bg-[#121220] selection:bg-primary/30 overflow-x-hidden">
             <SEO
                 title={siteContent.seo.title}
                 description={siteContent.seo.description}
                 keywords={siteContent.seo.keywords}
                 preloadImage="/dashboard-preview.png"
-                structuredData={{
-                    "@context": "https://schema.org",
-                    "@type": "SoftwareApplication",
-                    "name": "Progress Syncer",
-                    "operatingSystem": "Web, iOS, Android",
-                    "applicationCategory": "HealthAndFitnessApplication",
-                    "offers": {
-                        "@type": "Offer",
-                        "price": "0",
-                        "priceCurrency": "USD"
-                    },
-                    "description": siteContent.seo.description
+                structuredData={{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Progress Syncer","operatingSystem":"Web, iOS, Android","applicationCategory":"HealthAndFitnessApplication","offers": {"@type":"Offer","price":"0","priceCurrency":"USD"
+                    },"description": siteContent.seo.description
                 }}
             />
 
             {/* HERO SECTION */}
             <section className="relative pt-32 pb-20 md:pt-48 md:pb-24 overflow-hidden">
                 {/* Background Decor */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background -z-10" />
+                
                 <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-full h-[800px] bg-primary/20 blur-[150px] rounded-[100%] opacity-50 -z-10" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -166,7 +156,7 @@ export default function Landing() {
             </section>
 
             {/* LOGOS SECTION */}
-            <section className="py-10 border-y border-border/50 bg-black/20">
+            <section className="py-10 border-y border-border/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="text-sm font-semibold text-muted-foreground tracking-[0.2em] mb-8">{hero.logos.title}</p>
                     <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all duration-1000">
@@ -180,7 +170,7 @@ export default function Landing() {
             </section>
 
             {/* METRICS SECTION */}
-            <section className="py-24 bg-background">
+            <section className="py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-border/50">
                         {metrics.map((metric, idx) => (
@@ -196,7 +186,7 @@ export default function Landing() {
             </section>
 
             {/* FEATURES GRID SECTION */}
-            <section id="features" className="py-32 bg-muted/20 relative">
+            <section id="features" className="py-32  relative">
                 <div className="absolute inset-0 bg-grid-white/[0.02] bg-[length:32px_32px]" />
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-20">
@@ -225,7 +215,7 @@ export default function Landing() {
             </section>
 
             {/* DETAILED ALTERNATE FEATURES */}
-            <section className="py-32 bg-background overflow-hidden relative">
+            <section className="py-32  overflow-hidden relative">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20 md:space-y-32">
                     {detailedFeatures.map((feature, idx) => (
                         <div key={idx} className={`flex flex-col lg:flex-row items-center gap-16 ${feature.align === 'left' ? 'lg:flex-row-reverse' : ''}`}>
@@ -263,7 +253,7 @@ export default function Landing() {
             </section>
 
             {/* TESTIMONIALS SECTION */}
-            <section id="testimonials" className="py-32 bg-muted/30 border-y border-border/50">
+            <section id="testimonials" className="py-32  border-y border-border/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-20">
                         <h2 className="text-sm font-bold tracking-widest text-primary uppercase mb-3">Wall of Love</h2>
@@ -282,8 +272,7 @@ export default function Landing() {
                                 <div className="flex gap-1 mb-6">
                                     {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-yellow-500 text-yellow-500" />)}
                                 </div>
-                                <p className="text-lg leading-relaxed text-foreground/90 font-medium mb-8 relative z-10">
-                                    "{testim.quote}"
+                                <p className="text-lg leading-relaxed text-foreground/90 font-medium mb-8 relative z-10">"{testim.quote}"
                                 </p>
                                 <div className="flex items-center gap-4 border-t border-border/50 pt-6">
                                     <img src={testim.image} alt={testim.name} className="h-12 w-12 rounded-full ring-2 ring-background grayscale group-hover:grayscale-0 transition-all object-cover" />
@@ -299,7 +288,7 @@ export default function Landing() {
             </section>
 
             {/* PRICING SECTION */}
-            <section id="pricing" className="py-32 bg-background relative overflow-hidden">
+            <section id="pricing" className="py-32  relative overflow-hidden">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[600px] bg-primary/10 blur-[150px] rounded-full opacity-40 -z-10" />
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-20">
@@ -337,9 +326,9 @@ export default function Landing() {
                                 </ul>
                                 <Button
                                     size="lg"
-                                    variant={plan.variant as "default" | "outline"}
-                                    className={`w-full rounded-2xl h-14 text-lg font-bold ${!plan.popular ? 'bg-background hover:bg-muted border-border' : ''}`}
-                                    onClick={plan.name === "Starter" ? () => window.location.href = getAppUrl('/register') : undefined}
+                                    variant={plan.variant as"default" |"outline"}
+                                    className={`w-full rounded-2xl h-14 text-lg font-bold ${!plan.popular ? ' hover:bg-muted border-border' : ''}`}
+                                    onClick={plan.name ==="Starter" ? () => window.location.href = getAppUrl('/register') : undefined}
                                 >
                                     {plan.buttonText}
                                 </Button>
@@ -350,7 +339,7 @@ export default function Landing() {
             </section>
 
             {/* FAQ SECTION */}
-            <section id="faq" className="py-32 bg-muted/20 border-t border-border/50">
+            <section id="faq" className="py-32  border-t border-border/50">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h3 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">{faq.title}</h3>
@@ -383,8 +372,8 @@ export default function Landing() {
             </section>
 
             {/* FINAL CTA SECTION */}
-            <section className="py-32 relative overflow-hidden bg-background border-t border-border">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary/10 via-background to-background"></div>
+            <section className="py-32 relative overflow-hidden  border-t border-border">
+                
                 
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
                     <div className="inline-flex h-20 w-20 rounded-3xl bg-primary shadow-2xl shadow-primary/50 items-center justify-center mb-8 animate-bounce" style={{animationDuration: '3s'}}>
