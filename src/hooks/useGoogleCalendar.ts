@@ -1,3 +1,5 @@
+let hasInitialSynced = false;
+
 ﻿import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -11,18 +13,6 @@ export function useGoogleCalendar() {
     const [isConnected, setIsConnected] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isGisLoaded, setIsGisLoaded] = useState(false);
-
-    useEffect(() => {
-        if (!user) return;
-        const checkSyncStatus = async () => {
-            const { data, error } = await supabase
-                .from('google_sync_tokens')
-                .select('id')
-                .single();
-            if (data && !error) setIsConnected(true);
-        };
-        checkSyncStatus();
-    }, [user]);
 
     useEffect(() => {
         const script = document.createElement("script");
@@ -54,6 +44,24 @@ export function useGoogleCalendar() {
             if (!silent) setIsLoading(false);
         }
     }, []);
+
+        useEffect(() => {
+        if (!user) return;
+        const checkSyncStatus = async () => {
+            const { data, error } = await supabase
+                .from('google_sync_tokens')
+                .select('id')
+                .single();
+            if (data && !error) {
+                setIsConnected(true);
+                if (!hasInitialSynced) {
+                    hasInitialSynced = true;
+                    sync(true); // Silent sync on initial load
+                }
+            }
+        };
+        checkSyncStatus();
+    }, [user, sync]);
 
     const connect = useCallback(() => {
         if (!isGisLoaded || !CLIENT_ID) {
