@@ -8,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame, Bell, Clock, Mic, Laugh, Smile, Meh, Frown, Angry } from "lucide-react";
+import { Brain, Sparkles, Calendar, Heart, ArrowUpCircle, CheckCircle, Flame, Bell, Clock, Mic, Laugh, Smile, Meh, Frown, Angry, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { MindsetLog } from "@/features/data/DataContext";
 import { useNotifications } from "@/features/notifications/NotificationContext";
+import { LineChart, Line, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+
 
 // Simple "Mock AI" to generate a summary based on keywords
 // In a real app, this would call an OpenAI API endpoint
@@ -66,6 +68,28 @@ const calculateStreak = (logs: MindsetLog[]) => {
     }
     return streak;
 };
+
+
+const moodValues: Record<string, number> = { 'awful': 1, 'bad': 2, 'meh': 3, 'good': 4, 'rad': 5 };
+
+const getMoodText = (val: number) => {
+    if (val >= 4.5) return 'Rad';
+    if (val >= 3.5) return 'Good';
+    if (val >= 2.5) return 'Meh';
+    if (val >= 1.5) return 'Bad';
+    return 'Awful';
+};
+
+const getMoodIcon = (mood?: string, className?: string) => {
+    switch (mood) {
+        case 'rad': return <Laugh className={`text-emerald-500 ${className || 'h-4 w-4'}`} />;
+        case 'good': return <Smile className={`text-green-500 ${className || 'h-4 w-4'}`} />;
+        case 'meh': return <Meh className={`text-blue-500 ${className || 'h-4 w-4'}`} />;
+        case 'bad': return <Frown className={`text-orange-500 ${className || 'h-4 w-4'}`} />;
+        case 'awful': return <Angry className={`text-red-500 ${className || 'h-4 w-4'}`} />;
+        default: return <Smile className={`text-green-500 opacity-50 ${className || 'h-4 w-4'}`} />;
+    }
+}
 
 export default function Mindset() {
     const { mindsetLogs, addMindsetLog, isLoading, userProfile, updateUserProfile } = useData();
@@ -145,6 +169,27 @@ export default function Mindset() {
     }, []);
 
     const streak = useMemo(() => calculateStreak(mindsetLogs), [mindsetLogs]);
+
+    const weeklyAverageMood = useMemo(() => {
+        const today = new Date();
+        const lastWeek = subDays(today, 7);
+        const recentLogs = mindsetLogs.filter(log => log.mood && parseISO(log.date) >= lastWeek);
+        if (recentLogs.length === 0) return null;
+        const sum = recentLogs.reduce((acc, log) => acc + (moodValues[log.mood!] || 3), 0);
+        return sum / recentLogs.length;
+    }, [mindsetLogs]);
+
+    const moodChartData = useMemo(() => {
+        const sortedLogs = [...mindsetLogs]
+            .filter(l => l.mood)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .slice(-30);
+        return sortedLogs.map(log => ({
+            date: format(parseISO(log.date), 'MMM d'),
+            moodValue: moodValues[log.mood!] || 3,
+            mood: log.mood
+        }));
+    }, [mindsetLogs]);
 
     // Check if logged today
     useEffect(() => {
@@ -475,6 +520,91 @@ export default function Mindset() {
                 </div>
             )}
 
+            {/* Chart & Stats Section */}
+            {(!isLoading && mindsetLogs.length > 0) && (
+                <div className="grid gap-6 md:grid-cols-[1fr_2fr] pb-8">
+                    {/* Stats Card */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-primary" />
+                                Weekly Average Info
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center justify-center py-6 h-64">
+                            {weeklyAverageMood !== null ? (
+                                <div className="text-center space-y-2">
+                                    <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">Average Mood</div>
+                                    <div className="flex justify-center mb-2">
+                                        {getMoodIcon(getMoodText(weeklyAverageMood).toLowerCase(), "h-16 w-16")}
+                                    </div>
+                                    <div className="text-3xl font-bold">{weeklyAverageMood.toFixed(1)}</div>
+                                    <div className="text-lg font-medium text-primary uppercase tracking-wide">{getMoodText(weeklyAverageMood)}</div>
+                                </div>
+                            ) : (
+                                <div className="text-muted-foreground text-center">Not enough data to calculate average.</div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Chart Card */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Brain className="h-5 w-5 text-primary" />
+                                Mood Trend
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-64">
+                            {moodChartData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={moodChartData}>
+                                        <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                                        <YAxis
+                                            domain={[1, 5]}
+                                            ticks={[1, 2, 3, 4, 5]}
+                                            tickFormatter={(val) => {
+                                                switch(val) {
+                                                    case 1: return 'Awful';
+                                                    case 2: return 'Bad';
+                                                    case 3: return 'Meh';
+                                                    case 4: return 'Good';
+                                                    case 5: return 'Rad';
+                                                    default: return '';
+                                                }
+                                            }}
+                                            stroke="#888888"
+                                            fontSize={12}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            width={50}
+                                        />
+                                        <RechartsTooltip
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    const data = payload[0].payload;
+                                                    return (
+                                                        <div className="bg-background border rounded-lg p-2 shadow-sm text-sm flex items-center gap-2">
+                                                            <span className="font-semibold">{data.date}:</span>
+                                                            <span className="uppercase">{data.mood}</span>
+                                                            {getMoodIcon(data.mood, "h-4 w-4")}
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                        <Line type="monotone" dataKey="moodValue" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-muted-foreground">Log more entries to see your mood trend!</div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
             {/* History Section */}
             <div className="space-y-4 pt-8">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -496,7 +626,16 @@ export default function Mindset() {
                                     {format(parseISO(log.date), "MMMM do, yyyy")}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3 flex-1 text-sm">
+                            <CardContent className="space-y-3 flex-1 text-sm bg-card text-card-foreground">
+                                {log.mood && (
+                                    <div className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-muted/50 border flex-wrap w-fit">
+                                        <span className="font-semibold text-muted-foreground text-xs uppercase">Mood:</span>
+                                        <div className="flex items-center gap-1">
+                                            {getMoodIcon(log.mood, "h-4 w-4")}
+                                            <span className="font-bold text-xs uppercase tracking-wider">{log.mood}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div>
                                     <span className="font-semibold text-muted-foreground text-xs uppercase">Grateful For:</span>
                                     <p className="line-clamp-3">{log.grateful_for}</p>
